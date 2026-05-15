@@ -1,0 +1,3593 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="EPS Dashboard" />
+  <meta name="theme-color" content="#0f1117" />
+  <title>EPS Collège — Tableau de bord pédagogique</title>
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%236c8cff' width='100' height='100' rx='20'/><text x='50' y='68' text-anchor='middle' font-size='48' fill='white' font-family='sans-serif' font-weight='bold'>EPS</text></svg>" />
+  <style>
+    /* ========== VARIABLES & RESET ========== */
+    :root {
+      --bg: #0f1117;
+      --bg-elevated: #161922;
+      --surface: rgba(30, 34, 45, 0.72);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #e8eaef;
+      --text-muted: #9aa3b2;
+      --accent: #6c8cff;
+      --accent-soft: rgba(108, 140, 255, 0.18);
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+      --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --sidebar-w: 260px;
+    }
+    [data-theme="light"] {
+      --bg: #f4f6fb;
+      --bg-elevated: #ffffff;
+      --surface: rgba(255, 255, 255, 0.78);
+      --border: rgba(15, 23, 42, 0.08);
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #4f46e5;
+      --accent-soft: rgba(79, 70, 229, 0.12);
+      --shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--font);
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(108, 140, 255, 0.15), transparent),
+        radial-gradient(900px 500px at 100% 0%, rgba(52, 211, 153, 0.1), transparent), var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      transition: background 0.35s ease, color 0.25s ease;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; border: none; background: none; }
+    ul { list-style: none; }
+    .hidden { display: none !important; }
+
+    /* ========== LAYOUT ========== */
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 40;
+      padding: 1.25rem 1rem;
+      background: var(--surface);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: transform 0.3s ease;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.35rem 0.5rem;
+    }
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), #a78bfa);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 0.85rem;
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+    .brand h1 { font-size: 1rem; font-weight: 700; letter-spacing: -0.02em; }
+    .brand span { font-size: 0.72rem; color: var(--text-muted); }
+    .nav-section { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); padding: 0.5rem 0.75rem; }
+    .nav-btn {
+      width: 100%;
+      text-align: left;
+      padding: 0.65rem 0.85rem;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+    }
+    .nav-btn:hover { background: var(--accent-soft); color: var(--text); }
+    .nav-btn.active { background: var(--accent-soft); color: var(--text); font-weight: 600; }
+    .nav-btn svg { width: 18px; height: 18px; opacity: 0.85; }
+    .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem; }
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.6rem 0.85rem; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--bg-elevated);
+      font-size: 0.8rem;
+    }
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      padding: 1.25rem 1.5rem 2rem;
+      max-width: 1400px;
+    }
+    .topbar {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+      gap: 1rem; margin-bottom: 1.25rem;
+    }
+    .topbar h2 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.03em; }
+    .search-wrap {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.45rem 0.85rem; border-radius: 999px;
+      border: 1px solid var(--border); background: var(--surface);
+      backdrop-filter: blur(12px); min-width: 220px;
+    }
+    .search-wrap input { border: none; background: transparent; flex: 1; outline: none; font-size: 0.85rem; }
+
+    /* ========== CARDS & KPI ========== */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+    .kpi {
+      padding: 1rem;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+      animation: kpiIn 0.45s ease backwards;
+    }
+    @keyframes kpiIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .kpi-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .kpi-value { font-size: 1.55rem; font-weight: 800; margin-top: 0.25rem; letter-spacing: -0.03em; }
+    .kpi-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    .card {
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(14px);
+      padding: 1.1rem 1.2rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1rem;
+    }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+      margin-bottom: 0.85rem;
+    }
+    .card-header h3 { font-size: 1rem; font-weight: 700; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.25rem;
+      font-size: 0.68rem; font-weight: 600; padding: 0.2rem 0.55rem;
+      border-radius: 999px; background: var(--accent-soft); color: var(--accent);
+    }
+    .badge.warn { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+    .badge.danger { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
+    .badge.ok { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+
+    /* ========== BUTTONS ========== */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+      padding: 0.5rem 1rem; border-radius: 10px; font-weight: 600; font-size: 0.82rem;
+      border: 1px solid var(--border); background: var(--bg-elevated);
+      transition: transform 0.12s, box-shadow 0.2s, background 0.2s;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), #818cf8); color: #fff; border-color: transparent; }
+    .btn-ghost { background: transparent; }
+    .btn-sm { padding: 0.35rem 0.65rem; font-size: 0.75rem; }
+    .btn-danger { background: rgba(248, 113, 113, 0.15); color: var(--danger); border-color: rgba(248, 113, 113, 0.35); }
+
+    /* ========== TABLES ========== */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th, td { padding: 0.65rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); background: var(--bg-elevated); }
+    tr:hover td { background: rgba(108, 140, 255, 0.04); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 0.35rem; vertical-align: middle; }
+
+    /* ========== CLASS CARDS GRID ========== */
+    .class-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+    .class-card {
+      border-radius: var(--radius);
+      padding: 1rem;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .class-card::before {
+      content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+      background: var(--cc, var(--accent));
+    }
+    .class-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+    .class-card h4 { font-size: 1.05rem; margin-bottom: 0.35rem; }
+    .class-card .meta { font-size: 0.78rem; color: var(--text-muted); }
+
+    /* ========== PROGRESS ========== */
+    .progress {
+      height: 8px; border-radius: 99px; background: var(--border); overflow: hidden; margin-top: 0.5rem;
+    }
+    .progress > span {
+      display: block; height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--accent), #34d399);
+      transition: width 0.5s ease;
+    }
+
+    /* ========== TIMELINE ========== */
+    .timeline { position: relative; padding-left: 1.25rem; }
+    .timeline::before {
+      content: ""; position: absolute; left: 6px; top: 4px; bottom: 4px; width: 2px;
+      background: var(--border); border-radius: 2px;
+    }
+    .tl-item { position: relative; padding-bottom: 1rem; }
+    .tl-item::before {
+      content: ""; position: absolute; left: -1.25rem; top: 4px; width: 12px; height: 12px;
+      border-radius: 50%; background: var(--tl, var(--accent)); border: 2px solid var(--bg-elevated);
+    }
+
+    /* ========== CALENDAR ========== */
+    .cal-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      font-size: 0.72rem;
+    }
+    .cal-dow { text-align: center; color: var(--text-muted); padding: 0.35rem; font-weight: 600; }
+    .cal-cell {
+      min-height: 72px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 4px;
+      background: var(--bg-elevated);
+      transition: background 0.15s;
+    }
+    .cal-cell.muted { opacity: 0.45; }
+    .cal-cell.today { outline: 2px solid var(--accent); }
+    .cal-cell .num { font-weight: 700; font-size: 0.75rem; }
+    .cal-chip {
+      font-size: 0.58rem; padding: 1px 4px; border-radius: 4px; margin-top: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* ========== CHARTS (sans librairie) ========== */
+    .bar-chart { display: flex; flex-direction: column; gap: 0.5rem; }
+    .bar-row { display: grid; grid-template-columns: 100px 1fr 40px; align-items: center; gap: 0.5rem; font-size: 0.78rem; }
+    .bar-track { height: 10px; border-radius: 99px; background: var(--border); overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+
+    /* ========== MODAL ========== */
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1rem;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    }
+    .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+    .modal {
+      width: min(520px, 100%);
+      max-height: 90vh; overflow: auto;
+      border-radius: var(--radius);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 1.25rem;
+      transform: translateY(12px); transition: transform 0.25s;
+    }
+    .modal-backdrop.open .modal { transform: translateY(0); }
+    .modal h3 { margin-bottom: 1rem; font-size: 1.1rem; }
+    .form-group { margin-bottom: 0.85rem; }
+    .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 0.5rem 0.65rem; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--surface);
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+
+    /* ========== MOBILE ========== */
+    .menu-toggle {
+      display: none; position: fixed; bottom: 1rem; right: 1rem; z-index: 50;
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #818cf8);
+      color: #fff; box-shadow: var(--shadow); align-items: center; justify-content: center;
+    }
+    @media (max-width: 900px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .menu-toggle { display: flex; }
+    }
+
+    /* ========== PRINT ========== */
+    .year-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 0.5rem;
+      font-size: 0.7rem;
+    }
+    .year-month {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.4rem;
+      background: var(--bg-elevated);
+    }
+    .year-month strong { display: block; margin-bottom: 0.25rem; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+    .flex-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .print-only { display: none; }
+
+    .dashboard-classes {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.15rem;
+      margin-top: 1rem;
+    }
+    .dash-class-card {
+      border-radius: var(--radius);
+      padding: 1.2rem 1.25rem;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+      border-left: 5px solid var(--dash-c, var(--accent));
+      animation: kpiIn 0.42s ease backwards;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .dash-class-card:hover { transform: translateY(-2px); box-shadow: 0 22px 50px rgba(0, 0, 0, 0.35); }
+    .dash-class-card h3 { font-size: 1.15rem; margin-bottom: 0.35rem; letter-spacing: -0.02em; }
+    .dash-days { font-size: 0.88rem; color: var(--text-muted); margin: 0.5rem 0 0.75rem; line-height: 1.4; }
+    .dash-class-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.65rem;
+      margin-top: 0.5rem;
+      text-align: center;
+    }
+    .dash-class-metrics .num { font-size: 1.45rem; font-weight: 800; letter-spacing: -0.03em; }
+    .dash-class-metrics .lbl {
+      display: block;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-top: 0.15rem;
+    }
+
+    @media print {
+      .sidebar, .menu-toggle, .no-print, .nav-btn, .theme-toggle, .search-wrap { display: none !important; }
+      .main { margin: 0; max-width: none; padding: 0.5rem; }
+      body { background: #fff; color: #000; }
+      .card, .kpi { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+      .print-only { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-icon">EPS</div>
+        <div>
+          <h1>Studio EPS</h1>
+          <span>Collège — cycles & séances</span>
+        </div>
+      </div>
+      <div class="nav-section">Menu principal</div>
+      <nav id="main-nav"></nav>
+      <div class="sidebar-footer">
+        <div class="theme-toggle">
+          <span>Thème</span>
+          <button type="button" class="btn btn-sm" id="btn-theme">Sombre / Clair</button>
+        </div>
+        <button type="button" class="btn btn-sm btn-ghost" id="btn-print">Imprimer la vue</button>
+      </div>
+    </aside>
+    <button type="button" class="menu-toggle no-print" id="btn-menu" aria-label="Menu">☰</button>
+    <main class="main" id="main"><div style="padding:2rem;text-align:center;color:#6c8cff;font-size:1.2rem">⏳ Chargement…</div></main>
+  </div>
+  <div class="modal-backdrop" id="modal-root"></div>
+
+  <script>
+    window.onerror = function(msg, src, line, col, err) {
+      var m = document.getElementById("main");
+      if (m) m.innerHTML = "<div style='padding:2rem;color:red;font-size:1rem;word-break:break-all'><h2>Erreur JS</h2><p><b>" + msg + "</b></p><p>Ligne " + line + ", col " + col + "</p><pre style='white-space:pre-wrap'>" + (err && err.stack ? err.stack : "") + "</pre></div>";
+    };
+  </script>
+  <script>
+    /**
+     * =============================================================================
+     * EPS COLLÈGE — APPLICATION MONOLITHIQUE (HTML + CSS + JS, sans dépendance)
+     * =============================================================================
+     *
+     * ARCHITECTURE (extensible) :
+     * 1) DONNÉES — `appData` : classes, créneaux (schedules), APSA (activities),
+     *    événements calendaires (holidays), annulations, séances générées (sessions).
+     * 2) PERSISTANCE — localStorage (auto), export/import JSON, reset.
+     * 3) MOTEUR — `regenerateSessions()` : parcourt l'année, applique chaque créneau (jour, alternance
+     *    semaine A/B depuis la rentrée), exclut jours bloquants, rattache l'APSA par chevauchement de dates
+     *    et par jours de pratique cochés sur l'APSA. `computeSessionStatus()` : annulation > férié > passé/futur.
+     * 4) PRÉSENTATION — `render()` : vue « Tableau de bord », puis une vue par classe
+     *    (`class:<id>` avec liste des séances et annulations), puis « Réglages & données »
+     *    (sous-panneaux EDT / APSA / etc.). `wireEvents()` attache les interactions.
+     *
+     * Pour ajouter un module : étendre `appData`, créer les fonctions CRUD + une
+     * fonction `viewMonModule()` puis une entrée dans `VIEWS` et le `switch` de render.
+     * =============================================================================
+     */
+
+    /** @typedef {'dashboard'|'tools'|string} ViewId — les vues classe sont `class:<uuid>`. */
+
+    const STORAGE_KEY = "eps_college_dashboard_v1";
+
+    /**
+     * Stockage compatible fichier local / AirDrop (iOS Safari) : `localStorage` peut être
+     * indisponible ou lever SecurityError sur `file://`. On teste une fois puis repli mémoire.
+     */
+    const LS_MEMORY = {};
+    let lsUsable = null;
+    /** true si les données ne survivent pas au rechargement (mode fichier sans localStorage). */
+    let appStorageIsMemory = false;
+    function lsWorks() {
+      if (lsUsable !== null) return lsUsable;
+      try {
+        if (typeof localStorage === "undefined" || !localStorage) {
+          lsUsable = false;
+          appStorageIsMemory = true;
+          return false;
+        }
+        var t = "__eps_ls_probe__";
+        localStorage.setItem(t, "1");
+        localStorage.removeItem(t);
+        lsUsable = true;
+        appStorageIsMemory = false;
+        return true;
+      } catch (e) {
+        lsUsable = false;
+        appStorageIsMemory = true;
+        return false;
+      }
+    }
+    function lsGet(key) {
+      if (lsWorks()) {
+        try {
+          return localStorage.getItem(key);
+        } catch (e) {}
+      }
+      return Object.prototype.hasOwnProperty.call(LS_MEMORY, key) ? LS_MEMORY[key] : null;
+    }
+    function lsSet(key, val) {
+      if (lsWorks()) {
+        try {
+          localStorage.setItem(key, val);
+          return;
+        } catch (e) {}
+      }
+      LS_MEMORY[key] = val;
+    }
+    function lsRemove(key) {
+      if (lsWorks()) {
+        try {
+          localStorage.removeItem(key);
+        } catch (e) {}
+      }
+      delete LS_MEMORY[key];
+    }
+
+    /**
+     * État global de l'application (source de vérité en mémoire).
+     * sessions : générées automatiquement à partir des créneaux, vacances, fériés, APSA.
+     */
+    const appData = {
+      settings: {
+        schoolYearStart: "2025-09-01",
+        schoolYearEnd: "2026-07-05",
+        zone: "C",
+      },
+      classes: [],
+      schedules: [],
+      activities: [],
+      holidays: [],
+      cancellations: [],
+      sessions: [],
+      exemptions: [],
+      periods: [],
+      venues: [],
+      forgottenGear: [],
+      todoList: [],
+    };
+
+    let currentView = "dashboard";
+    const viewHistory = [];
+    let calendarMode = "month";
+    let calendarCursor = new Date();
+
+    /* -------------------------------------------------------------------------- */
+    /* UTILITAIRES                                                                */
+    /* -------------------------------------------------------------------------- */
+
+    function uid() {
+      try { if (crypto && crypto.randomUUID) return crypto.randomUUID(); } catch(e) {}
+      return "id-" + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+    }
+
+    function parseISODate(s) {
+      const [y, m, d] = s.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function fmtISODate(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    }
+
+    function addDays(d, n) {
+      const x = new Date(d);
+      x.setDate(x.getDate() + n);
+      return x;
+    }
+
+    function isSameDay(a, b) {
+      return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    }
+
+    function dayIndexMon0(d) {
+      const i = d.getDay();
+      return i === 0 ? 6 : i - 1;
+    }
+
+    /** Numéro de semaine (lundi → lundi) depuis le début d'année scolaire — pour alternance A/B. */
+    function schoolWeekIndex(date) {
+      const start = parseISODate(appData.settings.schoolYearStart);
+      const monStart = addDays(start, -dayIndexMon0(start));
+      const monD = addDays(new Date(date.getFullYear(), date.getMonth(), date.getDate()), -dayIndexMon0(date));
+      const diff = Math.round((monD - monStart) / (7 * 86400000));
+      return diff >= 0 ? diff : 0;
+    }
+
+    /** Créneau « semaine A » (pairs) ou « semaine B » (impairs) depuis la rentrée. */
+    function matchesWeekParity(slot, date) {
+      const p = slot.weekParity || "all";
+      if (p === "all") return true;
+      const idx = schoolWeekIndex(date);
+      if (p === "A") return idx % 2 === 0;
+      if (p === "B") return idx % 2 === 1;
+      return true;
+    }
+
+    function weekParityLabel(slot) {
+      const p = slot.weekParity || "all";
+      if (p === "A") return "Semaine A";
+      if (p === "B") return "Semaine B";
+      return "Toutes";
+    }
+
+    function isDateInRange(date, startStr, endStr) {
+      const t = fmtISODate(date);
+      return t >= startStr && t <= endStr;
+    }
+
+    function todayStart() {
+      const n = new Date();
+      n.setHours(0, 0, 0, 0);
+      return n;
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /* PERSISTANCE localStorage + import/export                                   */
+    /* -------------------------------------------------------------------------- */
+
+    function saveData() {
+      try {
+        lsSet(STORAGE_KEY, JSON.stringify(appData));
+      } catch (e) {
+        console.error(e);
+        alert("Sauvegarde impossible (quota navigateur ?).");
+      }
+    }
+
+    function loadData() {
+      try {
+        const raw = lsGet(STORAGE_KEY);
+        if (!raw) return false;
+        const o = JSON.parse(raw);
+        Object.assign(appData, o);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function exportJSON() {
+      const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `eps-backup-${fmtISODate(new Date())}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function importJSONFile(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const o = JSON.parse(reader.result);
+          Object.keys(appData).forEach((k) => {
+            if (o[k] !== undefined) appData[k] = o[k];
+          });
+          regenerateSessions();
+          saveData();
+          render();
+          alert("Import réussi.");
+        } catch {
+          alert("Fichier JSON invalide.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetAll() {
+      if (!confirm("Effacer toutes les données locales ? Cette action est irréversible.")) return;
+      lsRemove(STORAGE_KEY);
+      location.reload();
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /* MODÈLE : accesseurs                                                         */
+    /* -------------------------------------------------------------------------- */
+
+    function getClassById(id) {
+      return appData.classes.find((c) => c.id === id);
+    }
+
+    function schedulesForClass(classId) {
+      return appData.schedules.filter((s) => s.classId === classId);
+    }
+
+    function activitiesForClass(classId) {
+      return appData.activities
+        .filter((a) => a.classId === classId)
+        .slice()
+        .sort((a, b) => a.startDate.localeCompare(b.startDate));
+    }
+
+    function sessionsForClass(classId) {
+      return appData.sessions.filter((s) => s.classId === classId);
+    }
+
+    /** APSA dont la période contient la date `dateStr` (ISO). */
+    function activitiesOnDatePeriod(classId, dateStr) {
+      return activitiesForClass(classId).filter((a) => dateStr >= a.startDate && dateStr <= a.endDate);
+    }
+
+    function activityIdsOnPeriodToday(classId) {
+      const t = fmtISODate(new Date());
+      return new Set(activitiesOnDatePeriod(classId, t).map((a) => a.id));
+    }
+
+    function sessionStatsForSessions(list) {
+      let done = 0, cancelled = 0, remaining = 0;
+      list.forEach((s) => {
+        const st = computeSessionStatus(s);
+        if (st.code === "cancelled") cancelled++;
+        else if (st.code === "holiday") {
+        } else if (st.code === "done") done++;
+        else if (st.code === "today" || st.code === "planned") remaining++;
+      });
+      const total = list.length;
+      const denom = Math.max(1, total - cancelled);
+      const pct = Math.min(100, Math.round((done / denom) * 100));
+      return { total, done, cancelled, remaining, realized: done, pct };
+    }
+
+    function sessionStatsForClass(classId) {
+      return sessionStatsForSessions(sessionsForClass(classId));
+    }
+
+    /** Stats séances rattachées aux APSA « en cours » aujourd'hui (période calendaire). */
+    function sessionStatsForCurrentPeriod(classId) {
+      const ids = activityIdsOnPeriodToday(classId);
+      if (!ids.size) return { total: 0, done: 0, cancelled: 0, remaining: 0, pct: 0, realized: 0 };
+      const list = sessionsForClass(classId).filter((s) => s.activityId && ids.has(s.activityId));
+      return sessionStatsForSessions(list);
+    }
+
+    /** Jours affichés au tableau de bord : jours cochés sur les APSA en cours, sinon créneaux EDT. */
+    function weekdaysForDashboardClass(classId, refDateISO) {
+      const acts = activitiesOnDatePeriod(classId, refDateISO || fmtISODate(new Date()));
+      const daySet = new Set();
+      acts.forEach((a) => {
+        if (Array.isArray(a.dayIndices) && a.dayIndices.length) a.dayIndices.forEach((d) => daySet.add(d));
+      });
+      if (daySet.size) return [...daySet].sort((a, b) => a - b).map((i) => DOW[i]).join(" · ");
+      return weekdaysForClass(classId);
+    }
+
+    function formatDayIndicesLabel(act) {
+      if (!act.dayIndices || !act.dayIndices.length) return "Tous les jours de créneau (période)";
+      return act.dayIndices
+        .slice()
+        .sort((a, b) => a - b)
+        .map((i) => DOW[i])
+        .join(", ");
+    }
+
+    /**
+     * Détermine si une date tombe dans un événement « bloquant » (vacances, férié, etc.).
+     */
+    function isBlockedByHoliday(dateStr) {
+      return appData.holidays.some((h) => dateStr >= h.startDate && dateStr <= h.endDate && h.blocksSessions);
+    }
+
+    function getHolidayOnDate(dateStr) {
+      return appData.holidays.find((h) => dateStr >= h.startDate && dateStr <= h.endDate);
+    }
+
+    /**
+     * APSA pour une séance : période [début, fin] + jours cochés (sinon tous les jours de la période).
+     * En cas de chevauchement, priorité aux APSA avec jour explicite correspondant au créneau.
+     */
+    function pickActivityForSession(classId, dateStr, dayIndex) {
+      const inRange = activitiesForClass(classId).filter((a) => dateStr >= a.startDate && dateStr <= a.endDate);
+      if (!inRange.length) return null;
+      const withDay = inRange.filter((a) => Array.isArray(a.dayIndices) && a.dayIndices.length && a.dayIndices.includes(dayIndex));
+      const pool = withDay.length ? withDay : inRange.filter((a) => !a.dayIndices || !a.dayIndices.length);
+      if (!pool.length) return null;
+      pool.sort((a, b) => a.startDate.localeCompare(b.startDate));
+      return pool[0];
+    }
+
+    function pickActivityForDate(classId, dateStr) {
+      const d = parseISODate(dateStr);
+      return pickActivityForSession(classId, dateStr, dayIndexMon0(d));
+    }
+
+    function cancellationForSession(session) {
+      return appData.cancellations.find(
+        (c) => c.sessionId === session.id || (c.classId === session.classId && c.date === session.date && c.startTime === session.startTime)
+      );
+    }
+
+    /**
+     * Statut final d'une séance : annulée > vacances/férié > effectuée / prévue.
+     */
+    function computeSessionStatus(session) {
+      const canc = cancellationForSession(session);
+      if (canc) return { code: "cancelled", label: "Annulée", reason: canc.reasonType };
+      const hol = getHolidayOnDate(session.date);
+      if (hol && hol.blocksSessions)
+        return { code: "holiday", label: hol.type === "ferie" ? "Jour férié" : "Vacances / événement", reason: hol.name };
+      const d = parseISODate(session.date);
+      const now = todayStart();
+      if (d < now) return { code: "done", label: "Effectuée", reason: "" };
+      if (isSameDay(d, now)) return { code: "today", label: "Aujourd'hui", reason: "" };
+      return { code: "planned", label: "Prévue", reason: "" };
+    }
+
+    function migrateDataModel() {
+      appData.schedules.forEach((s) => {
+        if (s.weekParity !== "A" && s.weekParity !== "B" && s.weekParity !== "all") s.weekParity = "all";
+      });
+      appData.activities.forEach((a) => {
+        if (!Array.isArray(a.dayIndices)) a.dayIndices = [];
+      });
+      if (!Array.isArray(appData.exemptions)) appData.exemptions = [];
+      if (!Array.isArray(appData.periods)) appData.periods = [];
+      if (!Array.isArray(appData.venues)) appData.venues = [];
+      if (appData.progEtabPdf === undefined) appData.progEtabPdf = null;
+      if (!Array.isArray(appData.forgottenGear)) appData.forgottenGear = [];
+      appData.classes.forEach((cl) => { if (!Array.isArray(cl.students)) cl.students = []; });
+      appData.sessions.forEach((s) => { if (!s.attendance) s.attendance = {}; });
+      if (!Array.isArray(appData.todoList)) appData.todoList = [];
+      if (!appData.settings.academy) appData.settings.academy = "";
+    }
+
+    function exemptionsForClass(classId) {
+      return appData.exemptions.filter((e) => e.classId === classId);
+    }
+
+    function isExemptionActive(ex) {
+      const today = fmtISODate(new Date());
+      return today >= ex.startDate && today <= ex.endDate;
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /* GÉNÉRATION AUTOMATIQUE DES SÉANCES                                         */
+    /* -------------------------------------------------------------------------- */
+
+    function regenerateSessions() {
+      migrateDataModel();
+      const start = parseISODate(appData.settings.schoolYearStart);
+      const end = parseISODate(appData.settings.schoolYearEnd);
+      const oldCanc = appData.cancellations.slice();
+      const oldByKey = new Map();
+      appData.sessions.forEach((s) => {
+        oldByKey.set(`${s.classId}|${s.date}|${s.startTime}`, s.id);
+      });
+
+      const extraSessions = appData.sessions.filter((s) => s.extra);
+      const nextSessions = [];
+
+      appData.classes.forEach((cl) => {
+        const slots = schedulesForClass(cl.id);
+        slots.forEach((slot) => {
+          let cursor = new Date(start);
+          while (cursor <= end) {
+            if (dayIndexMon0(cursor) === slot.dayIndex) {
+              const dateStr = fmtISODate(cursor);
+              const di = dayIndexMon0(cursor);
+              if (!isBlockedByHoliday(dateStr) && matchesWeekParity(slot, cursor)) {
+                const act = pickActivityForSession(cl.id, dateStr, di);
+                const sid = oldByKey.get(`${cl.id}|${dateStr}|${slot.startTime}`) || uid();
+                nextSessions.push({
+                  id: sid,
+                  classId: cl.id,
+                  scheduleId: slot.id,
+                  activityId: act ? act.id : null,
+                  date: dateStr,
+                  startTime: slot.startTime,
+                  endTime: slot.endTime,
+                  venue: slot.venue,
+                  comment: "",
+                });
+              }
+            }
+            cursor = addDays(cursor, 1);
+          }
+        });
+      });
+
+      nextSessions.push(...extraSessions);
+      nextSessions.sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
+      appData.sessions = nextSessions;
+
+      /** Réassocie les annulations aux nouveaux ids de séance après régénération. */
+      oldCanc.forEach((c) => {
+        const match = appData.sessions.find(
+          (s) =>
+            s.id === c.sessionId ||
+            (s.classId === c.classId && s.date === c.date && s.startTime === c.startTime)
+        );
+        if (match) {
+          c.sessionId = match.id;
+          c.date = match.date;
+          c.startTime = match.startTime;
+        }
+      });
+      appData.cancellations = oldCanc.filter((c) => appData.sessions.some((s) => s.id === c.sessionId));
+      saveData();
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /* STATISTIQUES & AGRÉGATIONS                                                   */
+    /* -------------------------------------------------------------------------- */
+
+    function dashboardKPIs(refDate) {
+      const ref = refDate || new Date();
+      const todayStr = fmtISODate(ref);
+      const refStart = new Date(ref); refStart.setHours(0,0,0,0);
+      const startWeek = addDays(refStart, -dayIndexMon0(refStart));
+      const endWeek = addDays(startWeek, 6);
+      let classesToday = 0;
+      const next3Weeks = [0, 1, 2].map((offset) => {
+        const ws = addDays(startWeek, offset * 7);
+        const we = addDays(ws, 6);
+        return { start: ws, end: we, cancelled: [], extras: [] };
+      });
+      appData.classes.forEach((cl) => {
+        const hasToday = sessionsForClass(cl.id).some((s) => s.date === todayStr);
+        if (hasToday) classesToday++;
+        sessionsForClass(cl.id).forEach((s) => {
+          const d = parseISODate(s.date);
+          const st = computeSessionStatus(s);
+          const fmtDD = (date) => String(date.getDate()).padStart(2,"0") + "/" + String(date.getMonth()+1).padStart(2,"0");
+          for (const w of next3Weeks) {
+            if (d >= w.start && d <= w.end) {
+              const timeLabel = s.startTime ? " " + s.startTime + (s.endTime ? "–" + s.endTime : "") : "";
+              if (st.code === "cancelled") {
+                w.cancelled.push(cl.name + " – " + fmtDD(d) + timeLabel);
+              }
+              if (s.extra) {
+                w.extras.push(cl.name + " – " + fmtDD(d) + timeLabel);
+              }
+              break;
+            }
+          }
+        });
+      });
+      const cycleAlerts = appData.classes.filter((cl) => {
+        const ids = new Set(activitiesOnDatePeriod(cl.id, todayStr).map((a) => a.id));
+        if (!ids.size) return false;
+        const acts = activitiesForClass(cl.id).filter((a) => ids.has(a.id));
+        for (const cur of acts) {
+          const list = sessionsForClass(cl.id).filter((s) => s.activityId === cur.id);
+          const doneInAct = list.filter((s) => computeSessionStatus(s).code === "done").length;
+          const totalInAct = list.length;
+          if (totalInAct > 0 && doneInAct / totalInAct > 0.85) return true;
+        }
+        return false;
+      });
+      return { classesToday, next3Weeks, cycleAlerts, classCount: appData.classes.length };
+    }
+
+    function recentCancellations(limit = 6) {
+      return appData.cancellations
+        .map((c) => {
+          const s = appData.sessions.find((x) => x.id === c.sessionId) || { classId: c.classId, date: c.date };
+          const cl = getClassById(s.classId);
+          return { ...c, className: cl ? cl.name : "?" };
+        })
+        .sort((a, b) => (b.date || "").localeCompare(a.date || ""))
+        .slice(0, limit);
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /* DONNÉES DE DÉMONSTRATION                                                     */
+    /* -------------------------------------------------------------------------- */
+
+    function seedDemo() {
+      const c6 = uid(), c5 = uid(), c4 = uid();
+      appData.classes = [
+        { id: c6, name: "6e1", color: "#6366f1", enrollment: 26, cycleYears: 3 },
+        { id: c5, name: "5e3", color: "#10b981", enrollment: 28, cycleYears: 4 },
+        { id: c4, name: "4e2", color: "#f59e0b", enrollment: 25, cycleYears: 3 },
+      ];
+      appData.schedules = [
+        { id: uid(), classId: c6, dayIndex: 1, startTime: "10:00", endTime: "12:00", venue: "Gymnase A", frequency: 1, weekParity: "all" },
+        { id: uid(), classId: c6, dayIndex: 3, startTime: "14:00", endTime: "15:00", venue: "Cour extérieure", frequency: 1, weekParity: "all" },
+        { id: uid(), classId: c5, dayIndex: 2, startTime: "09:00", endTime: "11:00", venue: "Gymnase B", frequency: 1, weekParity: "all" },
+        { id: uid(), classId: c5, dayIndex: 4, startTime: "15:00", endTime: "16:00", venue: "Salle TT", frequency: 1, weekParity: "all" },
+        { id: uid(), classId: c4, dayIndex: 0, startTime: "11:00", endTime: "12:00", venue: "Stade", frequency: 1, weekParity: "all" },
+        { id: uid(), classId: c4, dayIndex: 3, startTime: "10:00", endTime: "12:00", venue: "Gymnase A", frequency: 1, weekParity: "all" },
+      ];
+      appData.activities = [
+        { id: uid(), classId: c6, name: "Tennis de table", field: "AF — s'adapter", color: "#818cf8", startDate: "2025-09-08", endDate: "2025-11-07", venue: "Salle TT", objectives: "Services variés", competencies: "C1 C2", plannedSessions: 0, dayIndices: [1] },
+        { id: uid(), classId: c6, name: "Basket-ball", field: "AC — coopérer", color: "#34d399", startDate: "2025-11-10", endDate: "2026-01-24", venue: "Gymnase A", objectives: "Jeu collectif", competencies: "C3", plannedSessions: 0, dayIndices: [3] },
+        { id: uid(), classId: c6, name: "Badminton", field: "AP — combiner", color: "#f472b6", startDate: "2026-01-26", endDate: "2026-04-04", venue: "Gymnase B", objectives: "Volants", competencies: "C2", plannedSessions: 0, dayIndices: [1, 3] },
+        { id: uid(), classId: c5, name: "Demi-fond", field: "AE — se dépenser", color: "#22d3ee", startDate: "2025-09-08", endDate: "2025-12-19", venue: "Stade", objectives: "Allure", competencies: "C1", plannedSessions: 0, dayIndices: [2] },
+        { id: uid(), classId: c5, name: "Acrosport", field: "AP — combiner", color: "#a78bfa", startDate: "2026-01-05", endDate: "2026-03-20", venue: "Gymnase A", objectives: "Portés", competencies: "C4", plannedSessions: 0, dayIndices: [4] },
+        { id: uid(), classId: c4, name: "Ultimate", field: "AC — coopérer", color: "#fb923c", startDate: "2025-09-08", endDate: "2025-11-28", venue: "Stade", objectives: "Respect du jeu", competencies: "C3", plannedSessions: 0, dayIndices: [0] },
+        { id: uid(), classId: c4, name: "Danse", field: "AC — coopérer", color: "#ec4899", startDate: "2025-12-01", endDate: "2026-03-06", venue: "Salle danse", objectives: "Composition", competencies: "C2 C3", plannedSessions: 0, dayIndices: [3] },
+        { id: uid(), classId: c4, name: "Gymnastique / relais", field: "AP — combiner", color: "#14b8a6", startDate: "2026-03-09", endDate: "2026-07-05", venue: "Gymnase A", objectives: "Enchaînements / vitesse", competencies: "C2 C4", plannedSessions: 0, dayIndices: [0] },
+        { id: uid(), classId: c6, name: "Arts du cirque", field: "AP — combiner", color: "#c084fc", startDate: "2026-04-21", endDate: "2026-07-05", venue: "Gymnase B", objectives: "Jonglage / équilibre", competencies: "C2", plannedSessions: 0, dayIndices: [1, 3] },
+        { id: uid(), classId: c5, name: "Badminton", field: "AP — combiner", color: "#f472b6", startDate: "2026-03-23", endDate: "2026-07-05", venue: "Gymnase B", objectives: "Échanges", competencies: "C2", plannedSessions: 0, dayIndices: [2, 4] },
+      ];
+      appData.holidays = [
+        { id: uid(), type: "vacances", name: "Toussaint", startDate: "2025-10-18", endDate: "2025-11-03", color: "#64748b", blocksSessions: true },
+        { id: uid(), type: "vacances", name: "Noël", startDate: "2025-12-20", endDate: "2026-01-04", color: "#64748b", blocksSessions: true },
+        { id: uid(), type: "vacances", name: "Hiver", startDate: "2026-02-07", endDate: "2026-02-22", color: "#64748b", blocksSessions: true },
+        { id: uid(), type: "vacances", name: "Printemps", startDate: "2026-04-04", endDate: "2026-04-20", color: "#64748b", blocksSessions: true },
+        { id: uid(), type: "ferie", name: "Armistice", startDate: "2025-11-11", endDate: "2025-11-11", color: "#94a3b8", blocksSessions: true },
+        { id: uid(), type: "ferie", name: "Noël (jour)", startDate: "2025-12-25", endDate: "2025-12-25", color: "#94a3b8", blocksSessions: true },
+        { id: uid(), type: "formation", name: "Formation EPS", startDate: "2025-10-02", endDate: "2025-10-02", color: "#eab308", blocksSessions: true },
+        { id: uid(), type: "sortie", name: "Cross départemental", startDate: "2025-11-26", endDate: "2025-11-26", color: "#0ea5e9", blocksSessions: false },
+      ];
+      appData.cancellations = [];
+      regenerateSessions();
+      const s0 = appData.sessions.find((s) => s.classId === c6 && s.date === "2025-10-07");
+      if (s0) {
+        appData.cancellations.push({
+          id: uid(),
+          sessionId: s0.id,
+          classId: c6,
+          date: s0.date,
+          startTime: s0.startTime,
+          reasonType: "pluie",
+          comment: "Gymnase déjà occupé — report mental",
+        });
+      }
+      const sMay = appData.sessions.find((s) => s.classId === c4 && s.date === "2026-05-14");
+      if (sMay) {
+        appData.cancellations.push({
+          id: uid(),
+          sessionId: sMay.id,
+          classId: c4,
+          date: sMay.date,
+          startTime: sMay.startTime,
+          reasonType: "sortie",
+          comment: "Sortie culturelle — séance récupérée plus tard",
+        });
+      }
+      saveData();
+    }
+
+    /* -------------------------------------------------------------------------- */
+    /* NAVIGATION & RENDU PRINCIPAL                                                 */
+    /* -------------------------------------------------------------------------- */
+
+    const TOOLS_PANEL_LABELS = {
+      classes: "Mes classes",
+      orgEPS: "Organisation de l'EPS dans l'établissement",
+      calendriers: "Calendriers",
+      backup: "Sauvegarde",
+    };
+
+    let searchQuery = "";
+
+    const DOW = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+
+    /** Cases à cocher pour les jours de pratique d'une APSA (classe CSS `prefix-dayi`). */
+    function dayCheckboxesHtml(prefix, selectedIds) {
+      const sel = Array.isArray(selectedIds) ? selectedIds : [];
+      return `<div class="form-group"><label>Jours de pratique</label>
+        <p class="kpi-sub" style="margin-bottom:.35rem">Cochez les jours alignés sur l'emploi du temps pour cette activité. Laisser vide = tous les créneaux de la période.</p>
+        <div class="flex-row" style="flex-wrap:wrap;gap:.45rem">${DOW.map((name, i) => {
+          const c = sel.indexOf(i) >= 0 ? " checked" : "";
+          return `<label style="font-size:.78rem;cursor:pointer"><input type="checkbox" class="${prefix}-dayi" value="${i}"${c}/> ${name}</label>`;
+        }).join("")}</div></div>`;
+    }
+
+    function collectDayIndicesFromForm(body, cssClass) {
+      return [...body.querySelectorAll("." + cssClass + ":checked")]
+        .map((cb) => +cb.value)
+        .sort((a, b) => a - b);
+    }
+
+    const REASON_TYPES = [
+      ["pluie", "Pluie / intempéries"],
+      ["gym_indispo", "Gymnase / salle indisponible"],
+      ["sortie", "Sortie scolaire"],
+      ["formation", "Formation"],
+      ["abs_ens", "Absence enseignant"],
+      ["voyage", "Voyage"],
+      ["greve", "Grève"],
+      ["banalise", "Journée banalisée"],
+      ["autre", "Autre"],
+    ];
+
+    const ACADEMIES_ZONES = {
+      "Besançon": "A", "Bordeaux": "A", "Clermont-Ferrand": "A", "Dijon": "A",
+      "Grenoble": "A", "Limoges": "A", "Lyon": "A", "Poitiers": "A",
+      "Aix-Marseille": "B", "Amiens": "B", "Lille": "B", "Nancy-Metz": "B",
+      "Nantes": "B", "Nice": "B", "Normandie": "B", "Orléans-Tours": "B",
+      "Reims": "B", "Rennes": "B", "Strasbourg": "B",
+      "Créteil": "C", "Montpellier": "C", "Paris": "C", "Toulouse": "C", "Versailles": "C",
+      "Corse": "A", "Guadeloupe": "—", "Guyane": "—", "Martinique": "—",
+      "Mayotte": "—", "La Réunion": "—", "Nouvelle-Calédonie": "—", "Polynésie française": "—",
+    };
+
+    const OFFICIAL_HOLIDAYS_2025_2026 = {
+      feries: [
+        { name: "Armistice 1918",             startDate: "2025-11-11", endDate: "2025-11-11" },
+        { name: "Noël",                       startDate: "2025-12-25", endDate: "2025-12-25" },
+        { name: "Jour de l'An",               startDate: "2026-01-01", endDate: "2026-01-01" },
+        { name: "Lundi de Pâques",            startDate: "2026-04-06", endDate: "2026-04-06" },
+        { name: "Fête du Travail",            startDate: "2026-05-01", endDate: "2026-05-01" },
+        { name: "Victoire 1945",              startDate: "2026-05-08", endDate: "2026-05-08" },
+        { name: "Ascension",                  startDate: "2026-05-14", endDate: "2026-05-14" },
+        { name: "Pont de l'Ascension",        startDate: "2026-05-15", endDate: "2026-05-15" },
+        { name: "Lundi de Pentecôte",         startDate: "2026-05-25", endDate: "2026-05-25" },
+        { name: "Fête nationale",             startDate: "2026-07-14", endDate: "2026-07-14" },
+      ],
+      vacances: {
+        commun: [
+          { name: "Toussaint",   startDate: "2025-10-18", endDate: "2025-11-03" },
+          { name: "Noël",        startDate: "2025-12-20", endDate: "2026-01-05" },
+        ],
+        A: [
+          { name: "Hiver",       startDate: "2026-02-14", endDate: "2026-03-02" },
+          { name: "Printemps",   startDate: "2026-04-18", endDate: "2026-05-04" },
+        ],
+        B: [
+          { name: "Hiver",       startDate: "2026-02-07", endDate: "2026-02-23" },
+          { name: "Printemps",   startDate: "2026-04-11", endDate: "2026-04-27" },
+        ],
+        C: [
+          { name: "Hiver",       startDate: "2026-02-21", endDate: "2026-03-09" },
+          { name: "Printemps",   startDate: "2026-04-25", endDate: "2026-05-11" },
+        ],
+      },
+      ete: { name: "Été", startDate: "2026-07-04", endDate: "2026-09-01" },
+    };
+
+    function applyOfficialCalendar(zone) {
+      appData.holidays = [];
+      OFFICIAL_HOLIDAYS_2025_2026.feries.forEach((f) => {
+        appData.holidays.push({ id: uid(), type: "ferie", name: f.name, startDate: f.startDate, endDate: f.endDate, color: "#94a3b8", blocksSessions: true });
+      });
+      OFFICIAL_HOLIDAYS_2025_2026.vacances.commun.forEach((v) => {
+        appData.holidays.push({ id: uid(), type: "vacances", name: v.name, startDate: v.startDate, endDate: v.endDate, color: "#64748b", blocksSessions: true });
+      });
+      const zoneVac = OFFICIAL_HOLIDAYS_2025_2026.vacances[zone];
+      if (zoneVac) {
+        zoneVac.forEach((v) => {
+          appData.holidays.push({ id: uid(), type: "vacances", name: v.name, startDate: v.startDate, endDate: v.endDate, color: "#64748b", blocksSessions: true });
+        });
+      }
+      const ete = OFFICIAL_HOLIDAYS_2025_2026.ete;
+      appData.holidays.push({ id: uid(), type: "vacances", name: ete.name, startDate: ete.startDate, endDate: ete.endDate, color: "#64748b", blocksSessions: true });
+      appData.holidays.sort((a, b) => a.startDate.localeCompare(b.startDate));
+    }
+
+    /** Sous-onglet actif dans « Réglages & données » (EDT, APSA, etc.). */
+    let toolsPanel = "home";
+
+    /** Période sélectionnée par classe dans l'onglet classe (null = période en cours auto). */
+    const classSelectedPeriod = {};
+
+    let forgottenGearThreshold = parseInt(lsGet("eps_fg_threshold"), 10) || 3;
+
+    /** Date affichée sur le tableau de bord (par défaut aujourd'hui). */
+    let dashboardDate = new Date();
+    function dashboardDateISO() { return fmtISODate(dashboardDate); }
+    function dashboardDateStart() { const d = new Date(dashboardDate); d.setHours(0,0,0,0); return d; }
+
+    function getClassViewId(classId) {
+      return "class:" + classId;
+    }
+
+    /** Libellés des jours de cours (emploi du temps) pour une classe. */
+    function weekdaysForClass(classId) {
+      const slots = schedulesForClass(classId);
+      if (!slots.length) return "";
+      const idxs = [...new Set(slots.map((s) => s.dayIndex))].sort((a, b) => a - b);
+      return idxs.map((i) => DOW[i]).join(" · ");
+    }
+
+    function fmtDateFr(iso) {
+      const p = String(iso).split("-");
+      if (p.length !== 3) return iso;
+      return `${p[2]}/${p[1]}/${p[0]}`;
+    }
+
+    function cycleLabel(n) {
+      return `Cycle ${Number(n) || "—"}`;
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function activityById(id) {
+      return appData.activities.find((a) => a.id === id);
+    }
+
+    function matchesSearch(text) {
+      if (!searchQuery.trim()) return true;
+      return String(text).toLowerCase().includes(searchQuery.trim().toLowerCase());
+    }
+
+    /**
+     * Prochaine séance = première à venir (aujourd'hui inclus) non annulée.
+     * Dernière effectuée = dernière date passée marquée effectuée.
+     */
+    function nextAndLastSession(classId) {
+      const sorted = sessionsForClass(classId).slice().sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
+      const today = todayStart();
+      let next = null;
+      let lastDone = null;
+      sorted.forEach((s) => {
+        const st = computeSessionStatus(s);
+        const d = parseISODate(s.date);
+        d.setHours(0, 0, 0, 0);
+        if (st.code === "done") lastDone = s;
+        if (!next && (st.code === "planned" || st.code === "today")) {
+          if (st.code === "today") next = s;
+          else if (d.getTime() >= today.getTime()) next = s;
+        }
+      });
+      return { next, lastDone };
+    }
+
+    function statsPerActivity(classId, actId) {
+      const list = sessionsForClass(classId).filter((s) => s.activityId === actId);
+      let done = 0, cancelled = 0, remaining = 0;
+      list.forEach((s) => {
+        const st = computeSessionStatus(s);
+        if (st.code === "cancelled") cancelled++;
+        else if (st.code === "done") done++;
+        else if (st.code === "planned" || st.code === "today") remaining++;
+      });
+      const total = list.length;
+      const pct = total - cancelled > 0 ? Math.round((done / (total - cancelled)) * 100) : 0;
+      return { total, done, cancelled, remaining, pct };
+    }
+
+    /** Date ISO de la dernière séance (toutes, pas seulement effectuées) d'une APSA. */
+    function lastSessionDateForActivity(classId, actId) {
+      const list = sessionsForClass(classId)
+        .filter((s) => s.activityId === actId)
+        .map((s) => s.date)
+        .sort();
+      return list.length ? list[list.length - 1] : null;
+    }
+
+    function globalSessionCounts(refDate) {
+      let todayN = 0, planned = 0, done = 0, cancelled = 0;
+      const todayDetails = [];
+      const tStr = fmtISODate(refDate || new Date());
+      appData.sessions.forEach((s) => {
+        const st = computeSessionStatus(s);
+        if (s.date === tStr && st.code !== "cancelled") {
+          todayN++;
+          const cl = getClassById(s.classId);
+          todayDetails.push({ className: cl ? cl.name : "—", startTime: s.startTime || "—", endTime: s.endTime || "" });
+        }
+        if (st.code === "cancelled") cancelled++;
+        else if (st.code === "done") done++;
+        else if (st.code === "planned" || st.code === "today") planned++;
+      });
+      todayDetails.sort((a, b) => a.startTime.localeCompare(b.startTime));
+      return { todayN, todayDetails, planned, done, cancelled, total: appData.sessions.length };
+    }
+
+    function avgCycleProgress() {
+      if (!appData.classes.length) return 0;
+      let sum = 0;
+      appData.classes.forEach((cl) => {
+        sum += sessionStatsForClass(cl.id).pct;
+      });
+      return Math.round(sum / appData.classes.length);
+    }
+
+    function fieldDistribution() {
+      const map = {};
+      appData.activities.forEach((a) => {
+        const k = a.field || "—";
+        map[k] = (map[k] || 0) + 1;
+      });
+      return Object.entries(map).sort((a, b) => b[1] - a[1]);
+    }
+
+    /**
+     * Menu principal : 1) Tableau de bord 2) une entrée par classe 3) Réglages (données détaillées).
+     */
+    function renderNav() {
+      const nav = document.getElementById("main-nav");
+      let html = `<button type="button" class="nav-btn ${currentView === "dashboard" ? "active" : ""}" data-view="dashboard">
+        <span>⌂</span> Tableau de bord
+      </button>`;
+      appData.classes.forEach((cl) => {
+        const vid = getClassViewId(cl.id);
+        const active = currentView === vid ? "active" : "";
+        html += `<button type="button" class="nav-btn ${active}" data-view="${vid}" style="border-left:3px solid ${escapeHtml(cl.color)}">
+          <span>▸</span> ${escapeHtml(cl.name)}
+        </button>`;
+      });
+      html += `<button type="button" class="nav-btn ${currentView === "tools" ? "active" : ""}" data-view="tools">
+        <span>⚙</span> Réglages & données
+      </button>`;
+      nav.innerHTML = html;
+      nav.querySelectorAll(".nav-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById("sidebar").classList.remove("open");
+          navigateTo(btn.getAttribute("data-view"));
+        });
+      });
+    }
+
+    function el(html) {
+      const t = document.createElement("template");
+      t.innerHTML = html.trim();
+      return t.content.firstElementChild;
+    }
+
+    function openModal(title, bodyNode, onConfirm) {
+      const root = document.getElementById("modal-root");
+      root.innerHTML = "";
+      root.classList.add("open");
+      const wrap = el(`<div class="modal"><h3></h3><div class="modal-body"></div><div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem"></div></div>`);
+      wrap.querySelector("h3").textContent = title;
+      wrap.querySelector(".modal-body").appendChild(bodyNode);
+      const foot = wrap.querySelector("div:last-child");
+      const bCancel = el(`<button type="button" class="btn btn-ghost">Annuler</button>`);
+      const bOk = el(`<button type="button" class="btn btn-primary">Valider</button>`);
+      foot.append(bCancel, bOk);
+      bCancel.onclick = () => {
+        root.classList.remove("open");
+        root.innerHTML = "";
+      };
+      bOk.onclick = () => {
+        onConfirm();
+        root.classList.remove("open");
+        root.innerHTML = "";
+      };
+      root.appendChild(wrap);
+      root.onclick = (e) => {
+        if (e.target === root) {
+          root.classList.remove("open");
+          root.innerHTML = "";
+        }
+      };
+    }
+
+    function studentPickerHtml(classId, inputId) {
+      const cl = getClassById(classId);
+      const students = (cl && cl.students) || [];
+      if (students.length) {
+        return `<select id="${inputId}" style="width:100%"><option value="">— Sélectionner —</option>${students.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("")}</select>`;
+      }
+      return `<input id="${inputId}" placeholder="Prénom" />`;
+    }
+
+    function buildSessionPdfBlock(session) {
+      const wrap = document.createElement("div");
+      wrap.style.cssText = "margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem";
+      const renderPdfUI = () => {
+        const hasPdf = session.sessionPdf;
+        wrap.innerHTML = `<p style="font-weight:700;margin-bottom:.5rem">📄 Document PDF de séance</p>
+          ${hasPdf
+            ? `<div style="margin-bottom:.5rem;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+                <iframe src="${session.sessionPdf}" style="width:100%;height:220px;border:none"></iframe>
+              </div>
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                <button type="button" class="btn btn-sm btn-primary btn-session-pdf-view">Plein écran</button>
+                <label class="btn btn-sm btn-ghost" style="cursor:pointer">Remplacer<input type="file" accept="application/pdf" class="inp-session-pdf" style="display:none" /></label>
+                <button type="button" class="btn btn-sm btn-danger btn-session-pdf-del">Supprimer</button>
+              </div>`
+            : `<label class="btn btn-sm btn-primary" style="cursor:pointer">Joindre un PDF<input type="file" accept="application/pdf" class="inp-session-pdf" style="display:none" /></label>`}`;
+        wrap.querySelectorAll(".inp-session-pdf").forEach((inp) => {
+          inp.addEventListener("change", () => {
+            const file = inp.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => { session.sessionPdf = reader.result; saveData(); renderPdfUI(); };
+            reader.readAsDataURL(file);
+          });
+        });
+        const delBtn = wrap.querySelector(".btn-session-pdf-del");
+        if (delBtn) delBtn.addEventListener("click", () => { session.sessionPdf = null; saveData(); renderPdfUI(); });
+        const viewBtn = wrap.querySelector(".btn-session-pdf-view");
+        if (viewBtn) viewBtn.addEventListener("click", () => {
+          const fs = document.getElementById("prog-pdf-fullscreen");
+          if (!fs) return;
+          const ifr = fs.querySelector("iframe");
+          if (ifr) ifr.src = session.sessionPdf;
+          fs.style.display = "flex";
+        });
+      };
+      renderPdfUI();
+      return wrap;
+    }
+
+    function buildAttendanceBlock(session) {
+      const cl = getClassById(session.classId);
+      const students = (cl && cl.students) || [];
+      if (!session.attendance) session.attendance = {};
+      const wrap = document.createElement("div");
+      wrap.style.cssText = "margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem";
+
+      const renderUI = () => {
+        const att = session.attendance;
+        const list = students.length ? students : Object.keys(att);
+        const presentCount = list.filter((n) => att[n] === "present").length;
+        const absentCount = list.filter((n) => att[n] === "absent").length;
+        const lateCount = list.filter((n) => att[n] === "late").length;
+        const notMarked = list.length - presentCount - absentCount - lateCount;
+
+        const btnStyle = (name, val) => {
+          const active = att[name] === val;
+          const colors = { present: "#16a34a", absent: "#dc2626", late: "#d97706" };
+          return active
+            ? `background:${colors[val]};color:#fff;font-weight:700;border:none`
+            : `background:transparent;color:var(--fg);border:1px solid var(--border)`;
+        };
+
+        let rows = "";
+        if (students.length) {
+          rows = list.map((name) =>
+            `<div style="display:flex;align-items:center;gap:.4rem;padding:.35rem 0;border-bottom:1px solid var(--border)" data-student="${escapeHtml(name)}">
+              <span style="flex:1;font-size:.88rem;font-weight:500">${escapeHtml(name)}</span>
+              <button type="button" class="btn btn-sm att-btn" data-name="${escapeHtml(name)}" data-val="present" style="padding:.2rem .55rem;font-size:.75rem;border-radius:20px;${btnStyle(name, "present")}">Présent</button>
+              <button type="button" class="btn btn-sm att-btn" data-name="${escapeHtml(name)}" data-val="late" style="padding:.2rem .55rem;font-size:.75rem;border-radius:20px;${btnStyle(name, "late")}">Retard</button>
+              <button type="button" class="btn btn-sm att-btn" data-name="${escapeHtml(name)}" data-val="absent" style="padding:.2rem .55rem;font-size:.75rem;border-radius:20px;${btnStyle(name, "absent")}">Absent</button>
+            </div>`
+          ).join("");
+        } else {
+          rows = `<p class="kpi-sub">Aucun élève importé pour cette classe. Ajoutez-les via Réglages > Mes classes > ⚙️.</p>`;
+        }
+
+        const allPresentBtn = students.length
+          ? `<button type="button" class="btn btn-sm" id="att-all-present" style="background:#16a34a;color:#fff;font-weight:700;font-size:.78rem;padding:.3rem .7rem;border-radius:20px">✓ Tous présents</button>`
+          : "";
+
+        wrap.innerHTML =
+          `<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem;flex-wrap:wrap">
+            <p style="font-weight:700;margin:0">📋 Appel</p>
+            ${allPresentBtn}
+            <span class="kpi-sub" style="margin-left:auto">${presentCount > 0 ? `<span style="color:#16a34a;font-weight:600">${presentCount} P</span>` : ""}${lateCount > 0 ? ` <span style="color:#d97706;font-weight:600">${lateCount} R</span>` : ""}${absentCount > 0 ? ` <span style="color:#dc2626;font-weight:600">${absentCount} A</span>` : ""}${notMarked > 0 ? ` <span>${notMarked} non pointé(s)</span>` : ""}</span>
+          </div>
+          <div style="max-height:280px;overflow-y:auto">${rows}</div>`;
+
+        wrap.querySelectorAll(".att-btn").forEach((b) => {
+          b.addEventListener("click", () => {
+            const name = b.getAttribute("data-name");
+            const val = b.getAttribute("data-val");
+            session.attendance[name] = session.attendance[name] === val ? undefined : val;
+            if (session.attendance[name] === undefined) delete session.attendance[name];
+            saveData();
+            renderUI();
+          });
+        });
+        const allBtn = wrap.querySelector("#att-all-present");
+        if (allBtn) {
+          allBtn.addEventListener("click", () => {
+            students.forEach((n) => { session.attendance[n] = "present"; });
+            saveData();
+            renderUI();
+          });
+        }
+      };
+
+      renderUI();
+      return wrap;
+    }
+
+    function renderTopbar(title, extra = "") {
+      const backBtn = viewHistory.length
+        ? `<button type="button" class="btn btn-sm btn-ghost no-print" id="btn-history-back" style="gap:.25rem;margin-right:.5rem">◀ Retour</button>`
+        : "";
+      return `<div class="topbar">
+        <div style="display:flex;align-items:center">${backBtn}<h2>${escapeHtml(title)}</h2></div>
+        <div class="flex-row no-print">
+          <div class="search-wrap">
+            <input type="search" id="global-search" placeholder="Recherche instantanée…" value="${escapeHtml(searchQuery)}" />
+          </div>
+          ${extra}
+        </div>
+      </div>`;
+    }
+
+    let searchDebounce = null;
+    function bindSearch() {
+      const inp = document.getElementById("global-search");
+      if (!inp) return;
+      inp.addEventListener("input", () => {
+        const v = inp.value;
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(() => {
+          searchQuery = v;
+          render();
+        }, 180);
+      });
+    }
+
+    function viewDashboard() {
+      const dash = dashboardKPIs(dashboardDate);
+      const g = globalSessionCounts(dashboardDate);
+      const dISO = dashboardDateISO();
+      const classCards = appData.classes
+        .filter((c) => matchesSearch(c.name))
+        .map((cl, idx) => {
+          const periodActs = activitiesOnDatePeriod(cl.id, dISO);
+          const days = weekdaysForDashboardClass(cl.id, dISO);
+          const vid = getClassViewId(cl.id);
+          const noPeriod = !periodActs.length;
+
+          const activityRows = periodActs.map((a) => {
+            const ast = statsPerActivity(cl.id, a.id);
+            const lastDate = lastSessionDateForActivity(cl.id, a.id);
+            const dayLabel = a.dayIndices && a.dayIndices.length
+              ? a.dayIndices.map((i) => DOW[i].slice(0, 3)).join(" / ")
+              : "";
+            return `<div style="padding:0.65rem 0;border-top:1px solid var(--border)">
+              <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.45rem">
+                <span class="legend-dot" style="background:${escapeHtml(a.color)}"></span>
+                <strong style="font-size:0.88rem">${escapeHtml(a.name)}</strong>
+                ${dayLabel ? `<span class="kpi-sub">(${escapeHtml(dayLabel)})</span>` : ""}
+                ${lastDate ? `<span style="color:var(--danger);font-weight:700;font-size:0.78rem;margin-left:auto">Dernière séance : ${fmtDateFr(lastDate)}</span>` : ""}
+              </div>
+              <div class="dash-class-metrics">
+                <div><span class="num">${ast.done}</span><span class="lbl">Effectuées</span></div>
+                <div><span class="num">${ast.remaining}</span><span class="lbl">Restantes</span></div>
+                <div><span class="num">${ast.done + ast.remaining}</span><span class="lbl">Total</span></div>
+              </div>
+              <div class="progress" style="margin-top:0.5rem"><span style="width:${ast.pct}%"></span></div>
+              <p class="kpi-sub" style="margin-top:0.25rem">${ast.cancelled} annulation(s) · Avancement ${ast.pct}%</p>
+            </div>`;
+          }).join("");
+
+          return `<article class="dash-class-card nav-to-class" data-view="${vid}" style="--dash-c:${cl.color};animation-delay:${Math.min(idx * 0.06, 0.5)}s;cursor:pointer">
+            <h3><span class="legend-dot" style="background:${cl.color}"></span> ${escapeHtml(cl.name)}</h3>
+            <p class="dash-days"><strong>Jours concernés</strong> · ${
+              noPeriod
+                ? "<em>—</em>"
+                : days
+                  ? escapeHtml(days)
+                  : "<em>Non renseigné — voir Réglages &gt; Emploi du temps / APSA</em>"
+            }</p>
+            ${noPeriod
+              ? '<p class="kpi-sub" style="margin-top:0.5rem"><em>Aucune APSA sur la période du jour</em></p>'
+              : activityRows}
+          </article>`;
+        })
+        .join("");
+      const dateLong = dashboardDate.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+      const dateCapitalized = dateLong.charAt(0).toUpperCase() + dateLong.slice(1);
+      const isToday = fmtISODate(dashboardDate) === fmtISODate(new Date());
+      return `
+        ${renderTopbar("Tableau de bord", `<button type="button" class="btn btn-sm btn-primary" id="btn-regen">Régénérer séances</button>`)}
+        ${appStorageIsMemory ? `<div class="card" style="margin-bottom:1rem;padding:.75rem 1rem;background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.35);font-size:.85rem;line-height:1.45"><strong>Mode fichier (AirDrop / Fichiers)</strong> — Safari ne peut pas enregistrer en local sur cette page. Vos saisies restent tant que l’onglet est ouvert ; pensez à <strong>Réglages → Sauvegarde → Export JSON</strong> pour garder une copie.</div>` : ""}
+        <div style="display:flex;align-items:center;gap:.6rem;margin:0 0 1.1rem;flex-wrap:wrap">
+          <button type="button" class="btn btn-sm btn-ghost" id="dash-prev-day" style="font-size:1.1rem;padding:.2rem .5rem">◀</button>
+          <p style="font-size:1.65rem;font-weight:800;margin:0;letter-spacing:-0.02em;color:var(--fg)">${escapeHtml(dateCapitalized)}</p>
+          <button type="button" class="btn btn-sm btn-ghost" id="dash-next-day" style="font-size:1.1rem;padding:.2rem .5rem">▶</button>
+          ${isToday ? "" : `<button type="button" class="btn btn-sm btn-ghost" id="dash-today" style="font-size:.82rem">Aujourd'hui</button>`}
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi" style="animation-delay:0.05s" id="weather-kpi"><div class="kpi-label">🌤️ Météo — Roissy-en-Brie</div><div class="kpi-value" id="weather-temp">…</div><div class="kpi-sub" id="weather-desc">Chargement…</div></div>
+          <div class="kpi" style="animation-delay:0.1s"><div class="kpi-label">Séances ${isToday ? "aujourd'hui" : "ce jour"}</div><div class="kpi-value">${g.todayN}</div>${
+            g.todayDetails.length
+              ? `<div class="kpi-sub" style="text-align:left;margin-top:.35rem;line-height:1.55;font-size:.78rem">${g.todayDetails.map(d => escapeHtml(d.className) + " · " + escapeHtml(d.startTime) + (d.endTime ? "–" + escapeHtml(d.endTime) : "")).join("<br>")}</div>`
+              : '<div class="kpi-sub">Aucun cours prévu</div>'
+          }</div>
+          ${(() => {
+            const todayDate = dISO;
+            const todayEx = (appData.exemptions || []).filter((e) =>
+              todayDate >= e.startDate && todayDate <= e.endDate &&
+              sessionsForClass(e.classId).some((s) => s.date === todayDate && computeSessionStatus(s).code !== "cancelled")
+            );
+            const count = todayEx.length;
+            const detail = todayEx
+              .slice()
+              .sort((a, b) => a.endDate.localeCompare(b.endDate))
+              .map((ex) => {
+                const cl = getClassById(ex.classId);
+                return `<strong style="color:var(--danger)">${escapeHtml(ex.studentName)}</strong>` + " (" + escapeHtml(cl ? cl.name : "—") + ") → " + fmtDateFr(ex.endDate);
+              })
+              .join("<br>");
+            return `<div class="kpi" style="animation-delay:0.15s"><div class="kpi-label">🏥 Élèves dispensés ${isToday ? "aujourd'hui" : "ce jour"}</div><div class="kpi-value" style="${count ? "color:var(--danger)" : ""}">${count}</div>${count ? `<div class="kpi-sub" style="text-align:left;margin-top:.35rem;line-height:1.55;font-size:.78rem">${detail}</div>` : '<div class="kpi-sub">Aucun élève dispensé ayant cours</div>'}</div>`;
+          })()}
+        </div>
+        ${(() => {
+          const todayISO = dISO;
+          const todaySessions = appData.sessions.filter((s) => s.date === todayISO)
+            .slice().sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""));
+          if (!todaySessions.length) return '';
+          const lines = todaySessions.map((s) => {
+            const cl = getClassById(s.classId);
+            const act = activityById(s.activityId);
+            const stt = computeSessionStatus(s);
+            const col = stt.code === "cancelled" ? "var(--danger)" : stt.code === "done" ? "var(--success)" : "var(--accent)";
+            const canc = cancellationForSession(s);
+            const motif = canc ? (REASON_TYPES.find((x) => x[0] === canc.reasonType)?.[1] || canc.reasonType) : stt.reason || "";
+            const statusHtml = `<span class="status-dot" style="background:${col}"></span>${escapeHtml(stt.label)}`;
+            let sessionNumBadge = "";
+            if (act) {
+              const actSess = appData.sessions
+                .filter((x) => x.classId === s.classId && x.activityId === act.id)
+                .sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
+              const valid = actSess.filter((x) => { const c = computeSessionStatus(x).code; return c !== "cancelled" && c !== "holiday"; });
+              const idx = valid.findIndex((x) => x.id === s.id);
+              if (idx >= 0) sessionNumBadge = ` <span style="font-size:.75rem;font-weight:700;color:#fff;background:var(--accent);padding:.15rem .5rem;border-radius:10px;margin-left:.25rem">n°${idx + 1}/${valid.length}</span>`;
+            }
+            const hasSummary = s.summary && s.summary.trim();
+            return `<div class="btn-today-session" data-session-id="${s.id}" style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.55rem .4rem;border-top:1px solid var(--border);cursor:pointer;border-radius:6px;transition:background .15s" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background='transparent'">
+              <span class="legend-dot" style="background:${cl ? cl.color : '#888'}"></span>
+              <strong style="min-width:4rem">${escapeHtml(cl ? cl.name : "—")}</strong>
+              <span style="font-size:.85rem">${s.startTime || ""}–${s.endTime || ""}</span>
+              <span style="font-size:.82rem;color:var(--text-muted)">${escapeHtml(s.venue || "")}</span>
+              <span style="font-size:.82rem">${act ? escapeHtml(act.name) : "—"}${sessionNumBadge}</span>
+              <span style="font-size:.82rem">${statusHtml}</span>
+              ${motif ? `<span style="font-size:.78rem;color:var(--text-muted)">(${escapeHtml(motif)})</span>` : ""}
+              ${hasSummary ? '<span style="font-size:.85rem" title="Résumé rédigé">📝</span>' : ""}
+              ${s.sessionPdf ? '<span style="font-size:.85rem" title="PDF joint">📄</span>' : ""}
+              ${(() => { const att = s.attendance || {}; const keys = Object.keys(att); if (!keys.length) return ""; const p = keys.filter((k) => att[k] === "present").length; const a = keys.filter((k) => att[k] === "absent").length; const l = keys.filter((k) => att[k] === "late").length; return `<span style="font-size:.75rem;font-weight:600;padding:.15rem .5rem;border-radius:10px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0" title="Appel effectué">${p}P${l ? " " + l + "R" : ""}${a ? " " + a + "A" : ""}</span>`; })()}
+            </div>`;
+          }).join("");
+          return `<div class="kpi" style="animation-delay:0.25s;width:100%;margin-bottom:1rem"><div class="kpi-label">Cours ${isToday ? "du jour" : "de la journée"}</div>
+            <div style="display:flex;flex-direction:column;margin-top:.5rem">${lines}</div>
+          </div>`;
+        })()}
+        <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
+          <div class="kpi no-print" style="animation-delay:0.25s;min-width:160px;margin-bottom:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center" id="btn-goto-classes">
+            <span style="font-size:1.6rem;margin-bottom:.3rem">📋</span>
+            <div class="kpi-label" style="display:flex;align-items:center;gap:.4rem">Mes classes <span style="font-size:1.05rem">⚙️</span></div>
+          </div>
+          <div class="kpi no-print" style="animation-delay:0.28s;min-width:160px;margin-bottom:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center" id="btn-goto-tools">
+            <span style="font-size:1.6rem;margin-bottom:.3rem">⚙️</span>
+            <div class="kpi-label">Réglages</div>
+          </div>
+          ${(() => {
+            const threshold = forgottenGearThreshold;
+            const todayStr = dISO;
+            const alerts = [];
+            appData.classes.forEach((cl) => {
+              const clPeriods = periodsForClass(cl.id);
+              const curPeriod = clPeriods.find((p) => todayStr >= p.startDate && todayStr <= p.endDate);
+              if (!curPeriod) return;
+              const items = (appData.forgottenGear || []).filter((f) => f.classId === cl.id && f.date >= curPeriod.startDate && f.date <= curPeriod.endDate);
+              const byStudent = {};
+              items.forEach((f) => { byStudent[f.studentName] = (byStudent[f.studentName] || 0) + 1; });
+              Object.entries(byStudent).forEach(([name, count]) => {
+                if (count >= threshold) alerts.push({ name, className: cl.name, classId: cl.id, count });
+              });
+            });
+            alerts.sort((a, b) => b.count - a.count);
+            const total = alerts.length;
+            const detail = alerts.map((a) => `<a href="#" class="link-fg-student" data-classid="${a.classId}" data-student="${escapeHtml(a.name)}" style="color:var(--danger);font-weight:700;text-decoration:underline;cursor:pointer">${escapeHtml(a.name)}</a> (${escapeHtml(a.className)}) — ${a.count} oubli(s)`).join("<br>");
+            return `<div class="kpi" style="animation-delay:0.3s;flex:1;min-width:220px;margin-bottom:0"><div class="kpi-label" style="display:flex;align-items:center;gap:.4rem">⚠️ Oublis de matériel répétés <button type="button" id="btn-fg-threshold" title="Régler le seuil d'oublis" style="background:none;border:none;cursor:pointer;font-size:1.05rem;padding:0;line-height:1">⚙️</button></div>${total ? `<div class="kpi-sub" style="text-align:left;margin-top:.5rem;line-height:1.55;font-size:.78rem">${detail}</div>` : '<div class="kpi-sub" style="margin-top:.5rem">Aucun élève concerné</div>'}</div>`;
+          })()}
+          <div class="kpi" style="animation-delay:0.35s;flex:1;min-width:280px;margin-bottom:0"><div class="kpi-label">Modifications de l'emploi du temps à venir</div>
+            <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem">${
+              dash.next3Weeks.map((w, i) => {
+                const label = i === 0 ? "Cette semaine" : i === 1 ? "Semaine prochaine" : "Dans 2 semaines";
+                const dd = (d) => String(d.getDate()).padStart(2,"0") + "/" + String(d.getMonth()+1).padStart(2,"0");
+                const range = dd(w.start) + " – " + dd(w.end);
+                const cancPart = w.cancelled.length
+                  ? `<span style="color:var(--danger);font-weight:600;font-size:.82rem">❌ ${w.cancelled.length} cours annulé(s) : ${w.cancelled.map(d => escapeHtml(d)).join(" · ")}</span>`
+                  : "";
+                const extraPart = w.extras.length
+                  ? `<span style="color:#16a34a;font-weight:600;font-size:.82rem">➕ ${w.extras.length} cours ajouté(s) : ${w.extras.map(d => escapeHtml(d)).join(" · ")}</span>`
+                  : "";
+                const details = [cancPart, extraPart].filter(Boolean).join("<br>");
+                return `<div><strong>${label}</strong> <span style="font-size:.72rem;color:var(--text-muted)">(${range})</span>${details ? "<br>" + details : " — <span class=\"kpi-sub\">Aucune modification</span>"}</div>`;
+              }).join("")
+            }</div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:1rem;padding:1rem">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem">
+            <h3 style="margin:0">📝 À faire</h3>
+          </div>
+          <div style="display:flex;gap:.4rem;margin-bottom:.7rem">
+            <input type="text" id="todo-input" placeholder="Ajouter une tâche…" style="flex:1;padding:.45rem .65rem;border:1px solid var(--border);border-radius:var(--radius);font-size:.9rem;background:var(--card);color:var(--fg)" />
+            <button type="button" class="btn btn-sm btn-primary" id="btn-todo-add" style="font-weight:700;padding:.45rem .8rem">+</button>
+          </div>
+          <div id="todo-list">${appData.todoList.map((t, i) =>
+            `<div style="display:flex;align-items:center;gap:.5rem;padding:.4rem 0;border-bottom:1px solid var(--border)" data-idx="${i}">
+              <input type="checkbox" class="todo-check" data-idx="${i}" ${t.done ? "checked" : ""} style="width:1.1rem;height:1.1rem;cursor:pointer;accent-color:var(--accent)" />
+              <span style="flex:1;font-size:.88rem;${t.done ? "text-decoration:line-through;color:var(--text-muted)" : ""}">${escapeHtml(t.text)}</span>
+              <button type="button" class="btn btn-sm todo-del" data-idx="${i}" style="padding:.1rem .35rem;font-size:.7rem;color:var(--danger);background:none;border:none;cursor:pointer" title="Supprimer">✕</button>
+            </div>`
+          ).join("") || '<p class="kpi-sub">Aucune tâche pour le moment.</p>'}</div>
+        </div>
+        <div class="card" style="margin-bottom:1rem">
+          <div class="card-header"><h3>📚 Séquences en cours</h3></div>
+          <div class="dashboard-classes" style="margin-top:.5rem">${classCards || '<p class="kpi-sub">Aucune classe — utilisez « Réglages & données » &gt; Mes classes pour en ajouter.</p>'}</div>
+        </div>
+        <div class="print-only"><h1>EPS — Tableau de bord</h1><p>Généré le ${escapeHtml(dISO)}</p></div>`;
+    }
+
+    function viewClassesBody() {
+      return `<div class="class-grid">
+          ${appData.classes
+            .filter((c) => matchesSearch(c.name))
+            .map((cl) => {
+              const pact = activitiesOnDatePeriod(cl.id, fmtISODate(new Date()));
+              const curLabel = pact.length ? pact.map((a) => a.name).join(", ") : "—";
+              const st = sessionStatsForClass(cl.id);
+              return `<article class="class-card nav-to-class" data-view="${getClassViewId(cl.id)}" style="--cc:${cl.color};position:relative;cursor:pointer">
+                <button type="button" class="btn btn-sm btn-edit-class" data-id="${cl.id}" style="position:absolute;top:.6rem;right:.6rem;background:none;border:none;cursor:pointer;font-size:1.15rem;padding:0;line-height:1" title="Modifier la classe">⚙️</button>
+                <h4>${escapeHtml(cl.name)}</h4>
+                <p class="meta">${cycleLabel(cl.cycleYears)} — Effectif ${cl.enrollment}</p>
+                <p class="meta">APSA (période du jour) : ${escapeHtml(curLabel)}</p>
+                <div class="progress"><span style="width:${st.pct}%"></span></div>
+                <p class="meta" style="margin-top:.5rem">${st.done} effectuées · ${st.remaining} restantes · ${st.cancelled} annulées</p>
+                <div class="flex-row" style="margin-top:.75rem">
+                  <button type="button" class="btn btn-sm btn-ghost nav-to-class" data-view="${getClassViewId(cl.id)}">Séances</button>
+                  <button type="button" class="btn btn-sm btn-ghost btn-show-students" data-id="${cl.id}">Élèves</button>
+                  <button type="button" class="btn btn-sm btn-danger btn-del-class" data-id="${cl.id}">Supprimer</button>
+                </div>
+              </article>`;
+            })
+            .join("")}
+        </div>`;
+    }
+
+    function viewClasses() {
+      return (
+        renderTopbar("Mes classes", `<button type="button" class="btn btn-sm btn-primary" id="btn-add-class">+ Classe</button>`) +
+        viewClassesBody()
+      );
+    }
+
+    function viewPeriodsBody() {
+      const classCheckboxes = (selectedIds) => appData.classes.map((c) =>
+        `<label style="display:inline-flex;align-items:center;gap:.3rem;margin-right:.75rem;font-size:.85rem;cursor:pointer">
+          <input type="checkbox" class="period-class-cb" value="${c.id}" ${selectedIds.includes(c.id) ? "checked" : ""} />
+          <span class="legend-dot" style="background:${c.color}"></span>${escapeHtml(c.name)}
+        </label>`
+      ).join("");
+
+      const rows = appData.periods
+        .slice()
+        .sort((a, b) => a.startDate.localeCompare(b.startDate))
+        .map((p) => {
+          const clNames = (p.classIds || []).map((id) => { const c = getClassById(id); return c ? c.name : "?"; }).join(", ");
+          const today = fmtISODate(new Date());
+          const isCurrent = today >= p.startDate && today <= p.endDate;
+          const badge = isCurrent
+            ? '<span class="badge" style="background:var(--accent);color:#fff">En cours</span>'
+            : today > p.endDate ? '<span class="badge">Terminée</span>' : '<span class="badge" style="border:1px solid var(--accent);color:var(--accent)">À venir</span>';
+          return `<tr>
+            <td><strong>${escapeHtml(p.name)}</strong></td>
+            <td>${fmtDateFr(p.startDate)}</td>
+            <td>${fmtDateFr(p.endDate)}</td>
+            <td>${escapeHtml(clNames) || "<em>Aucune</em>"}</td>
+            <td>${badge}</td>
+            <td class="no-print">
+              <button type="button" class="btn btn-sm btn-ghost btn-edit-period" data-id="${p.id}">Modifier</button>
+              <button type="button" class="btn btn-sm btn-danger btn-del-period" data-id="${p.id}">Supprimer</button>
+            </td>
+          </tr>`;
+        })
+        .join("");
+
+      return `<div class="card">
+        <div class="card-header"><h3>Périodes</h3><button type="button" class="btn btn-sm btn-primary" id="btn-add-period">+ Période</button></div>
+        <p class="kpi-sub" style="margin-bottom:.75rem">Définissez les périodes de l'année scolaire et les classes concernées par chacune.</p>
+        <div class="table-wrap"><table><thead><tr><th>Nom</th><th>Début</th><th>Fin</th><th>Classes</th><th>Statut</th><th class="no-print">Actions</th></tr></thead><tbody>
+        ${rows || '<tr><td colspan="6">Aucune période créée.</td></tr>'}
+        </tbody></table></div>
+      </div>`;
+    }
+
+    function viewScheduleBody() {
+      return (
+        `<div class="card"><p class="kpi-sub">Créneaux hebdomadaires : jour, horaires, lieu, alternance <strong>semaine A / B</strong> (depuis le début d'année scolaire : semaines paires = A, impaires = B). La génération des séances exclut vacances et jours fériés bloquants.</p>
+        <div class="form-group"><label>Filtrer classe</label>
+          <select id="sched-class-filter"><option value="">— Toutes —</option>${appData.classes.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("")}</select>
+        </div></div>
+        ${appData.classes
+          .map((cl) => {
+            const slots = schedulesForClass(cl.id);
+            return `<div class="card class-sched-block" data-class="${cl.id}">
+              <div class="card-header"><h3><span class="legend-dot" style="background:${cl.color}"></span> ${escapeHtml(cl.name)}</h3>
+                <button type="button" class="btn btn-sm btn-primary btn-add-slot" data-class="${cl.id}">+ Créneau</button></div>
+              <div class="table-wrap"><table><thead><tr><th>Jour</th><th>Début</th><th>Fin</th><th>Installation</th><th>Semaine</th><th></th></tr></thead><tbody>
+              ${slots
+                .map(
+                  (s) =>
+                    `<tr><td>${DOW[s.dayIndex]}</td><td>${s.startTime}</td><td>${s.endTime}</td><td>${escapeHtml(s.venue)}</td><td>${weekParityLabel(s)}</td>
+                    <td><button type="button" class="btn btn-sm btn-danger btn-del-slot" data-id="${s.id}">Suppr.</button></td></tr>`
+                )
+                .join("") || `<tr><td colspan="6">Aucun créneau — ajoutez au moins un créneau hebdomadaire.</td></tr>`}
+              </tbody></table></div>
+            </div>`;
+          })
+          .join("")}`
+      );
+    }
+
+    function viewSchedule() {
+      return renderTopbar("Emploi du temps", "") + viewScheduleBody();
+    }
+
+    function periodsForClass(classId) {
+      return (appData.periods || []).filter((p) => (p.classIds || []).includes(classId))
+        .slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
+    }
+
+    function viewActivitiesBody() {
+      return appData.classes
+        .map((cl) => {
+          const clPeriods = periodsForClass(cl.id);
+          const acts = activitiesForClass(cl.id).filter((a) => matchesSearch(a.name) || matchesSearch(cl.name));
+
+          const periodBlocks = clPeriods.map((p) => {
+            const periodActs = acts.filter((a) => a.periodId === p.id);
+            const today = fmtISODate(new Date());
+            const isCurrent = today >= p.startDate && today <= p.endDate;
+            const badge = isCurrent
+              ? '<span class="badge" style="background:var(--accent);color:#fff">En cours</span>'
+              : today > p.endDate ? '<span class="badge">Terminée</span>' : '<span class="badge" style="border:1px solid var(--accent);color:var(--accent)">À venir</span>';
+
+            const actItems = periodActs.map((a) => {
+              const cnt = statsPerActivity(cl.id, a.id);
+              return `<div class="tl-item" style="--tl:${a.color}">
+                <strong>${escapeHtml(a.name)}</strong> <span class="badge">${escapeHtml(a.field)}</span>
+                <p class="kpi-sub"><strong>Jours de pratique :</strong> ${formatDayIndicesLabel(a)}</p>
+                <p class="kpi-sub">${escapeHtml(a.venue || "—")}</p>
+                <p class="kpi-sub">Séances générées : <strong>${cnt.total}</strong> (effectuées ${cnt.done}, annulées ${cnt.cancelled})</p>
+                <button type="button" class="btn btn-sm btn-ghost btn-edit-activity" data-id="${a.id}">Modifier</button>
+                <button type="button" class="btn btn-sm btn-danger btn-del-activity" data-id="${a.id}">Supprimer</button>
+              </div>`;
+            }).join("");
+
+            return `<div style="border:1px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem;margin-bottom:.75rem">
+              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem">
+                <div><strong>${escapeHtml(p.name)}</strong> <span class="kpi-sub">${fmtDateFr(p.startDate)} → ${fmtDateFr(p.endDate)}</span> ${badge}</div>
+                <button type="button" class="btn btn-sm btn-primary btn-add-activity-period" data-class="${cl.id}" data-period="${p.id}">+ Activité</button>
+              </div>
+              <div class="timeline">${actItems || '<p class="kpi-sub">Aucune activité sur cette période.</p>'}</div>
+            </div>`;
+          }).join("");
+
+          const orphanActs = acts.filter((a) => !a.periodId || !clPeriods.some((p) => p.id === a.periodId));
+          const orphanBlock = orphanActs.length ? `<div style="border:1px solid var(--border);border-radius:var(--radius);padding:.75rem 1rem;margin-bottom:.75rem">
+            <div style="margin-bottom:.5rem"><strong>Sans période</strong> <span class="kpi-sub">(APSA non rattachées à une période)</span></div>
+            <div class="timeline">${orphanActs.map((a) => {
+              const cnt = statsPerActivity(cl.id, a.id);
+              return `<div class="tl-item" style="--tl:${a.color}">
+                <strong>${escapeHtml(a.name)}</strong> <span class="badge">${escapeHtml(a.field)}</span>
+                <p class="kpi-sub"><strong>Jours de pratique :</strong> ${formatDayIndicesLabel(a)}</p>
+                <p class="kpi-sub">${a.startDate} → ${a.endDate} · ${escapeHtml(a.venue)}</p>
+                <p class="kpi-sub">Séances générées : <strong>${cnt.total}</strong> (effectuées ${cnt.done}, annulées ${cnt.cancelled})</p>
+                <button type="button" class="btn btn-sm btn-ghost btn-edit-activity" data-id="${a.id}">Modifier</button>
+                <button type="button" class="btn btn-sm btn-danger btn-del-activity" data-id="${a.id}">Supprimer</button>
+              </div>`;
+            }).join("")}</div>
+          </div>` : "";
+
+          const noPeriods = !clPeriods.length ? '<p class="kpi-sub" style="margin:.5rem 0">Aucune période associée à cette classe — créez des périodes dans l\'onglet « Périodes ».</p>' : "";
+
+          return `<div class="card"><div class="card-header"><h3><span class="legend-dot" style="background:${cl.color}"></span> ${escapeHtml(cl.name)}</h3></div>
+            ${noPeriods}${periodBlocks}${orphanBlock}
+          </div>`;
+        })
+        .join("");
+    }
+
+    function viewActivities() {
+      return renderTopbar("APSA & cycles", "") + viewActivitiesBody();
+    }
+
+    function viewProgEtabBody() {
+      const hasDoc = appData.progEtabPdf && appData.progEtabPdf.length > 100;
+      return `<div class="card">
+        <div class="card-header"><h3>Programmation établissement</h3></div>
+        <p class="kpi-sub" style="margin-bottom:.75rem">Déposez ici le document PDF de la programmation EPS de l'établissement. Il sera stocké dans le navigateur et consultable à tout moment.</p>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem">
+          <label class="btn btn-sm btn-primary" style="cursor:pointer">${hasDoc ? "Remplacer le PDF" : "Déposer un PDF"}<input type="file" id="inp-prog-pdf" accept="application/pdf" class="hidden" /></label>
+          ${hasDoc ? `<button type="button" class="btn btn-sm btn-danger" id="btn-del-prog-pdf">Supprimer le PDF</button>` : ""}
+        </div>
+        ${hasDoc
+          ? `<div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer" id="prog-pdf-container" title="Cliquer pour afficher en plein écran">
+              <iframe id="prog-pdf-viewer" src="${appData.progEtabPdf}" style="width:100%;height:70vh;border:none;pointer-events:none"></iframe>
+            </div>
+            <div id="prog-pdf-fullscreen" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);padding:1rem">
+              <button type="button" id="btn-close-pdf-fs" style="position:absolute;top:1rem;right:1.5rem;z-index:10000;background:#fff;border:none;border-radius:50%;width:2.5rem;height:2.5rem;font-size:1.3rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3)">✕</button>
+              <iframe src="${appData.progEtabPdf}" style="width:100%;height:100%;border:none;border-radius:var(--radius)"></iframe>
+            </div>`
+          : '<p class="kpi-sub"><em>Aucun document déposé.</em></p>'}
+      </div>`;
+    }
+
+    function viewVenuesBody() {
+      const rows = (appData.venues || [])
+        .map((v) => `<tr>
+          <td><strong>${escapeHtml(v.name)}</strong></td>
+          <td>${escapeHtml(v.type || "—")}</td>
+          <td>${escapeHtml(v.notes || "—")}</td>
+          <td class="no-print">
+            <button type="button" class="btn btn-sm btn-ghost btn-edit-venue" data-id="${v.id}">Modifier</button>
+            <button type="button" class="btn btn-sm btn-danger btn-del-venue" data-id="${v.id}">Supprimer</button>
+          </td>
+        </tr>`)
+        .join("");
+      return `<div class="card">
+        <div class="card-header"><h3>Lieux de pratique</h3><button type="button" class="btn btn-sm btn-primary" id="btn-add-venue">+ Lieu</button></div>
+        <p class="kpi-sub" style="margin-bottom:.75rem">Renseignez les installations sportives disponibles dans l'établissement et à proximité.</p>
+        <div class="table-wrap"><table><thead><tr><th>Nom</th><th>Type</th><th>Notes</th><th class="no-print">Actions</th></tr></thead><tbody>
+        ${rows || '<tr><td colspan="4">Aucun lieu enregistré.</td></tr>'}
+        </tbody></table></div>
+      </div>`;
+    }
+
+    function viewHolidaysBody() {
+      const curZone = appData.settings.zone || "C";
+      const academyOpts = Object.keys(ACADEMIES_ZONES)
+        .filter((a) => ACADEMIES_ZONES[a] !== "—")
+        .map((a) => `<option value="${a}" ${appData.settings.academy === a ? "selected" : ""}>${a} (zone ${ACADEMIES_ZONES[a]})</option>`)
+        .join("");
+      const domOpts = Object.keys(ACADEMIES_ZONES)
+        .filter((a) => ACADEMIES_ZONES[a] === "—")
+        .map((a) => `<option value="${a}" ${appData.settings.academy === a ? "selected" : ""}>${a}</option>`)
+        .join("");
+      return (
+        `<div class="card" style="margin-bottom:1rem;padding:1rem">
+          <h3 style="margin:0 0 .6rem">📍 Académie</h3>
+          <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+            <select id="sel-academy" style="font-size:.95rem;padding:.4rem .6rem;border:1px solid var(--border);border-radius:var(--radius);min-width:14rem;color:var(--fg);background:var(--card)">
+              <option value="">— Choisir une académie —</option>
+              <optgroup label="Métropole">${academyOpts}</optgroup>
+              <optgroup label="Outre-mer">${domOpts}</optgroup>
+            </select>
+            <button type="button" class="btn btn-sm btn-primary" id="btn-apply-calendar">Appliquer le calendrier officiel</button>
+            <span class="kpi-sub">${appData.settings.academy ? "Académie : " + appData.settings.academy + " — Zone " + (ACADEMIES_ZONES[appData.settings.academy] || "—") : "Aucune académie sélectionnée"}</span>
+          </div>
+          <p class="kpi-sub" style="margin-top:.5rem">En cliquant sur « Appliquer », les vacances scolaires et jours fériés 2025-2026 sont automatiquement remplis selon le calendrier officiel du service public.</p>
+        </div>
+        <div class="card"><p class="kpi-sub">Vacances, fériés, ponts, banalisations, voyages… Les événements « bloquent séances » suppriment les créneaux générés ; les autres restent visibles pour information.</p></div>
+        <div class="table-wrap"><table><thead><tr><th>Type</th><th>Nom</th><th>Début</th><th>Fin</th><th>Bloque</th><th></th></tr></thead><tbody>
+        ${appData.holidays
+          .map(
+            (h) =>
+              `<tr><td>${escapeHtml(h.type)}</td><td><span class="legend-dot" style="background:${h.color || "#999"}"></span>${escapeHtml(h.name)}</td>
+              <td>${h.startDate}</td><td>${h.endDate}</td><td>${h.blocksSessions ? "Oui" : "Non"}</td>
+              <td><button type="button" class="btn btn-sm btn-danger btn-del-holiday" data-id="${h.id}">Suppr.</button></td></tr>`
+          )
+          .join("")}
+        </tbody></table></div>
+        <div class="card"><h3 class="card-header">Aperçu annuel (mois)</h3><div class="year-grid">
+        ${["Sept", "Oct", "Nov", "Déc", "Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil"]
+          .map((m, i) => {
+            const ev = appData.holidays.filter((h) => matchesSearch(h.name));
+            return `<div class="year-month"><strong>${m}</strong>${ev
+              .slice(0, 3)
+              .map((h) => `<div class="cal-chip" style="background:${h.color}22;color:${h.color}">${escapeHtml(h.name)}</div>`)
+              .join("")}</div>`;
+          })
+          .join("")}
+        </div><p class="kpi-sub" style="margin-top:.5rem">Vue synthétique — le calendrier détaillé est dans l'outil « Calendrier visuel ».</p></div>`
+      );
+    }
+
+    function viewHolidays() {
+      return renderTopbar("Calendrier scolaire", `<button type="button" class="btn btn-sm btn-primary" id="btn-add-holiday">+ Événement</button>`) + viewHolidaysBody();
+    }
+
+    function viewCancellationsBody() {
+      const opts = appData.sessions
+        .slice()
+        .sort((a, b) => (b.date + b.startTime).localeCompare(a.date + a.startTime))
+        .slice(0, 400)
+        .map((s) => {
+          const cl = getClassById(s.classId);
+          return `<option value="${s.id}">${escapeHtml(cl?.name || "")} — ${s.date} ${s.startTime}</option>`;
+        })
+        .join("");
+      return (
+        `<div class="card">
+          <div class="form-row">
+            <div class="form-group"><label>Séance</label><select id="canc-session">${opts}</select></div>
+            <div class="form-group"><label>Type d'annulation</label><select id="canc-reason">${REASON_TYPES.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select></div>
+          </div>
+          <div class="form-group"><label>Commentaire</label><textarea id="canc-comment" rows="2"></textarea></div>
+          <button type="button" class="btn btn-primary" id="btn-submit-canc">Enregistrer l'annulation</button>
+        </div>
+        <div class="card"><h3>Annulations enregistrées</h3><div class="table-wrap"><table><thead><tr><th>Classe</th><th>Date</th><th>Motif</th><th>Commentaire</th><th></th></tr></thead><tbody>
+        ${appData.cancellations
+          .map((c) => {
+            const s = appData.sessions.find((x) => x.id === c.sessionId);
+            const cl = getClassById(c.classId || s?.classId);
+            return `<tr><td>${escapeHtml(cl?.name || "")}</td><td>${escapeHtml(c.date || s?.date || "")}</td><td>${escapeHtml(c.reasonType)}</td><td>${escapeHtml(c.comment || "")}</td>
+              <td><button type="button" class="btn btn-sm btn-danger btn-remove-canc" data-id="${c.id}">Retirer</button></td></tr>`;
+          })
+          .join("") || `<tr><td colspan="5">Aucune annulation.</td></tr>`}
+        </tbody></table></div></div>`
+      );
+    }
+
+    function viewCancellations() {
+      return renderTopbar("Annuler une séance", "") + viewCancellationsBody();
+    }
+
+    function sessionsOnDate(dStr) {
+      return appData.sessions.filter((s) => s.date === dStr);
+    }
+
+    function viewCalendarBody() {
+      const y = calendarCursor.getFullYear();
+      const m = calendarCursor.getMonth();
+      const first = new Date(y, m, 1);
+      const startPad = (first.getDay() + 6) % 7;
+      const daysInMonth = new Date(y, m + 1, 0).getDate();
+      let cells = "";
+      for (let i = 0; i < startPad; i++) cells += `<div class="cal-cell muted"></div>`;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = fmtISODate(new Date(y, m, d));
+        const today = fmtISODate(new Date());
+        const sess = sessionsOnDate(dateStr).filter((s) => {
+          const cl = getClassById(s.classId);
+          return matchesSearch(cl?.name || "") || matchesSearch(activityById(s.activityId || "")?.name || "");
+        });
+        const hol = appData.holidays.find((h) => dateStr >= h.startDate && dateStr <= h.endDate);
+        cells += `<div class="cal-cell ${dateStr === today ? "today" : ""}">
+          <div class="num">${d}</div>
+          ${hol ? `<div class="cal-chip" style="background:${hol.color}33">${escapeHtml(hol.name)}</div>` : ""}
+          ${sess
+            .map((s) => {
+              const cl = getClassById(s.classId);
+              const act = activityById(s.activityId);
+              return `<div class="cal-chip" style="background:${cl?.color}44">${escapeHtml(cl?.name)} ${s.startTime}${act ? " · " + escapeHtml(act.name) : ""}</div>`;
+            })
+            .join("")}
+        </div>`;
+      }
+      const weekHtml = (() => {
+        const mon = addDays(calendarCursor, -dayIndexMon0(calendarCursor));
+        let rows = "";
+        for (let i = 0; i < 7; i++) {
+          const day = addDays(mon, i);
+          const ds = fmtISODate(day);
+          const list = sessionsOnDate(ds);
+          rows += `<div class="card" style="padding:.6rem"><strong>${DOW[i]} ${ds}</strong>
+            ${list
+              .map((s) => {
+                const cl = getClassById(s.classId);
+                return `<div class="cal-chip" style="background:${cl?.color}44">${s.startTime}-${s.endTime} ${escapeHtml(cl?.name)}</div>`;
+              })
+              .join("") || '<p class="kpi-sub">Aucune séance</p>'}
+          </div>`;
+        }
+        return `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.5rem">${rows}</div>`;
+      })();
+
+      const yearHtml = `<div class="year-grid">${["Sept", "Oct", "Nov", "Déc", "Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil"]
+        .map((name, idx) => `<div class="year-month"><strong>${name}</strong><p class="kpi-sub">${y}</p></div>`)
+        .join("")}</div>`;
+
+      return (
+        (calendarMode === "month"
+          ? `<div class="card"><div class="cal-toolbar"><strong>${new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" }).format(new Date(y, m))}</strong></div>
+          <div class="cal-grid">${["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((d) => `<div class="cal-dow">${d}</div>`).join("")}${cells}</div></div>`
+          : "") +
+        (calendarMode === "week" ? `<div class="card">${weekHtml}</div>` : "") +
+        (calendarMode === "year" ? `<div class="card">${yearHtml}</div>` : "")
+      );
+    }
+
+    function viewCalendar() {
+      return (
+        renderTopbar("Calendrier visuel", `<div class="flex-row">
+          <button type="button" class="btn btn-sm btn-ghost" id="cal-prev">◀</button>
+          <button type="button" class="btn btn-sm btn-ghost" id="cal-today">Aujourd'hui</button>
+          <button type="button" class="btn btn-sm btn-ghost" id="cal-next">▶</button>
+          <select id="cal-mode" class="btn btn-sm" style="border:1px solid var(--border)">
+            <option value="month" ${calendarMode === "month" ? "selected" : ""}>Mensuel</option>
+            <option value="week" ${calendarMode === "week" ? "selected" : ""}>Hebdomadaire</option>
+            <option value="year" ${calendarMode === "year" ? "selected" : ""}>Annuel</option>
+          </select>
+        </div>`) +
+        viewCalendarBody()
+      );
+    }
+
+    function viewStatsBody() {
+      const fields = fieldDistribution();
+      const maxF = fields[0] ? fields[0][1] : 1;
+      return (
+        `<div class="card"><h3>Taux de réalisation par classe</h3><div class="bar-chart" style="margin-top:.75rem">
+        ${appData.classes
+          .filter((c) => matchesSearch(c.name))
+          .map((cl) => {
+            const st = sessionStatsForClass(cl.id);
+            const w = st.pct;
+            return `<div class="bar-row"><span>${escapeHtml(cl.name)}</span><div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${cl.color}"></div></div><span>${w}%</span></div>`;
+          })
+          .join("")}
+        </div></div>
+        <div class="card"><h3>Répartition des champs d'apprentissage (APSA)</h3><div class="bar-chart" style="margin-top:.75rem">
+        ${fields
+          .map(([name, n]) => {
+            const w = Math.round((n / maxF) * 100);
+            return `<div class="bar-row"><span>${escapeHtml(name)}</span><div class="bar-track"><div class="bar-fill" style="width:${w}%;background:var(--accent)"></div></div><span>${n}</span></div>`;
+          })
+          .join("")}
+        </div></div>
+        <div class="card"><h3>Séances moyennes par classe (sur l'année)</h3>
+        <p class="kpi-sub">Total séances générées / nombre de classes : <strong>${appData.classes.length ? Math.round(appData.sessions.length / appData.classes.length) : 0}</strong></p></div>`
+      );
+    }
+
+    function viewStats() {
+      return renderTopbar("Statistiques avancées", "") + viewStatsBody();
+    }
+
+    function viewBackupBody() {
+      const origin = escapeHtml(location.href);
+      return (
+        `<div class="card" style="border-left:4px solid var(--accent)">
+          <h3>Où sont mes données ?</h3>
+          <p class="kpi-sub" style="line-height:1.55;margin-top:.35rem">
+            Elles ne sont <strong>pas</strong> écrites dans le fichier <code>eps-college-dashboard.html</code> sur votre disque. Elles sont enregistrées dans le <strong>navigateur</strong> (ou l’aperçu web) pour l’<strong>adresse exacte</strong> utilisée au moment où vous travaillez.
+          </p>
+          <p class="kpi-sub" style="line-height:1.55;margin-top:.55rem">
+            L’aperçu intégré à <strong>Cursor</strong>, un onglet <strong>Safari</strong> ou <strong>Chrome</strong>, ou une adresse <code>http://127.0.0.1:…</code> sont des emplacements différents : vous ne retrouverez pas automatiquement les mêmes réglages. Pour les transférer : <strong>Export JSON</strong> depuis l’endroit où vous avez saisi les données, puis <strong>Import JSON</strong> dans le nouvel onglet ou le nouveau navigateur.
+          </p>
+          <p class="kpi-sub" style="margin-top:.65rem;font-size:.78rem;word-break:break-all;opacity:.95"><strong>Origine actuelle :</strong><br>${origin}</p>
+        </div>
+        <div class="card">
+          <h3>Année scolaire</h3>
+          <div class="form-row">
+            <div class="form-group"><label>Début</label><input type="date" id="set-start" value="${appData.settings.schoolYearStart}" /></div>
+            <div class="form-group"><label>Fin</label><input type="date" id="set-end" value="${appData.settings.schoolYearEnd}" /></div>
+          </div>
+          <button type="button" class="btn btn-primary" id="btn-save-settings">Enregistrer période & régénérer</button>
+        </div>
+        <div class="card">
+          <p class="kpi-sub" style="line-height:1.5">Sauvegarde automatique dans ce navigateur pour cette origine (voir encadré ci-dessus). Pensez à exporter un fichier JSON avant de changer d’ordinateur, de navigateur ou de mode d’ouverture du fichier.</p>
+          <div class="flex-row" style="margin-top:.75rem">
+            <button type="button" class="btn btn-primary" id="btn-export">Export JSON</button>
+            <label class="btn btn-ghost" style="border:1px solid var(--border);cursor:pointer">Import JSON<input type="file" id="inp-import" accept="application/json" class="hidden" /></label>
+            <button type="button" class="btn btn-danger" id="btn-reset">Reset données</button>
+            <button type="button" class="btn btn-ghost" id="btn-pdf">PDF (via impression)</button>
+          </div>
+        </div>`
+      );
+    }
+
+    function viewBackup() {
+      return renderTopbar("Sauvegarde & paramètres", "") + viewBackupBody();
+    }
+
+    /**
+     * Lignes de tableau pour une liste de séances (même colonnes que l'ancienne vue annuelle).
+     */
+    function renderSessionRowsHtml(sessions) {
+      const sorted = sessions.slice().sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
+      const rows = sorted
+        .filter((s) => matchesSearch(s.date) || matchesSearch(activityById(s.activityId)?.name || ""))
+        .map((s) => {
+          const stt = computeSessionStatus(s);
+          const act = activityById(s.activityId);
+          const d = parseISODate(s.date);
+          const jour = new Intl.DateTimeFormat("fr-FR", { weekday: "long" }).format(d);
+          const canc = cancellationForSession(s);
+          let action = "—";
+          if (canc) {
+            action = `<button type="button" class="btn btn-sm btn-ghost btn-remove-canc-row" data-canc-id="${canc.id}">Lever l'annulation</button>`;
+          } else if (stt.code === "planned" || stt.code === "today") {
+            action = `<button type="button" class="btn btn-sm btn-danger btn-cancel-session" data-session-id="${s.id}">Annuler</button>`;
+          }
+          if (s.extra) {
+            action += `<button type="button" class="btn btn-sm btn-danger btn-del-extra-session" data-session-id="${s.id}" style="margin-left:.3rem" title="Supprimer ce cours ajouté">Supprimer</button>`;
+          }
+          const col = stt.code === "cancelled" ? "var(--danger)" : stt.code === "done" ? "var(--success)" : "var(--accent)";
+          const isToday = stt.code === "today";
+          const hasSummary = s.summary && s.summary.trim();
+          const hasPdf = !!s.sessionPdf;
+          const summaryIcon = hasSummary ? "📝" : "＋";
+          const summaryStyle = hasSummary ? "color:var(--accent);font-weight:700" : "color:var(--text-muted)";
+          const pdfIcon = hasPdf ? '<span style="color:var(--danger);font-size:1rem;margin-right:.2rem" title="PDF joint">📄</span>' : "";
+          return `<tr style="${isToday ? "background:#16a34a22;font-weight:600" : ""};cursor:pointer" class="btn-session-summary" data-session-id="${s.id}" title="${hasSummary ? "Voir / modifier le résumé" : "Ajouter un résumé"}">
+            <td>${fmtDateFr(s.date)}</td>
+            <td>${escapeHtml(jour)}</td>
+            <td>${s.startTime}–${s.endTime}</td>
+            <td>${escapeHtml(s.venue || "—")}</td>
+            <td>${act ? escapeHtml(act.name) : "—"}</td>
+            <td><span class="status-dot" style="background:${col}"></span>${escapeHtml(stt.label)}</td>
+            <td>${escapeHtml(canc ? REASON_TYPES.find((x) => x[0] === canc.reasonType)?.[1] || canc.reasonType : stt.reason || "")}</td>
+            <td class="no-print">${(() => { const att = s.attendance || {}; const keys = Object.keys(att); if (!keys.length) return ""; const p = keys.filter((k) => att[k] === "present").length; const ab = keys.filter((k) => att[k] === "absent").length; const l = keys.filter((k) => att[k] === "late").length; return `<span style="font-size:.7rem;font-weight:600;padding:.15rem .45rem;border-radius:10px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;margin-right:.3rem" title="Appel">${p}P${l ? " "+l+"R" : ""}${ab ? " "+ab+"A" : ""}</span>`; })()}${pdfIcon}<span style="${summaryStyle};font-size:1rem;margin-right:.35rem">${summaryIcon}</span>${action}</td>
+          </tr>`;
+        })
+        .join("");
+      return rows || `<tr><td colspan="8">Aucune séance dans ce groupe.</td></tr>`;
+    }
+
+    function renderExemptionsBlock(classId) {
+      const exs = exemptionsForClass(classId);
+      const rows = exs
+        .slice()
+        .sort((a, b) => a.endDate.localeCompare(b.endDate))
+        .map((ex) => {
+          const active = isExemptionActive(ex);
+          const badge = active
+            ? '<span class="badge" style="background:var(--danger);color:#fff">En cours</span>'
+            : '<span class="badge">Terminée</span>';
+          const remaining = active
+            ? Math.max(0, Math.round((parseISODate(ex.endDate).getTime() - todayStart().getTime()) / 86400000)) + 1
+            : 0;
+          const remainingLabel = active ? `<strong style="color:var(--danger)">${remaining} jour(s)</strong>` : "—";
+          return `<tr>
+            <td><strong>${escapeHtml(ex.studentName)}</strong></td>
+            <td>${ex.certDate ? fmtDateFr(ex.certDate) : "—"}</td>
+            <td>${ex.days} jour(s)</td>
+            <td>${fmtDateFr(ex.startDate)}</td>
+            <td>${fmtDateFr(ex.endDate)}</td>
+            <td>${remainingLabel}</td>
+            <td>${badge}</td>
+            <td class="no-print"><button type="button" class="btn btn-sm btn-danger btn-del-exemption" data-id="${ex.id}">Supprimer</button><button type="button" class="btn btn-sm btn-ghost btn-edit-exemption" data-id="${ex.id}" style="margin-top:.25rem">Modifier</button></td>
+          </tr>`;
+        })
+        .join("");
+      return `<div class="card" style="border-left:5px solid var(--danger)">
+        <h3 style="margin-bottom:.5rem">Dispenses (${exs.length})</h3>
+        ${exs.length
+          ? `<div class="table-wrap"><table><thead><tr><th>Élève</th><th>Certificat</th><th>Durée</th><th>Début</th><th>Fin</th><th>Jours restants</th><th>Statut</th><th class="no-print">Action</th></tr></thead><tbody>${rows}</tbody></table></div>`
+          : '<p class="kpi-sub">Aucune dispense en cours.</p>'}
+        <button type="button" class="btn btn-sm btn-danger no-print" id="btn-add-exemption" data-classid="${classId}" style="font-weight:700;margin-top:.75rem">+ Ajouter une dispense</button>
+      </div>`;
+    }
+
+    function forgottenGearForClass(classId) {
+      return (appData.forgottenGear || []).filter((f) => f.classId === classId);
+    }
+
+    function renderForgottenGearBlock(classId, activePeriod) {
+      let items = forgottenGearForClass(classId);
+      if (activePeriod) {
+        items = items.filter((f) => f.date >= activePeriod.startDate && f.date <= activePeriod.endDate);
+      }
+      const countByStudent = {};
+      items.forEach((f) => {
+        const key = f.studentName;
+        if (!countByStudent[key]) countByStudent[key] = [];
+        countByStudent[key].push(f);
+      });
+      const studentRows = Object.keys(countByStudent)
+        .sort((a, b) => countByStudent[b].length - countByStudent[a].length)
+        .map((name) => {
+          const entries = countByStudent[name].sort((a, b) => a.date.localeCompare(b.date));
+          const details = entries.map((f) => `${fmtDateFr(f.date)} (${escapeHtml(f.item || "—")})`).join(", ");
+          const count = entries.length;
+          const countStyle = count >= 3 ? "color:var(--danger);font-weight:700" : count >= 2 ? "color:#d97706;font-weight:600" : "";
+          const rowStyle = count >= 3 ? "background:rgba(220,38,38,.12);color:var(--danger);font-weight:600" : "";
+          return `<tr class="fg-student-row" data-student="${escapeHtml(name)}" style="${rowStyle}">
+            <td><strong>${escapeHtml(name)}</strong></td>
+            <td style="${countStyle}">${count}</td>
+            <td class="kpi-sub">${details}</td>
+            <td class="no-print">${entries.map((f) => `<button type="button" class="btn btn-sm btn-danger btn-del-forgotten" data-id="${f.id}" style="margin:.1rem">✕</button>`).join("")}</td>
+          </tr>`;
+        })
+        .join("");
+
+      return `<div class="card" style="border-left:5px solid #d97706">
+        <h3 style="margin-bottom:.5rem">Oublis de matériel${activePeriod ? " — " + escapeHtml(activePeriod.name) : ""} (${items.length})</h3>
+        ${studentRows
+          ? `<div class="table-wrap"><table><thead><tr><th>Élève</th><th>Nb oublis</th><th>Dates & objets</th><th class="no-print">Suppr.</th></tr></thead><tbody>${studentRows}</tbody></table></div>`
+          : '<p class="kpi-sub">Aucun oubli enregistré sur cette période.</p>'}
+        <button type="button" class="btn btn-sm no-print" id="btn-add-forgotten" data-classid="${classId}" style="margin-top:.75rem;font-weight:700;background:#d97706;color:#fff">+ Ajouter un oubli</button>
+      </div>`;
+    }
+
+    /**
+     * Onglet classe : séances filtrées par période, avec sélecteur de période.
+     */
+    function viewClassPage(classId) {
+      const cl = getClassById(classId);
+      if (!cl) return renderTopbar("Classe", "") + `<div class="card"><p>Classe introuvable.</p></div>`;
+      const backBtn = `<button type="button" class="btn btn-sm btn-ghost" id="btn-back-dashboard" style="gap:0.35rem">◀ Tableau de bord</button>`;
+      const st = sessionStatsForClass(classId);
+      const { next, lastDone } = nextAndLastSession(classId);
+
+      const clPeriods = periodsForClass(classId);
+      const todayStr = fmtISODate(new Date());
+      const currentPeriod = clPeriods.find((p) => todayStr >= p.startDate && todayStr <= p.endDate);
+      const selectedPeriodId = classSelectedPeriod[classId] || (currentPeriod ? currentPeriod.id : null);
+      const activePeriod = clPeriods.find((p) => p.id === selectedPeriodId) || null;
+
+      const periodSelector = clPeriods.length
+        ? `<select id="class-period-select" style="border:none;padding:.55rem .85rem;border-radius:var(--radius);font-size:.92rem;font-weight:600;flex:1;min-width:200px;color:#fff;background:var(--accent);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22white%22><path d=%22M7 10l5 5 5-5z%22/></svg>');background-repeat:no-repeat;background-position:right .7rem center;padding-right:2rem;box-shadow:0 2px 8px rgba(0,0,0,.15)">
+              ${clPeriods.map((p) => {
+                const isCur = currentPeriod && p.id === currentPeriod.id;
+                return `<option value="${p.id}" ${p.id === selectedPeriodId ? "selected" : ""}>${escapeHtml(p.name)} (${fmtDateFr(p.startDate)} → ${fmtDateFr(p.endDate)})${isCur ? " ● en cours" : ""}</option>`;
+              }).join("")}
+              <option value="__all__" ${!selectedPeriodId ? "selected" : ""}>Toutes les périodes</option>
+            </select>`
+        : "";
+
+      const periodActs = activePeriod
+        ? activitiesForClass(classId).filter((a) => a.startDate >= activePeriod.startDate && a.endDate <= activePeriod.endDate || (a.periodId && a.periodId === activePeriod.id))
+        : activitiesForClass(classId);
+
+      const pactStr = periodActs.length
+        ? periodActs.map((a) => `${escapeHtml(a.name)} (${fmtDateFr(a.startDate)} – ${fmtDateFr(a.endDate)})`).join(" · ")
+        : "—";
+
+      const sections = [];
+      periodActs.forEach((a) => {
+        const subs = sessionsForClass(classId).filter((s) => s.activityId === a.id);
+        if (!subs.length) return;
+        const aSt = sessionStatsForSessions(subs);
+        sections.push(`<div class="card" style="border-left:5px solid ${escapeHtml(a.color)}">
+          <h3 style="margin-bottom:.35rem">${escapeHtml(a.name)} <span class="badge" style="font-size:0.78rem;vertical-align:middle">${aSt.remaining} restante(s)</span></h3>
+          <p class="kpi-sub"><strong>Période</strong> ${fmtDateFr(a.startDate)} → ${fmtDateFr(a.endDate)} · <strong>Jours</strong> : ${escapeHtml(formatDayIndicesLabel(a))}</p>
+          <div class="table-wrap"><table><thead><tr><th>Date</th><th>Jour</th><th>Horaire</th><th>Lieu</th><th>APSA</th><th>Statut</th><th>Motif / info</th><th class="no-print">Action</th></tr></thead><tbody>
+          ${renderSessionRowsHtml(subs)}
+          </tbody></table></div>
+        </div>`);
+      });
+      {
+        const shownActIds = new Set(periodActs.map((a) => a.id));
+        const orphan = sessionsForClass(classId).filter((s) => s.extra && (!s.activityId || !shownActIds.has(s.activityId)));
+        if (orphan.length) {
+          sections.push(`<div class="card" style="border-left:5px solid #d97706">
+            <h3 style="margin-bottom:.35rem">📌 Cours ajoutés — sans APSA</h3>
+            <p class="kpi-sub">Ces cours ont été ajoutés manuellement et ne sont rattachés à aucune activité.</p>
+            <div class="table-wrap"><table><thead><tr><th>Date</th><th>Jour</th><th>Horaire</th><th>Lieu</th><th>APSA</th><th>Statut</th><th>Motif / info</th><th class="no-print">Action</th></tr></thead><tbody>
+            ${renderSessionRowsHtml(orphan)}
+            </tbody></table></div>
+          </div>`);
+        }
+      }
+      const sectionsHtml =
+        sections.length > 0
+          ? sections.join("")
+          : `<div class="card"><p class="kpi-sub">${activePeriod ? "Aucune séance sur cette période." : "Aucune séance générée — renseignez l'emploi du temps et les APSA dans Réglages, puis « Régénérer les séances »."}</p></div>`;
+
+      return (
+        renderTopbar(
+          `${cl.name} — Séances`,
+          `${backBtn}<button type="button" class="btn btn-sm btn-primary no-print" onclick="window.print()">Imprimer</button>`
+        ) +
+        `<div class="card">
+          <h3 style="margin-bottom:.5rem"><span class="legend-dot" style="background:${cl.color}"></span> ${escapeHtml(cl.name)}</h3>
+          <p class="kpi-sub">Effectif ${cl.enrollment} · ${cycleLabel(cl.cycleYears)} · <strong>${st.total}</strong> séances sur l'année (${st.done} effectuées, ${st.remaining} restantes, ${st.cancelled} annulées)</p>
+          <p class="kpi-sub"><strong>Emploi du temps :</strong> ${escapeHtml(weekdaysForClass(classId) || "—")}</p>
+          <p class="kpi-sub"><strong>APSA :</strong> ${pactStr}</p>
+          <p class="kpi-sub"><strong>Prochaine séance :</strong> ${next ? `${fmtDateFr(next.date)} ${next.startTime}` : "—"} · <strong>Dernière effectuée :</strong> ${lastDone ? `${fmtDateFr(lastDone.date)} ${lastDone.startTime}` : "—"}</p>
+          <div style="display:flex;gap:.5rem;margin-top:0.75rem;flex-wrap:wrap">
+            <button type="button" class="btn btn-sm btn-primary no-print" id="btn-add-extra-session" data-classid="${classId}" style="font-weight:700">+ Ajouter un cours</button>
+          </div>
+        </div>
+        ${renderExemptionsBlock(classId)}
+        ${renderForgottenGearBlock(classId, activePeriod)}
+        ${periodSelector ? `<div class="card no-print" style="border-left:5px solid var(--accent);padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+          <strong style="font-size:1rem">📅 Période</strong>${periodSelector}
+        </div>` : ""}
+        ${sectionsHtml}`
+      );
+    }
+
+    /** Regroupe l'ancienne navigation « technique » derrière un seul point d'entrée. */
+    function viewTools() {
+      if (toolsPanel === "schedule") toolsPanel = "orgCreneaux";
+      if (toolsPanel === "activities") toolsPanel = "orgApsa";
+      if (toolsPanel === "venues") toolsPanel = "orgLieux";
+      if (toolsPanel === "progEtab") toolsPanel = "orgProg";
+      if (toolsPanel === "holidays" || toolsPanel === "calendar") toolsPanel = "calendriers";
+
+      const TOOLS_CARDS = [
+        { id: "classes",      icon: "📋", label: "Mes classes",      sub: appData.classes.length + " classe(s)" },
+        { id: "orgEPS",       icon: "🏫", label: "Organisation de l'EPS dans l'établissement", sub: "EDT, APSA, lieux, programmation" },
+        { id: "calendriers",  icon: "📆", label: "Calendriers",      sub: "Calendrier scolaire & visuel" },
+        { id: "backup",       icon: "💾", label: "Sauvegarde",       sub: "Export, import, reset" },
+      ];
+
+      if (toolsPanel === "home" || !toolsPanel) {
+        const cards = TOOLS_CARDS.map((c) =>
+          `<div class="kpi no-print" style="animation-delay:0.1s;min-width:200px;flex:1;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem 1rem" data-tools="${c.id}">
+            <span style="font-size:2rem;margin-bottom:.5rem">${c.icon}</span>
+            <div class="kpi-label" style="text-align:center;font-size:.95rem">${c.label}</div>
+            <div class="kpi-sub" style="margin-top:.3rem;text-align:center">${c.sub}</div>
+          </div>`
+        ).join("");
+        return (
+          renderTopbar("Réglages & données") +
+          `<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">${cards}</div>
+          <div style="text-align:center;margin-top:1.5rem">
+            <button type="button" class="btn btn-sm" id="btn-reset-all" style="background:#dc2626;color:#fff;font-weight:700;padding:.5rem 1.2rem;border-radius:var(--radius)">🗑️ Réinitialiser toutes les données</button>
+          </div>`
+        );
+      }
+
+      let panel = "";
+      let panelTitle = "";
+      const extraBtns = [];
+      switch (toolsPanel) {
+        case "classes":
+          panelTitle = "📋 Mes classes";
+          extraBtns.push(`<button type="button" class="btn btn-sm btn-primary" id="btn-add-class">+ Classe</button>`);
+          panel = viewClassesBody();
+          break;
+        case "orgEPS": {
+          panelTitle = "🏫 Organisation de l'EPS dans l'établissement";
+          const ORG_CARDS = [
+            { id: "orgPeriodes",  icon: "📅", label: "Périodes",                          sub: "Définir les périodes de l'année" },
+            { id: "orgCreneaux",  icon: "🕐", label: "Créneaux des classes",              sub: "Emploi du temps hebdomadaire" },
+            { id: "orgApsa",      icon: "🏃", label: "APSA & séquences",                  sub: "Activités par classe et période" },
+            { id: "orgLieux",     icon: "📍", label: "Lieux de pratique",                  sub: "Gymnase, stade, piscine…" },
+            { id: "orgProg",      icon: "📋", label: "Programmation de l'établissement",   sub: "Document PDF de référence" },
+          ];
+          panel = `<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem">${ORG_CARDS.map((c) =>
+            `<div class="kpi no-print" style="animation-delay:0.1s;min-width:200px;flex:1;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem 1rem" data-tools="${c.id}">
+              <span style="font-size:2rem;margin-bottom:.5rem">${c.icon}</span>
+              <div class="kpi-label" style="text-align:center;font-size:.95rem">${c.label}</div>
+              <div class="kpi-sub" style="margin-top:.3rem;text-align:center">${c.sub}</div>
+            </div>`
+          ).join("")}</div>`;
+          break;
+        }
+        case "orgPeriodes":
+          panelTitle = "📅 Périodes";
+          panel = viewPeriodsBody();
+          break;
+        case "orgCreneaux":
+          panelTitle = "🕐 Créneaux des classes";
+          panel = viewScheduleBody();
+          break;
+        case "orgApsa":
+          panelTitle = "🏃 APSA & séquences";
+          panel = viewActivitiesBody();
+          break;
+        case "orgLieux":
+          panelTitle = "📍 Lieux de pratique";
+          panel = viewVenuesBody();
+          break;
+        case "orgProg":
+          panelTitle = "📋 Programmation de l'établissement";
+          panel = viewProgEtabBody();
+          break;
+        case "calendriers":
+          panelTitle = "📆 Calendriers";
+          extraBtns.push(`<button type="button" class="btn btn-sm btn-primary" id="btn-add-holiday">+ Événement</button>`);
+          panel =
+            `<h3 style="margin:1rem 0 .5rem">📅 Calendrier scolaire</h3>` + viewHolidaysBody() +
+            `<h3 style="margin:1.5rem 0 .5rem">🗓️ Calendrier visuel</h3>` +
+            `<div class="card no-print" style="margin-bottom:1rem;padding:.75rem">
+            <div class="flex-row">
+              <button type="button" class="btn btn-sm btn-ghost" id="cal-prev">◀</button>
+              <button type="button" class="btn btn-sm btn-ghost" id="cal-today">Aujourd'hui</button>
+              <button type="button" class="btn btn-sm btn-ghost" id="cal-next">▶</button>
+              <select id="cal-mode" class="btn btn-sm" style="border:1px solid var(--border)">
+                <option value="month" ${calendarMode === "month" ? "selected" : ""}>Mensuel</option>
+                <option value="week" ${calendarMode === "week" ? "selected" : ""}>Hebdomadaire</option>
+                <option value="year" ${calendarMode === "year" ? "selected" : ""}>Annuel</option>
+              </select>
+            </div></div>` +
+            viewCalendarBody();
+          break;
+        case "backup":
+          panelTitle = "💾 Sauvegarde";
+          panel = viewBackupBody();
+          break;
+        default:
+          toolsPanel = "home";
+          return viewTools();
+      }
+      const isOrgSub = ["orgPeriodes", "orgCreneaux", "orgApsa", "orgLieux", "orgProg"].includes(toolsPanel);
+      const backLabel = isOrgSub ? "◀ Organisation" : "◀ Réglages";
+      const backTarget = isOrgSub ? "orgEPS" : "home";
+      return (
+        renderTopbar("Réglages — " + panelTitle, `<button type="button" class="btn btn-sm btn-ghost" data-tools="${backTarget}" style="gap:.25rem">${backLabel}</button>` + extraBtns.join("")) +
+        panel
+      );
+    }
+
+    function wireEvents(main) {
+      main.querySelector("#btn-regen")?.addEventListener("click", () => {
+        regenerateSessions();
+        render();
+      });
+      main.querySelector("#dash-prev-day")?.addEventListener("click", () => {
+        dashboardDate = addDays(dashboardDate, -1);
+        render();
+      });
+      main.querySelector("#dash-next-day")?.addEventListener("click", () => {
+        dashboardDate = addDays(dashboardDate, 1);
+        render();
+      });
+      main.querySelector("#dash-today")?.addEventListener("click", () => {
+        dashboardDate = new Date();
+        render();
+      });
+      main.querySelector("#btn-todo-add")?.addEventListener("click", () => {
+        const inp = main.querySelector("#todo-input");
+        const text = inp ? inp.value.trim() : "";
+        if (!text) return;
+        appData.todoList.push({ text, done: false });
+        saveData();
+        render();
+      });
+      main.querySelector("#todo-input")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          main.querySelector("#btn-todo-add")?.click();
+        }
+      });
+      main.querySelectorAll(".todo-check").forEach((cb) => {
+        cb.addEventListener("change", () => {
+          const idx = parseInt(cb.getAttribute("data-idx"), 10);
+          if (appData.todoList[idx]) {
+            appData.todoList[idx].done = cb.checked;
+            saveData();
+            render();
+          }
+        });
+      });
+      main.querySelectorAll(".todo-del").forEach((b) => {
+        b.addEventListener("click", () => {
+          const idx = parseInt(b.getAttribute("data-idx"), 10);
+          appData.todoList.splice(idx, 1);
+          saveData();
+          render();
+        });
+      });
+      main.querySelectorAll(".link-fg-student").forEach((a) => {
+        a.addEventListener("click", (e) => {
+          e.preventDefault();
+          const cid = a.getAttribute("data-classid");
+          const studentName = a.getAttribute("data-student");
+          navigateTo(getClassViewId(cid));
+          setTimeout(() => {
+            const rows = document.querySelectorAll(".fg-student-row");
+            for (const row of rows) {
+              if (row.getAttribute("data-student") === studentName) {
+                row.scrollIntoView({ behavior: "smooth", block: "center" });
+                row.style.transition = "background .3s";
+                row.style.background = "rgba(220,38,38,.18)";
+                setTimeout(() => { row.style.background = ""; }, 2000);
+                break;
+              }
+            }
+          }, 100);
+        });
+      });
+      main.querySelector("#btn-fg-threshold")?.addEventListener("click", () => {
+        const opts = Array.from({length: 10}, (_, i) => i + 1).map((n) => `<option value="${n}" ${n === forgottenGearThreshold ? "selected" : ""}>${n}</option>`).join("");
+        const body = el(`<div>
+          <div class="form-group"><label>Afficher les élèves ayant au moins :</label>
+            <select id="f-fg-thresh" style="font-size:1rem;padding:.4rem .6rem">${opts}</select> <span>oubli(s) sur la période</span>
+          </div>
+        </div>`);
+        openModal("Seuil d'oublis de matériel", body, () => {
+          forgottenGearThreshold = parseInt(body.querySelector("#f-fg-thresh").value, 10) || 3;
+          lsSet("eps_fg_threshold", String(forgottenGearThreshold));
+          render();
+        });
+      });
+      main.querySelector("#btn-goto-tools")?.addEventListener("click", () => {
+        toolsPanel = "home";
+        navigateTo("tools");
+      });
+      main.querySelector("#btn-goto-classes")?.addEventListener("click", () => {
+        toolsPanel = "classes";
+        navigateTo("tools");
+      });
+      main.querySelector("#btn-back-dashboard")?.addEventListener("click", () => {
+        goBack();
+      });
+      main.querySelector("#btn-history-back")?.addEventListener("click", () => {
+        goBack();
+      });
+      main.querySelector("#class-period-select")?.addEventListener("change", (e) => {
+        const val = e.target.value;
+        const classId = currentView.startsWith("class:") ? currentView.slice(6) : null;
+        if (classId) {
+          classSelectedPeriod[classId] = val === "__all__" ? null : val;
+          render();
+        }
+      });
+      main.querySelector("#btn-add-exemption")?.addEventListener("click", () => {
+        const cid = main.querySelector("#btn-add-exemption").getAttribute("data-classid");
+        const todayISO = fmtISODate(new Date());
+        const body = el(`<div>
+          <div class="form-group"><label>Élève</label>${studentPickerHtml(cid, "f-ex-name")}</div>
+          <div class="form-group"><label>Date du certificat médical</label><input type="date" id="f-ex-certdate" value="${todayISO}" max="${todayISO}" /></div>
+          <div class="form-group"><label>Mode de saisie de la durée</label>
+            <select id="f-ex-mode">
+              <option value="days">Nombre de jours de dispense</option>
+              <option value="date">Date de fin inscrite sur le certificat</option>
+            </select>
+          </div>
+          <div id="ex-block-days" class="form-group"><label>Nombre de jours</label><input type="number" id="f-ex-days" min="1" value="7" />
+            <p class="kpi-sub" style="margin-top:.3rem">La date de fin est calculée à partir de la date du certificat + nombre de jours.</p>
+          </div>
+          <div id="ex-block-date" class="form-group" style="display:none"><label>Date de fin (inscrite sur le certificat)</label><input type="date" id="f-ex-enddate" />
+          </div>
+        </div>`);
+        const modeSelect = body.querySelector("#f-ex-mode");
+        modeSelect.addEventListener("change", () => {
+          const isDays = modeSelect.value === "days";
+          body.querySelector("#ex-block-days").style.display = isDays ? "" : "none";
+          body.querySelector("#ex-block-date").style.display = isDays ? "none" : "";
+        });
+        openModal("Nouvelle dispense", body, () => {
+          const name = body.querySelector("#f-ex-name").value.trim();
+          if (!name) return;
+          const certDate = body.querySelector("#f-ex-certdate").value;
+          if (!certDate) return;
+          const startDate = certDate;
+          let endDate, days;
+          if (modeSelect.value === "days") {
+            days = parseInt(body.querySelector("#f-ex-days").value, 10);
+            if (!days || days < 1) return;
+            endDate = fmtISODate(addDays(parseISODate(certDate), days - 1));
+          } else {
+            endDate = body.querySelector("#f-ex-enddate").value;
+            if (!endDate || endDate < certDate) return;
+            const diff = Math.round((parseISODate(endDate).getTime() - parseISODate(certDate).getTime()) / 86400000) + 1;
+            days = Math.max(1, diff);
+          }
+          appData.exemptions.push({
+            id: uid(),
+            classId: cid,
+            studentName: name,
+            days: days,
+            startDate: startDate,
+            endDate: endDate,
+            certDate: certDate,
+          });
+          saveData();
+          render();
+        });
+      });
+      main.querySelector("#btn-add-extra-session")?.addEventListener("click", () => {
+        const cid = main.querySelector("#btn-add-extra-session").getAttribute("data-classid");
+        const todayISO = fmtISODate(new Date());
+        const acts = activitiesForClass(cid);
+        const actOptions = acts.map((a) => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join("");
+        const scheds = schedulesForClass(cid);
+        const body = el(`<div>
+          <div class="form-group"><label>Date du cours</label><input type="date" id="f-extra-date" value="${todayISO}" /></div>
+          <div class="form-row">
+            <div class="form-group"><label>Heure début</label><input type="time" id="f-extra-start" value="${scheds.length ? scheds[0].startTime : "08:00"}" /></div>
+            <div class="form-group"><label>Heure fin</label><input type="time" id="f-extra-end" value="${scheds.length ? scheds[0].endTime : "10:00"}" /></div>
+          </div>
+          <div class="form-group"><label>Installation</label><input id="f-extra-venue" placeholder="Gymnase, stade…" value="${scheds.length ? escapeHtml(scheds[0].venue || "") : ""}" /></div>
+          <div class="form-group"><label>APSA</label><select id="f-extra-act"><option value="">— Aucune —</option>${actOptions}</select></div>
+        </div>`);
+        openModal("Ajouter un cours supplémentaire", body, () => {
+          const date = body.querySelector("#f-extra-date").value;
+          const startTime = body.querySelector("#f-extra-start").value;
+          const endTime = body.querySelector("#f-extra-end").value;
+          const venue = body.querySelector("#f-extra-venue").value.trim();
+          const actId = body.querySelector("#f-extra-act").value || null;
+          if (!date || !startTime || !endTime) return;
+          appData.sessions.push({
+            id: uid(),
+            classId: cid,
+            scheduleId: null,
+            date: date,
+            startTime: startTime,
+            endTime: endTime,
+            venue: venue,
+            activityId: actId,
+            extra: true,
+          });
+          saveData();
+          render();
+        });
+      });
+      main.querySelectorAll(".btn-del-exemption").forEach((b) => {
+        b.addEventListener("click", () => {
+          const eid = b.getAttribute("data-id");
+          if (confirm("Supprimer cette dispense ?")) {
+            appData.exemptions = appData.exemptions.filter((e) => e.id !== eid);
+            saveData();
+            render();
+          }
+        });
+      });
+      main.querySelectorAll(".btn-edit-exemption").forEach((b) => {
+        b.addEventListener("click", () => {
+          const eid = b.getAttribute("data-id");
+          const ex = appData.exemptions.find((e) => e.id === eid);
+          if (!ex) return;
+          const body = el(`<div>
+            <div class="form-group"><label>Prénom de l'élève</label><input id="f-ex-name" value="${escapeHtml(ex.studentName)}" /></div>
+            <div class="form-group"><label>Date du certificat médical</label><input type="date" id="f-ex-certdate" value="${ex.certDate || ex.startDate}" /></div>
+            <div class="form-group"><label>Mode de saisie de la durée</label>
+              <select id="f-ex-mode">
+                <option value="days">Nombre de jours de dispense</option>
+                <option value="date">Date de fin inscrite sur le certificat</option>
+              </select>
+            </div>
+            <div id="ex-block-days" class="form-group"><label>Nombre de jours</label><input type="number" id="f-ex-days" min="1" value="${ex.days}" /></div>
+            <div id="ex-block-date" class="form-group" style="display:none"><label>Date de fin</label><input type="date" id="f-ex-enddate" value="${ex.endDate}" /></div>
+          </div>`);
+          const modeSelect = body.querySelector("#f-ex-mode");
+          modeSelect.addEventListener("change", () => {
+            const isDays = modeSelect.value === "days";
+            body.querySelector("#ex-block-days").style.display = isDays ? "" : "none";
+            body.querySelector("#ex-block-date").style.display = isDays ? "none" : "";
+          });
+          openModal("Modifier la dispense", body, () => {
+            const name = body.querySelector("#f-ex-name").value.trim();
+            if (!name) return;
+            const certDate = body.querySelector("#f-ex-certdate").value;
+            if (!certDate) return;
+            let endDate, days;
+            if (modeSelect.value === "days") {
+              days = parseInt(body.querySelector("#f-ex-days").value, 10);
+              if (!days || days < 1) return;
+              endDate = fmtISODate(addDays(parseISODate(certDate), days - 1));
+            } else {
+              endDate = body.querySelector("#f-ex-enddate").value;
+              if (!endDate || endDate < certDate) return;
+              const diff = Math.round((parseISODate(endDate).getTime() - parseISODate(certDate).getTime()) / 86400000) + 1;
+              days = Math.max(1, diff);
+            }
+            ex.studentName = name;
+            ex.certDate = certDate;
+            ex.startDate = certDate;
+            ex.days = days;
+            ex.endDate = endDate;
+            saveData();
+            render();
+          });
+        });
+      });
+      main.querySelector("#btn-add-forgotten")?.addEventListener("click", () => {
+        const cid = main.querySelector("#btn-add-forgotten").getAttribute("data-classid");
+        const todayISO = fmtISODate(new Date());
+        const body = el(`<div>
+          <div class="form-group"><label>Élève</label>${studentPickerHtml(cid, "f-fg-name")}</div>
+          <div class="form-group"><label>Date de l'oubli</label><input type="date" id="f-fg-date" value="${todayISO}" /></div>
+          <div class="form-group"><label>Objet oublié</label>
+            <select id="f-fg-item">
+              <option value="Gourde">Gourde</option>
+              <option value="Tenue">Tenue</option>
+              <option value="Baskets">Baskets</option>
+            </select>
+          </div>
+        </div>`);
+        openModal("Signaler un oubli de matériel", body, () => {
+          const name = body.querySelector("#f-fg-name").value.trim();
+          const date = body.querySelector("#f-fg-date").value;
+          const item = body.querySelector("#f-fg-item").value;
+          if (!name || !date) return;
+          appData.forgottenGear.push({ id: uid(), classId: cid, studentName: name, date, item });
+          saveData();
+          render();
+        });
+      });
+      main.querySelectorAll(".btn-del-forgotten").forEach((b) => {
+        b.addEventListener("click", () => {
+          const fid = b.getAttribute("data-id");
+          appData.forgottenGear = appData.forgottenGear.filter((f) => f.id !== fid);
+          saveData();
+          render();
+        });
+      });
+      main.querySelectorAll(".nav-to-class").forEach((b) => {
+        b.addEventListener("click", (e) => {
+          if (e.target.closest(".btn-edit-class,.btn-del-class,.btn-show-students")) return;
+          navigateTo(b.getAttribute("data-view"));
+        });
+      });
+      main.querySelectorAll("[data-tools]").forEach((b) => {
+        b.addEventListener("click", () => {
+          toolsPanel = b.getAttribute("data-tools");
+          render();
+        });
+      });
+      main.querySelector("#inp-prog-pdf")?.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file || file.type !== "application/pdf") return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          appData.progEtabPdf = reader.result;
+          saveData();
+          render();
+        };
+        reader.readAsDataURL(file);
+      });
+      main.querySelector("#prog-pdf-container")?.addEventListener("click", () => {
+        const fs = document.getElementById("prog-pdf-fullscreen");
+        if (fs) fs.style.display = "block";
+      });
+      main.querySelector("#btn-close-pdf-fs")?.addEventListener("click", () => {
+        const fs = document.getElementById("prog-pdf-fullscreen");
+        if (fs) fs.style.display = "none";
+      });
+      main.querySelector("#btn-del-prog-pdf")?.addEventListener("click", () => {
+        if (confirm("Supprimer le document PDF ?")) {
+          appData.progEtabPdf = null;
+          saveData();
+          render();
+        }
+      });
+      main.querySelector("#btn-add-venue")?.addEventListener("click", () => {
+        const body = el(`<div>
+          <div class="form-group"><label>Nom du lieu</label><input id="f-ven-name" placeholder="Gymnase A, Stade…" /></div>
+          <div class="form-group"><label>Type</label><input id="f-ven-type" placeholder="Gymnase, Terrain extérieur, Salle…" /></div>
+          <div class="form-group"><label>Notes</label><input id="f-ven-notes" placeholder="Capacité, équipements…" /></div>
+        </div>`);
+        openModal("Nouveau lieu de pratique", body, () => {
+          const name = body.querySelector("#f-ven-name").value.trim();
+          if (!name) return;
+          appData.venues.push({
+            id: uid(),
+            name,
+            type: body.querySelector("#f-ven-type").value.trim(),
+            notes: body.querySelector("#f-ven-notes").value.trim(),
+          });
+          saveData();
+          render();
+        });
+      });
+      main.querySelectorAll(".btn-edit-venue").forEach((b) => {
+        b.addEventListener("click", () => {
+          const v = appData.venues.find((x) => x.id === b.getAttribute("data-id"));
+          if (!v) return;
+          const body = el(`<div>
+            <div class="form-group"><label>Nom du lieu</label><input id="f-ven-name" value="${escapeHtml(v.name)}" /></div>
+            <div class="form-group"><label>Type</label><input id="f-ven-type" value="${escapeHtml(v.type || "")}" /></div>
+            <div class="form-group"><label>Notes</label><input id="f-ven-notes" value="${escapeHtml(v.notes || "")}" /></div>
+          </div>`);
+          openModal("Modifier le lieu", body, () => {
+            const name = body.querySelector("#f-ven-name").value.trim();
+            if (!name) return;
+            v.name = name;
+            v.type = body.querySelector("#f-ven-type").value.trim();
+            v.notes = body.querySelector("#f-ven-notes").value.trim();
+            saveData();
+            render();
+          });
+        });
+      });
+      main.querySelectorAll(".btn-del-venue").forEach((b) => {
+        b.addEventListener("click", () => {
+          if (confirm("Supprimer ce lieu ?")) {
+            appData.venues = appData.venues.filter((x) => x.id !== b.getAttribute("data-id"));
+            saveData();
+            render();
+          }
+        });
+      });
+      main.querySelector("#btn-add-period")?.addEventListener("click", () => {
+        const classCheckboxes = appData.classes.map((c) =>
+          `<label style="display:inline-flex;align-items:center;gap:.3rem;margin-right:.75rem;font-size:.85rem;cursor:pointer">
+            <input type="checkbox" class="period-class-cb" value="${c.id}" />
+            <span class="legend-dot" style="background:${c.color}"></span>${escapeHtml(c.name)}
+          </label>`
+        ).join("");
+        const body = el(`<div>
+          <div class="form-group"><label>Nom de la période</label><input id="f-per-name" placeholder="Période 1" /></div>
+          <div class="form-row">
+            <div class="form-group"><label>Date de début</label><input type="date" id="f-per-start" /></div>
+            <div class="form-group"><label>Date de fin</label><input type="date" id="f-per-end" /></div>
+          </div>
+          <div class="form-group"><label>Classes concernées</label><div id="f-per-classes" style="display:flex;flex-wrap:wrap;gap:.25rem .5rem;margin-top:.35rem">${classCheckboxes}</div></div>
+        </div>`);
+        openModal("Nouvelle période", body, () => {
+          const name = body.querySelector("#f-per-name").value.trim();
+          const startDate = body.querySelector("#f-per-start").value;
+          const endDate = body.querySelector("#f-per-end").value;
+          if (!name || !startDate || !endDate) return;
+          const classIds = [...body.querySelectorAll(".period-class-cb:checked")].map((cb) => cb.value);
+          appData.periods.push({ id: uid(), name, startDate, endDate, classIds });
+          saveData();
+          render();
+        });
+      });
+      main.querySelectorAll(".btn-edit-period").forEach((b) => {
+        b.addEventListener("click", () => {
+          const pid = b.getAttribute("data-id");
+          const p = appData.periods.find((x) => x.id === pid);
+          if (!p) return;
+          const classCheckboxes = appData.classes.map((c) =>
+            `<label style="display:inline-flex;align-items:center;gap:.3rem;margin-right:.75rem;font-size:.85rem;cursor:pointer">
+              <input type="checkbox" class="period-class-cb" value="${c.id}" ${(p.classIds || []).includes(c.id) ? "checked" : ""} />
+              <span class="legend-dot" style="background:${c.color}"></span>${escapeHtml(c.name)}
+            </label>`
+          ).join("");
+          const body = el(`<div>
+            <div class="form-group"><label>Nom de la période</label><input id="f-per-name" value="${escapeHtml(p.name)}" /></div>
+            <div class="form-row">
+              <div class="form-group"><label>Date de début</label><input type="date" id="f-per-start" value="${p.startDate}" /></div>
+              <div class="form-group"><label>Date de fin</label><input type="date" id="f-per-end" value="${p.endDate}" /></div>
+            </div>
+            <div class="form-group"><label>Classes concernées</label><div id="f-per-classes" style="display:flex;flex-wrap:wrap;gap:.25rem .5rem;margin-top:.35rem">${classCheckboxes}</div></div>
+          </div>`);
+          openModal("Modifier la période", body, () => {
+            const name = body.querySelector("#f-per-name").value.trim();
+            const startDate = body.querySelector("#f-per-start").value;
+            const endDate = body.querySelector("#f-per-end").value;
+            if (!name || !startDate || !endDate) return;
+            p.name = name;
+            p.startDate = startDate;
+            p.endDate = endDate;
+            p.classIds = [...body.querySelectorAll(".period-class-cb:checked")].map((cb) => cb.value);
+            saveData();
+            render();
+          });
+        });
+      });
+      main.querySelectorAll(".btn-del-period").forEach((b) => {
+        b.addEventListener("click", () => {
+          const pid = b.getAttribute("data-id");
+          if (confirm("Supprimer cette période ?")) {
+            appData.periods = appData.periods.filter((x) => x.id !== pid);
+            saveData();
+            render();
+          }
+        });
+      });
+      main.querySelector("#btn-add-class")?.addEventListener("click", () => {
+        const body = el(`<div>
+          <div class="form-group"><label>Nom de classe</label><input id="f-name" placeholder="6e1" /></div>
+          <div class="form-row">
+            <div class="form-group"><label>Couleur</label><input type="color" id="f-color" value="#6366f1" /></div>
+            <div class="form-group"><label>Effectif</label><input type="number" id="f-en" value="25" min="1" /></div>
+          </div>
+          <div class="form-group"><label>Cycle</label><select id="f-cy"><option value="3">Cycle 3</option><option value="4">Cycle 4</option></select></div>
+        </div>`);
+        openModal("Nouvelle classe", body, () => {
+          const name = body.querySelector("#f-name").value.trim();
+          if (!name) return;
+          appData.classes.push({
+            id: uid(),
+            name,
+            color: body.querySelector("#f-color").value,
+            enrollment: +body.querySelector("#f-en").value || 25,
+            cycleYears: +body.querySelector("#f-cy").value,
+          });
+          regenerateSessions();
+          saveData();
+          render();
+        });
+      });
+      main.querySelectorAll(".btn-edit-class").forEach((b) => {
+        b.addEventListener("click", () => {
+          const id = b.getAttribute("data-id");
+          const cl = getClassById(id);
+          if (!cl) return;
+          if (!Array.isArray(cl.students)) cl.students = [];
+          const body = el(`<div>
+            <div class="form-group"><label>Nom</label><input id="f-name" value="${escapeHtml(cl.name)}" /></div>
+            <div class="form-row">
+              <div class="form-group"><label>Couleur</label><input type="color" id="f-color" value="${cl.color}" /></div>
+              <div class="form-group"><label>Effectif</label><input type="number" id="f-en" value="${cl.enrollment}" /></div>
+            </div>
+            <div class="form-group"><label>Cycle</label><select id="f-cy"><option value="3" ${cl.cycleYears === 3 ? "selected" : ""}>Cycle 3</option><option value="4" ${cl.cycleYears === 4 ? "selected" : ""}>Cycle 4</option></select></div>
+            <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
+            <p style="font-weight:700;margin-bottom:.5rem">Liste des élèves</p>
+            <div style="display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap">
+              <div class="form-group" style="flex:1;min-width:10rem"><label>Ajouter un élève</label><input id="f-add-student" placeholder="Prénom" /></div>
+              <button type="button" class="btn btn-sm btn-primary" id="btn-add-student-manual" style="margin-bottom:.35rem">+ Ajouter</button>
+            </div>
+            <div class="form-group" style="margin-top:.5rem"><label>Ou importer un fichier CSV</label><input type="file" accept=".csv,.txt" id="f-csv-import" /></div>
+            <div id="f-students-list" style="margin-top:.5rem;max-height:200px;overflow-y:auto"></div>
+          </div>`);
+          const studentsList = cl.students.slice();
+          const renderStudentsList = () => {
+            const container = body.querySelector("#f-students-list");
+            if (!studentsList.length) { container.innerHTML = '<p class="kpi-sub">Aucun élève importé.</p>'; return; }
+            container.innerHTML = studentsList.map((name, i) =>
+              `<div style="display:flex;align-items:center;justify-content:space-between;padding:.25rem 0;border-bottom:1px solid var(--border)">
+                <span style="font-size:.85rem">${escapeHtml(name)}</span>
+                <button type="button" class="btn btn-sm btn-danger btn-rm-student" data-idx="${i}" style="padding:.1rem .35rem;font-size:.7rem">✕</button>
+              </div>`
+            ).join("");
+            container.querySelectorAll(".btn-rm-student").forEach((btn) => {
+              btn.addEventListener("click", () => { studentsList.splice(parseInt(btn.getAttribute("data-idx"), 10), 1); renderStudentsList(); });
+            });
+          };
+          renderStudentsList();
+          body.querySelector("#btn-add-student-manual").addEventListener("click", () => {
+            const inp = body.querySelector("#f-add-student");
+            const name = inp.value.trim();
+            if (!name) return;
+            studentsList.push(name);
+            inp.value = "";
+            renderStudentsList();
+          });
+          body.querySelector("#f-csv-import").addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+              const text = reader.result;
+              const skipHeaders = ["prénom","prenom","nom","name","élève","eleve","firstname","lastname","étudiant"];
+              const lines = text.split(/\r?\n/)
+                .map((l) => l.split(/[;,\t]/)[0].replace(/^["']|["']$/g, "").trim())
+                .filter(Boolean)
+                .filter((l) => !skipHeaders.includes(l.toLowerCase()));
+              if (lines.length) {
+                studentsList.length = 0;
+                lines.forEach((l) => studentsList.push(l));
+                renderStudentsList();
+              }
+            };
+            reader.readAsText(file);
+          });
+          openModal("Modifier classe", body, () => {
+            cl.name = body.querySelector("#f-name").value.trim() || cl.name;
+            cl.color = body.querySelector("#f-color").value;
+            cl.enrollment = +body.querySelector("#f-en").value || cl.enrollment;
+            cl.cycleYears = +body.querySelector("#f-cy").value;
+            cl.students = studentsList.slice();
+            saveData();
+            render();
+          });
+        });
+      });
+      main.querySelectorAll(".btn-show-students").forEach((b) => {
+        b.addEventListener("click", () => {
+          const id = b.getAttribute("data-id");
+          const cl = getClassById(id);
+          if (!cl) return;
+          const students = cl.students || [];
+          const body = el(`<div>
+            ${students.length
+              ? `<p class="kpi-sub" style="margin-bottom:.5rem">${students.length} élève(s)</p>
+                <div style="max-height:350px;overflow-y:auto">${students.map((name, i) =>
+                  `<div style="display:flex;align-items:center;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--border)">
+                    <span style="font-size:.9rem"><strong>${i + 1}.</strong> ${escapeHtml(name)}</span>
+                  </div>`).join("")}</div>`
+              : '<p class="kpi-sub">Aucun élève importé. Utilisez « Modifier » pour importer un fichier CSV.</p>'}
+          </div>`);
+          openModal("Élèves — " + escapeHtml(cl.name), body, () => {});
+        });
+      });
+      main.querySelectorAll(".btn-del-class").forEach((b) => {
+        b.addEventListener("click", () => {
+          const id = b.getAttribute("data-id");
+          if (!confirm("Supprimer cette classe et ses données liées ?")) return;
+          if (currentView === getClassViewId(id)) currentView = "dashboard";
+          appData.classes = appData.classes.filter((c) => c.id !== id);
+          appData.schedules = appData.schedules.filter((s) => s.classId !== id);
+          appData.activities = appData.activities.filter((a) => a.classId !== id);
+          appData.cancellations = appData.cancellations.filter((c) => c.classId !== id);
+          regenerateSessions();
+          saveData();
+          render();
+        });
+      });
+      main.querySelector("#sched-class-filter")?.addEventListener("change", (e) => {
+        const v = e.target.value;
+        main.querySelectorAll(".class-sched-block").forEach((el) => {
+          el.style.display = !v || el.getAttribute("data-class") === v ? "" : "none";
+        });
+      });
+      main.querySelectorAll(".btn-add-slot").forEach((b) => {
+        b.addEventListener("click", () => {
+          const classId = b.getAttribute("data-class");
+          const body = el(`<div>
+            <div class="form-group"><label>Jour</label><select id="f-day">${DOW.map((d, i) => `<option value="${i}">${d}</option>`).join("")}</select></div>
+            <div class="form-row"><div class="form-group"><label>Début</label><input type="time" id="f-st" value="10:00" /></div>
+            <div class="form-group"><label>Fin</label><input type="time" id="f-en" value="12:00" /></div></div>
+            <div class="form-group"><label>Installation</label><input id="f-ve" placeholder="Gymnase" /></div>
+            <div class="form-group"><label>Alternance</label><select id="f-wp">
+              <option value="all">Toutes les semaines</option>
+              <option value="A">Semaine A uniquement</option>
+              <option value="B">Semaine B uniquement</option>
+            </select><p class="kpi-sub" style="margin-top:.35rem">Depuis le début d'année scolaire : semaines <em>paires</em> = A, <em>impaires</em> = B.</p></div>
+          </div>`);
+          openModal("Nouveau créneau", body, () => {
+            appData.schedules.push({
+              id: uid(),
+              classId,
+              dayIndex: +body.querySelector("#f-day").value,
+              startTime: body.querySelector("#f-st").value,
+              endTime: body.querySelector("#f-en").value,
+              venue: body.querySelector("#f-ve").value || "Salle",
+              frequency: 1,
+              weekParity: body.querySelector("#f-wp").value || "all",
+            });
+            regenerateSessions();
+            saveData();
+            render();
+          });
+        });
+      });
+      main.querySelectorAll(".btn-del-slot").forEach((b) => {
+        b.addEventListener("click", () => {
+          const id = b.getAttribute("data-id");
+          appData.schedules = appData.schedules.filter((s) => s.id !== id);
+          regenerateSessions();
+          saveData();
+          render();
+        });
+      });
+      main.querySelectorAll(".btn-add-activity-period").forEach((b) => {
+        b.addEventListener("click", () => {
+          const classId = b.getAttribute("data-class");
+          const periodId = b.getAttribute("data-period");
+          const per = (appData.periods || []).find((p) => p.id === periodId);
+          const venueOpts = (appData.venues || []).map((v) => `<option value="${escapeHtml(v.name)}">${escapeHtml(v.name)}</option>`).join("");
+          const ACTIVITY_COLORS = ["#6366f1","#10b981","#f59e0b","#ef4444","#8b5cf6","#ec4899","#14b8a6","#f97316","#06b6d4","#84cc16","#a855f7","#e11d48"];
+          const existingCount = activitiesForClass(classId).length;
+          const autoColor = ACTIVITY_COLORS[existingCount % ACTIVITY_COLORS.length];
+          const body = el(`<div>
+            <div class="form-group"><label>Nom APSA</label><input id="f-n" placeholder="Handball" /></div>
+            <div class="form-group"><label>Couleur</label><input type="color" id="f-c" value="${autoColor}" /></div>
+            ${dayCheckboxesHtml("add-act", [])}
+            <div class="form-group"><label>Lieu de pratique</label><select id="f-v"><option value="">— Sélectionner —</option>${venueOpts}</select></div>
+          </div>`);
+          openModal("Nouvelle activité — " + (per ? per.name : ""), body, () => {
+            const n = body.querySelector("#f-n").value.trim();
+            if (!n) return;
+            const dayIndices = collectDayIndicesFromForm(body, "add-act-dayi");
+            appData.activities.push({
+              id: uid(),
+              classId,
+              periodId: periodId,
+              name: n,
+              field: "",
+              color: body.querySelector("#f-c").value,
+              startDate: per ? per.startDate : appData.settings.schoolYearStart,
+              endDate: per ? per.endDate : appData.settings.schoolYearEnd,
+              venue: body.querySelector("#f-v").value || "",
+              objectives: "",
+              competencies: "",
+              plannedSessions: 0,
+              dayIndices,
+            });
+            regenerateSessions();
+            saveData();
+            render();
+          });
+        });
+      });
+      main.querySelectorAll(".btn-edit-activity").forEach((b) => {
+        b.addEventListener("click", () => {
+          const a = appData.activities.find((x) => x.id === b.getAttribute("data-id"));
+          if (!a) return;
+          const venueOpts = (appData.venues || []).map((v) => `<option value="${escapeHtml(v.name)}" ${v.name === a.venue ? "selected" : ""}>${escapeHtml(v.name)}</option>`).join("");
+          const body = el(`<div>
+            <div class="form-group"><label>Nom</label><input id="f-n" value="${escapeHtml(a.name)}" /></div>
+            <div class="form-group"><label>Couleur</label><input type="color" id="f-c" value="${a.color}" /></div>
+            <div class="form-row"><div class="form-group"><label>Début</label><input type="date" id="f-d1" value="${a.startDate}" /></div><div class="form-group"><label>Fin</label><input type="date" id="f-d2" value="${a.endDate}" /></div></div>
+            ${dayCheckboxesHtml("edit-act", a.dayIndices || [])}
+            <div class="form-group"><label>Lieu de pratique</label><select id="f-v"><option value="">— Sélectionner —</option>${venueOpts}</select></div>
+          </div>`);
+          openModal("Modifier APSA", body, () => {
+            a.name = body.querySelector("#f-n").value.trim();
+            a.color = body.querySelector("#f-c").value;
+            a.startDate = body.querySelector("#f-d1").value;
+            a.endDate = body.querySelector("#f-d2").value;
+            a.dayIndices = collectDayIndicesFromForm(body, "edit-act-dayi");
+            a.venue = body.querySelector("#f-v").value;
+            regenerateSessions();
+            saveData();
+            render();
+          });
+        });
+      });
+      main.querySelectorAll(".btn-del-activity").forEach((b) => {
+        b.addEventListener("click", () => {
+          const id = b.getAttribute("data-id");
+          appData.activities = appData.activities.filter((a) => a.id !== id);
+          regenerateSessions();
+          saveData();
+          render();
+        });
+      });
+      main.querySelector("#btn-add-holiday")?.addEventListener("click", () => {
+        const body = el(`<div>
+          <div class="form-group"><label>Type</label><select id="f-t">
+            <option value="vacances">Vacances</option><option value="ferie">Jour férié</option><option value="pont">Pont</option>
+            <option value="banalise">Journée banalisée</option><option value="sortie">Sortie / voyage</option><option value="stage">Stage</option>
+            <option value="examen">Examens</option><option value="formation">Formation</option>
+          </select></div>
+          <div class="form-group"><label>Nom</label><input id="f-n" /></div>
+          <div class="form-row"><div class="form-group"><label>Début</label><input type="date" id="f-d1" /></div><div class="form-group"><label>Fin</label><input type="date" id="f-d2" /></div></div>
+          <div class="form-group"><label>Couleur (#hex)</label><input id="f-c" value="#64748b" /></div>
+          <div class="form-group"><label><input type="checkbox" id="f-b" checked /> Bloque les séances (recalcul)</label></div>
+        </div>`);
+        openModal("Événement calendrier", body, () => {
+          appData.holidays.push({
+            id: uid(),
+            type: body.querySelector("#f-t").value,
+            name: body.querySelector("#f-n").value || "Événement",
+            startDate: body.querySelector("#f-d1").value,
+            endDate: body.querySelector("#f-d2").value || body.querySelector("#f-d1").value,
+            color: body.querySelector("#f-c").value,
+            blocksSessions: body.querySelector("#f-b").checked,
+          });
+          regenerateSessions();
+          saveData();
+          render();
+        });
+      });
+      main.querySelectorAll(".btn-del-holiday").forEach((b) => {
+        b.addEventListener("click", () => {
+          appData.holidays = appData.holidays.filter((h) => h.id !== b.getAttribute("data-id"));
+          regenerateSessions();
+          saveData();
+          render();
+        });
+      });
+      main.querySelector("#btn-apply-calendar")?.addEventListener("click", () => {
+        const sel = main.querySelector("#sel-academy");
+        if (!sel || !sel.value) { alert("Veuillez sélectionner une académie."); return; }
+        const academy = sel.value;
+        const zone = ACADEMIES_ZONES[academy];
+        if (!zone || zone === "—") { alert("Le calendrier automatique n'est pas disponible pour cette académie."); return; }
+        if (!confirm("Cela remplacera toutes les vacances et jours fériés actuels par le calendrier officiel 2025-2026 (zone " + zone + "). Continuer ?")) return;
+        appData.settings.academy = academy;
+        appData.settings.zone = zone;
+        applyOfficialCalendar(zone);
+        regenerateSessions();
+        saveData();
+        render();
+      });
+      main.querySelector("#btn-submit-canc")?.addEventListener("click", () => {
+        const sid = main.querySelector("#canc-session").value;
+        const s = appData.sessions.find((x) => x.id === sid);
+        if (!s) return;
+        appData.cancellations.push({
+          id: uid(),
+          sessionId: s.id,
+          classId: s.classId,
+          date: s.date,
+          startTime: s.startTime,
+          reasonType: main.querySelector("#canc-reason").value,
+          comment: main.querySelector("#canc-comment").value,
+        });
+        saveData();
+        render();
+      });
+      main.querySelectorAll(".btn-remove-canc").forEach((b) => {
+        b.addEventListener("click", () => {
+          appData.cancellations = appData.cancellations.filter((c) => c.id !== b.getAttribute("data-id"));
+          saveData();
+          render();
+        });
+      });
+      main.querySelector("#cal-prev")?.addEventListener("click", () => {
+        if (calendarMode === "month") calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() - 1, 1);
+        else calendarCursor = addDays(calendarCursor, -7);
+        render();
+      });
+      main.querySelector("#cal-next")?.addEventListener("click", () => {
+        if (calendarMode === "month") calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + 1, 1);
+        else calendarCursor = addDays(calendarCursor, 7);
+        render();
+      });
+      main.querySelector("#cal-today")?.addEventListener("click", () => {
+        calendarCursor = new Date();
+        render();
+      });
+      main.querySelector("#cal-mode")?.addEventListener("change", (e) => {
+        calendarMode = e.target.value;
+        render();
+      });
+      main.querySelector("#btn-export")?.addEventListener("click", exportJSON);
+      main.querySelector("#inp-import")?.addEventListener("change", (e) => {
+        const f = e.target.files[0];
+        if (f) importJSONFile(f);
+      });
+      main.querySelector("#btn-reset")?.addEventListener("click", resetAll);
+      main.querySelector("#btn-reset-all")?.addEventListener("click", resetAll);
+      main.querySelector("#btn-pdf")?.addEventListener("click", () => window.print());
+      main.querySelector("#btn-save-settings")?.addEventListener("click", () => {
+        appData.settings.schoolYearStart = main.querySelector("#set-start").value;
+        appData.settings.schoolYearEnd = main.querySelector("#set-end").value;
+        regenerateSessions();
+        saveData();
+        render();
+      });
+      main.querySelectorAll(".btn-today-session").forEach((row) => {
+        row.addEventListener("click", () => {
+          const sid = row.getAttribute("data-session-id");
+          const s = appData.sessions.find((x) => x.id === sid);
+          if (!s) return;
+          const cl = getClassById(s.classId);
+          const act = activityById(s.activityId);
+          let sessionNumLabel = "";
+          if (act) {
+            const actSessions = appData.sessions
+              .filter((x) => x.classId === s.classId && x.activityId === act.id)
+              .sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
+            const nonCancelled = actSessions.filter((x) => computeSessionStatus(x).code !== "cancelled");
+            const idx = nonCancelled.findIndex((x) => x.id === s.id);
+            if (idx >= 0) sessionNumLabel = `Séance n°${idx + 1} sur ${nonCancelled.length}`;
+          }
+          const activeEx = (appData.exemptions || []).filter((e) => s.date >= e.startDate && s.date <= e.endDate && e.classId === s.classId);
+          const body = el(`<div>
+            <p style="font-size:1rem;font-weight:700;margin-bottom:.25rem">${escapeHtml(cl ? cl.name : "—")} · ${s.startTime || ""}–${s.endTime || ""}${act ? " · " + escapeHtml(act.name) : ""}</p>
+            ${sessionNumLabel ? `<p style="margin-bottom:.75rem;font-weight:600;color:var(--accent)">${escapeHtml(sessionNumLabel)}</p>` : ""}
+            <div id="td-ex-info"></div>
+            <div class="form-group"><label>Résumé de la séance</label><textarea id="f-td-summary" rows="5" style="width:100%;font-size:.9rem;line-height:1.5" placeholder="Contenu de la séance, observations, points à retenir…"></textarea></div>
+            <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
+            <p style="font-weight:700;margin-bottom:.5rem">Signaler un oubli de matériel</p>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end">
+              <div class="form-group" style="flex:1;min-width:8rem"><label>Élève</label>${studentPickerHtml(s.classId, "f-td-fg-name")}</div>
+              <div class="form-group" style="min-width:7rem"><label>Objet oublié</label>
+                <select id="f-td-fg-item"><option value="Gourde">Gourde</option><option value="Tenue">Tenue</option><option value="Baskets">Baskets</option></select>
+              </div>
+              <button type="button" class="btn btn-sm" id="btn-td-add-fg" style="background:#d97706;color:#fff;font-weight:700;margin-bottom:.35rem">+ Ajouter</button>
+            </div>
+            <div id="td-fg-list" style="margin-top:.5rem"></div>
+            <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
+            <p style="font-weight:700;margin-bottom:.5rem">Dispense élève</p>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end">
+              <div class="form-group" style="flex:1;min-width:8rem"><label>Élève</label>${studentPickerHtml(s.classId, "f-td-ex-name")}</div>
+              <div class="form-group" style="min-width:8rem"><label>Date certificat</label><input type="date" id="f-td-ex-certdate" value="${fmtISODate(new Date())}" /></div>
+            </div>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;margin-top:.25rem">
+              <div class="form-group" style="min-width:7rem"><label>Mode</label>
+                <select id="f-td-ex-mode"><option value="days">Nombre de jours</option><option value="date">Date de fin</option></select>
+              </div>
+              <div class="form-group" id="td-ex-block-days" style="min-width:6rem"><label>Jours</label><input type="number" id="f-td-ex-days" min="1" value="7" /></div>
+              <div class="form-group" id="td-ex-block-date" style="min-width:8rem;display:none"><label>Date de fin</label><input type="date" id="f-td-ex-enddate" /></div>
+              <button type="button" class="btn btn-sm btn-danger" id="btn-td-add-ex" style="font-weight:700;margin-bottom:.35rem">+ Dispense</button>
+            </div>
+            <div id="td-ex-list" style="margin-top:.5rem"></div>
+          </div>`);
+          body.querySelector("#f-td-summary").value = s.summary || "";
+          if (activeEx.length) {
+            const exDiv = body.querySelector("#td-ex-info");
+            exDiv.innerHTML = `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:.6rem .8rem;margin-bottom:.75rem">
+              <p style="font-weight:700;margin:0 0 .3rem;color:#dc2626;font-size:.88rem">🏥 Élèves dispensés (${activeEx.length})</p>
+              ${activeEx.map((e) => '<div style="font-size:.85rem;padding:.15rem 0"><strong style="color:#dc2626">' + escapeHtml(e.studentName) + '</strong> <span style="color:#666">— jusqu\'au ' + fmtDateFr(e.endDate) + '</span></div>').join("")}
+            </div>`;
+          }
+          const tdExMode = body.querySelector("#f-td-ex-mode");
+          tdExMode.addEventListener("change", () => {
+            body.querySelector("#td-ex-block-days").style.display = tdExMode.value === "days" ? "" : "none";
+            body.querySelector("#td-ex-block-date").style.display = tdExMode.value === "days" ? "none" : "";
+          });
+          const exList = [];
+          const renderExList = () => {
+            const container = body.querySelector("#td-ex-list");
+            container.innerHTML = exList.length
+              ? exList.map((ex, i) => `<div style="display:flex;align-items:center;gap:.5rem;padding:.25rem 0"><span>✓ <strong style="color:var(--danger)">${escapeHtml(ex.name)}</strong> — ${ex.days}j (${fmtDateFr(ex.startDate)} → ${fmtDateFr(ex.endDate)})</span><button type="button" class="btn btn-sm btn-danger td-ex-del" data-idx="${i}" style="padding:.15rem .4rem;font-size:.7rem">✕</button></div>`).join("")
+              : "";
+            container.querySelectorAll(".td-ex-del").forEach((b) => {
+              b.addEventListener("click", () => { exList.splice(parseInt(b.getAttribute("data-idx"), 10), 1); renderExList(); });
+            });
+          };
+          body.querySelector("#btn-td-add-ex").addEventListener("click", () => {
+            const name = body.querySelector("#f-td-ex-name").value.trim();
+            const certDate = body.querySelector("#f-td-ex-certdate").value;
+            if (!name || !certDate) return;
+            let endDate, days;
+            if (tdExMode.value === "days") {
+              days = parseInt(body.querySelector("#f-td-ex-days").value, 10);
+              if (!days || days < 1) return;
+              endDate = fmtISODate(addDays(parseISODate(certDate), days - 1));
+            } else {
+              endDate = body.querySelector("#f-td-ex-enddate").value;
+              if (!endDate || endDate < certDate) return;
+              days = Math.max(1, Math.round((parseISODate(endDate).getTime() - parseISODate(certDate).getTime()) / 86400000) + 1);
+            }
+            exList.push({ name, certDate, startDate: certDate, days, endDate });
+            body.querySelector("#f-td-ex-name").value = "";
+            renderExList();
+          });
+          const fgList = [];
+          const renderFgList = () => {
+            const container = body.querySelector("#td-fg-list");
+            container.innerHTML = fgList.length
+              ? fgList.map((f, i) => `<div style="display:flex;align-items:center;gap:.5rem;padding:.25rem 0"><span>✓ <strong>${escapeHtml(f.name)}</strong> — ${escapeHtml(f.item)}</span><button type="button" class="btn btn-sm btn-danger td-fg-del" data-idx="${i}" style="padding:.15rem .4rem;font-size:.7rem">✕</button></div>`).join("")
+              : "";
+            container.querySelectorAll(".td-fg-del").forEach((b) => {
+              b.addEventListener("click", () => { fgList.splice(parseInt(b.getAttribute("data-idx"), 10), 1); renderFgList(); });
+            });
+          };
+          body.querySelector("#btn-td-add-fg").addEventListener("click", () => {
+            const name = body.querySelector("#f-td-fg-name").value.trim();
+            const item = body.querySelector("#f-td-fg-item").value;
+            if (!name) return;
+            fgList.push({ name, item });
+            body.querySelector("#f-td-fg-name").value = "";
+            renderFgList();
+          });
+          body.appendChild(buildAttendanceBlock(s));
+          body.appendChild(buildSessionPdfBlock(s));
+          openModal("Cours du jour — " + escapeHtml(cl ? cl.name : ""), body, () => {
+            s.summary = body.querySelector("#f-td-summary").value;
+            const todayISO = fmtISODate(new Date());
+            fgList.forEach((f) => {
+              appData.forgottenGear.push({ id: uid(), classId: s.classId, studentName: f.name, date: todayISO, item: f.item });
+            });
+            exList.forEach((ex) => {
+              appData.exemptions.push({ id: uid(), classId: s.classId, studentName: ex.name, certDate: ex.certDate, startDate: ex.startDate, days: ex.days, endDate: ex.endDate });
+            });
+            saveData();
+            render();
+          });
+        });
+      });
+      main.querySelectorAll(".btn-session-summary").forEach((row) => {
+        row.addEventListener("click", (e) => {
+          if (e.target.closest("button")) return;
+          const sid = row.getAttribute("data-session-id");
+          const s = appData.sessions.find((x) => x.id === sid);
+          if (!s) return;
+          const act = activityById(s.activityId);
+          const body = el(`<div>
+            <p class="kpi-sub" style="margin-bottom:.75rem"><strong>${fmtDateFr(s.date)}</strong> · ${s.startTime}–${s.endTime}${act ? " · " + escapeHtml(act.name) : ""}</p>
+            <div class="form-group"><label>Résumé de la séance</label><textarea id="f-summary" rows="6" style="width:100%;font-size:.9rem;line-height:1.5" placeholder="Contenu de la séance, observations, points à retenir…"></textarea></div>
+          </div>`);
+          body.querySelector("#f-summary").value = s.summary || "";
+          body.appendChild(buildAttendanceBlock(s));
+          body.appendChild(buildSessionPdfBlock(s));
+          openModal("Résumé de séance", body, () => {
+            s.summary = body.querySelector("#f-summary").value;
+            saveData();
+            render();
+          });
+        });
+      });
+      main.querySelectorAll(".btn-cancel-session").forEach((b) => {
+        b.addEventListener("click", () => {
+          const sid = b.getAttribute("data-session-id");
+          const s = appData.sessions.find((x) => x.id === sid);
+          if (!s) return;
+          const body = el(`<div>
+            <p class="kpi-sub" style="margin-bottom:.75rem"><strong>${fmtDateFr(s.date)}</strong> · ${s.startTime}–${s.endTime}</p>
+            <div class="form-group"><label>Motif</label><select id="m-reason">${REASON_TYPES.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select></div>
+            <div class="form-group"><label>Commentaire</label><textarea id="m-com" rows="2"></textarea></div>
+          </div>`);
+          openModal("Annuler cette séance", body, () => {
+            if (appData.cancellations.some((c) => c.sessionId === sid)) return;
+            appData.cancellations.push({
+              id: uid(),
+              sessionId: s.id,
+              classId: s.classId,
+              date: s.date,
+              startTime: s.startTime,
+              reasonType: body.querySelector("#m-reason").value,
+              comment: body.querySelector("#m-com").value,
+            });
+            saveData();
+            render();
+          });
+        });
+      });
+      main.querySelectorAll(".btn-del-extra-session").forEach((b) => {
+        b.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const sid = b.getAttribute("data-session-id");
+          const s = appData.sessions.find((x) => x.id === sid);
+          if (!s) return;
+          if (!confirm(`Supprimer le cours ajouté du ${fmtDateFr(s.date)} (${s.startTime}–${s.endTime}) ?`)) return;
+          appData.sessions = appData.sessions.filter((x) => x.id !== sid);
+          appData.cancellations = appData.cancellations.filter((c) => c.sessionId !== sid);
+          saveData();
+          render();
+        });
+      });
+      main.querySelectorAll(".btn-remove-canc-row").forEach((b) => {
+        b.addEventListener("click", () => {
+          const cid = b.getAttribute("data-canc-id");
+          appData.cancellations = appData.cancellations.filter((c) => c.id !== cid);
+          saveData();
+          render();
+        });
+      });
+    }
+
+    function navigateTo(view) {
+      if (currentView !== view) {
+        viewHistory.push(currentView);
+        if (viewHistory.length > 50) viewHistory.shift();
+        currentView = view;
+      }
+      render();
+    }
+
+    function goBack() {
+      if (viewHistory.length) {
+        currentView = viewHistory.pop();
+        render();
+      }
+    }
+
+    function render() {
+      renderNav();
+      const main = document.getElementById("main");
+      let body = "";
+      if (currentView === "dashboard") {
+        body = viewDashboard();
+      } else if (currentView === "tools") {
+        body = viewTools();
+      } else if (currentView.startsWith("class:")) {
+        const cid = currentView.slice(6);
+        if (getClassById(cid)) body = viewClassPage(cid);
+        else {
+          currentView = "dashboard";
+          body = viewDashboard();
+        }
+      } else {
+        currentView = "dashboard";
+        body = viewDashboard();
+      }
+      main.innerHTML = body;
+      bindSearch();
+      wireEvents(main);
+      if (currentView === "dashboard") fetchWeather();
+      const se = document.getElementById("global-search");
+      if (se && searchQuery) {
+        se.focus();
+        const L = se.value.length;
+        se.setSelectionRange(L, L);
+      }
+    }
+
+    const WMO_WEATHER = {
+      0: "Ciel dégagé ☀️", 1: "Peu nuageux 🌤️", 2: "Partiellement nuageux ⛅", 3: "Couvert ☁️",
+      45: "Brouillard 🌫️", 48: "Brouillard givrant 🌫️",
+      51: "Bruine légère 🌦️", 53: "Bruine 🌦️", 55: "Bruine forte 🌧️",
+      61: "Pluie légère 🌦️", 63: "Pluie 🌧️", 65: "Pluie forte 🌧️",
+      71: "Neige légère 🌨️", 73: "Neige 🌨️", 75: "Neige forte 🌨️",
+      77: "Grains de neige 🌨️", 80: "Averses légères 🌦️", 81: "Averses 🌧️", 82: "Averses fortes 🌧️",
+      85: "Averses de neige 🌨️", 86: "Averses de neige fortes 🌨️",
+      95: "Orage ⛈️", 96: "Orage grêle ⛈️", 99: "Orage forte grêle ⛈️"
+    };
+
+    function fetchWeather() {
+      const kpi = document.getElementById("weather-kpi");
+      if (!kpi) return;
+      const dISO = dashboardDateISO();
+      const todayISO = fmtISODate(new Date());
+      const diffDays = Math.round((parseISODate(dISO) - parseISODate(todayISO)) / 86400000);
+      if (diffDays === 0) {
+        kpi.style.display = "";
+        fetch("https://api.open-meteo.com/v1/forecast?latitude=48.79&longitude=2.62&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto")
+          .then((r) => r.json())
+          .then((data) => updateWeatherUI(data.current, null))
+          .catch(() => updateWeatherUI(null, null));
+      } else if (diffDays > 0 && diffDays <= 16) {
+        kpi.style.display = "";
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=48.79&longitude=2.62&daily=temperature_2m_max,temperature_2m_min,weather_code&start_date=${dISO}&end_date=${dISO}&timezone=auto`)
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.daily && data.daily.time && data.daily.time.length) {
+              updateWeatherUI(null, { code: data.daily.weather_code[0], tMax: data.daily.temperature_2m_max[0], tMin: data.daily.temperature_2m_min[0] });
+            } else { updateWeatherUI(null, null); }
+          })
+          .catch(() => updateWeatherUI(null, null));
+      } else {
+        kpi.style.display = "none";
+      }
+    }
+
+    function updateWeatherUI(current, daily) {
+      const elTemp = document.getElementById("weather-temp");
+      const elDesc = document.getElementById("weather-desc");
+      if (!elTemp || !elDesc) return;
+      if (!current && !daily) {
+        elTemp.textContent = "—";
+        elDesc.textContent = "Indisponible";
+        return;
+      }
+      if (current) {
+        const label = WMO_WEATHER[current.weather_code] || "Inconnu";
+        elTemp.textContent = Math.round(current.temperature_2m) + "°C";
+        elDesc.innerHTML = escapeHtml(label) + `<br><span style="font-size:.72rem">Vent ${Math.round(current.wind_speed_10m)} km/h</span>`;
+      } else {
+        const label = WMO_WEATHER[daily.code] || "Inconnu";
+        elTemp.textContent = Math.round(daily.tMin) + "° / " + Math.round(daily.tMax) + "°";
+        elDesc.innerHTML = escapeHtml(label) + `<br><span style="font-size:.72rem">Prévision</span>`;
+      }
+    }
+
+    function init() {
+      if (!loadData()) seedDemo();
+      else {
+        if (!appData.settings) appData.settings = { schoolYearStart: "2025-09-01", schoolYearEnd: "2026-07-05", zone: "C" };
+        regenerateSessions();
+      }
+
+      document.getElementById("btn-theme").onclick = () => {
+        const t = document.documentElement.getAttribute("data-theme");
+        document.documentElement.setAttribute("data-theme", t === "light" ? "dark" : "light");
+        lsSet("eps_theme", document.documentElement.getAttribute("data-theme") || "dark");
+      };
+      if (lsGet("eps_theme") === "light") document.documentElement.setAttribute("data-theme", "light");
+
+      document.getElementById("btn-menu").onclick = () => document.getElementById("sidebar").classList.toggle("open");
+      document.getElementById("btn-print").onclick = () => window.print();
+
+      render();
+    }
+
+    try {
+      if ("serviceWorker" in navigator && location.protocol === "https:") {
+        const swCode = `self.addEventListener("install",e=>{self.skipWaiting()});self.addEventListener("activate",e=>{e.waitUntil(clients.claim())});self.addEventListener("fetch",e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)))});`;
+        const swBlob = new Blob([swCode], { type: "application/javascript" });
+        const swURL = URL.createObjectURL(swBlob);
+        navigator.serviceWorker.register(swURL).catch(() => {});
+      }
+    } catch(e) {}
+
+    function boot() {
+      try {
+        init();
+      } catch (e) {
+        var m = document.getElementById("main");
+        if (m) m.innerHTML = "<div style='padding:2rem;color:red;font-size:1.2rem'><h2>Erreur au chargement</h2><pre>" + e.message + "\n" + e.stack + "</pre></div>";
+      }
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", boot);
+    } else {
+      boot();
+    }
+  </script>
+</body>
+</html>
