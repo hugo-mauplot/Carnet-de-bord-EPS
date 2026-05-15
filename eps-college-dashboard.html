@@ -2,11 +2,12 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="EPS Dashboard" />
-  <meta name="theme-color" content="#0f1117" />
+  <meta name="theme-color" content="#09090b" />
+  <meta name="color-scheme" content="dark light" />
   <title>EPS Collège — Tableau de bord pédagogique</title>
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%236c8cff' width='100' height='100' rx='20'/><text x='50' y='68' text-anchor='middle' font-size='48' fill='white' font-family='sans-serif' font-weight='bold'>EPS</text></svg>" />
   <style>
@@ -28,6 +29,9 @@
       --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
       --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       --sidebar-w: 260px;
+      --fg: var(--text);
+      --card: var(--bg-elevated);
+      --hover: rgba(108, 140, 255, 0.08);
     }
     [data-theme="light"] {
       --bg: #f4f6fb;
@@ -55,7 +59,6 @@
     button { cursor: pointer; border: none; background: none; }
     ul { list-style: none; }
     .hidden { display: none !important; }
-
     /* ========== LAYOUT ========== */
     .app-shell {
       display: flex;
@@ -122,9 +125,117 @@
     .main {
       margin-left: var(--sidebar-w);
       flex: 1;
-      padding: 1.25rem 1.5rem 2rem;
+      padding: 1.25rem 1.5rem calc(5.5rem + env(safe-area-inset-bottom, 0));
       max-width: 1400px;
     }
+    .dash-date-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      text-align: center;
+    }
+    .dash-date-label {
+      font-size: clamp(1.1rem, 4.5vw, 1.65rem);
+      font-weight: 800;
+      margin: 0;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    .dash-date-nav { margin-bottom: 0.35rem; }
+    .dash-weather {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      margin: 0 0 1rem;
+      padding: 0 0.5rem;
+      text-align: center;
+    }
+    .dash-weather-line {
+      display: block;
+      max-width: 100%;
+      font-size: 0.88rem;
+      line-height: 1.35;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .dash-weather-line .weather-temp {
+      color: #38bdf8;
+      font-weight: 700;
+    }
+    [data-theme="light"] .dash-weather-line .weather-temp { color: #0284c7; }
+    .dash-page-header {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 0.35rem;
+      margin: -0.35rem 0 0.15rem;
+      min-height: 2rem;
+    }
+    .btn-regen-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 1.2rem;
+      line-height: 1;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      background: transparent;
+      transition: color 0.2s, background 0.2s, transform 0.15s;
+    }
+    .btn-regen-icon:hover {
+      color: var(--accent);
+      background: var(--accent-soft);
+      transform: rotate(-24deg);
+    }
+    .btn-regen-icon:active { transform: rotate(-24deg) scale(0.94); }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 45;
+      display: flex;
+      align-items: stretch;
+      justify-content: space-around;
+      background: var(--bg-elevated);
+      backdrop-filter: blur(22px) saturate(1.2);
+      -webkit-backdrop-filter: blur(22px) saturate(1.2);
+      border-top: 2px solid var(--border);
+      padding: 0.5rem 0.35rem calc(0.55rem + env(safe-area-inset-bottom, 0));
+      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.35), 0 -1px 0 rgba(108, 140, 255, 0.15);
+    }
+    .bottom-nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.2rem;
+      padding: 0.5rem 0.35rem;
+      min-height: 58px;
+      max-width: 160px;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      transition: color 0.2s, background 0.2s, transform 0.12s;
+      border-radius: 12px;
+      margin: 0 0.2rem;
+    }
+    .bottom-nav-item:hover { color: var(--text); background: var(--accent-soft); }
+    .bottom-nav-item.active {
+      color: var(--accent);
+      background: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px rgba(108, 140, 255, 0.35);
+    }
+    .bottom-nav-icon { font-size: 1.45rem; line-height: 1; }
     .topbar {
       display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
       gap: 1rem; margin-bottom: 1.25rem;
@@ -144,6 +255,158 @@
       grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: 0.85rem;
       margin-bottom: 1.25rem;
+    }
+    .kpi-grid--dash {
+      grid-template-columns: 1fr 1fr;
+      grid-auto-flow: row;
+      align-items: stretch;
+      gap: 0.65rem;
+    }
+    @media (max-width: 480px) and (orientation: portrait) {
+      .kpi-grid--dash {
+        gap: 0.5rem;
+      }
+      .kpi-grid--dash .kpi {
+        padding: 0.5rem 0.4rem;
+      }
+      .kpi-grid--dash .kpi-label {
+        font-size: 0.58rem;
+      }
+    }
+    .kpi-grid--dash .kpi {
+      padding: 0.6rem 0.5rem;
+      min-width: 0;
+    }
+    .kpi-grid--dash .kpi-label {
+      font-size: 0.62rem;
+      line-height: 1.25;
+      hyphens: auto;
+    }
+    .kpi-grid--dash .kpi-value {
+      font-size: 1.25rem;
+      margin-top: 0.15rem;
+    }
+    .kpi-grid--dash .kpi-sub {
+      font-size: 0.68rem;
+      margin-top: 0.25rem;
+      max-height: 5rem;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .kpi-grid--dash .kpi-prog-action {
+      font-size: 0.82rem;
+      margin-top: 0.15rem;
+    }
+    .kpi-grid--dash .kpi--warning .kpi-label {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.15rem;
+      text-align: center;
+    }
+    .dash-priority {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      margin-bottom: 0.5rem;
+    }
+    .dash-block {
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 0.75rem 0.85rem;
+      box-shadow: var(--shadow);
+    }
+    .dash-block__title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin: 0 0 0.55rem;
+    }
+    .dash-block--courses { border-left: 4px solid #14b8a6; }
+    .dash-block--schedule { border-left: 4px solid #818cf8; }
+    .dash-block--courses .dash-session-row { margin-top: 0; }
+    .dash-secondary { margin-top: 0.25rem; display: flex; flex-direction: column; gap: 0.65rem; }
+    .dash-block--todo { border-left: 4px solid var(--accent); }
+    .dash-block--sequences { border-left: 4px solid #14b8a6; }
+    .dash-block--sequences .dashboard-classes { margin-top: 0; }
+    .dash-weather--compact { margin: 0 0 0.5rem; }
+    .dash-weather--compact .dash-weather-line { font-size: 0.78rem; }
+    @media (max-width: 480px) and (orientation: portrait) {
+      .main { padding: 0.75rem 0.65rem calc(5.75rem + env(safe-area-inset-bottom, 0)); }
+      .dash-date-label { font-size: 1.05rem; }
+      .kpi-grid--dash { margin-bottom: 0; }
+      .kpi-grid--dash .kpi-sub { max-height: 3.25rem; }
+      .dash-block { padding: 0.65rem 0.75rem; }
+      /* Séquences en cours — iPhone portrait */
+      .dash-block--sequences { padding: 0.65rem 0.75rem; }
+      .dashboard-classes {
+        grid-template-columns: 1fr;
+        gap: 0.55rem;
+        margin-top: 0;
+      }
+      .dash-class-card {
+        padding: 0.75rem 0.8rem;
+        border-left-width: 4px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      }
+      .dash-class-card:hover { transform: none; }
+      .dash-class-card:active {
+        transform: scale(0.985);
+        opacity: 0.92;
+      }
+      .dash-class-card h3 {
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+      }
+      .dash-days {
+        font-size: 0.78rem;
+        margin: 0.35rem 0 0.5rem;
+        line-height: 1.35;
+      }
+      .dash-days strong { font-weight: 600; }
+      .dash-activity-block {
+        padding: 0.55rem 0;
+        margin-top: 0.15rem;
+        border-top-color: rgba(255, 255, 255, 0.06);
+      }
+      [data-theme="light"] .dash-activity-block {
+        border-top-color: rgba(15, 23, 42, 0.08);
+      }
+      .dash-activity-head {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.2rem;
+        margin-bottom: 0.35rem;
+      }
+      .dash-activity-name { font-size: 0.84rem; }
+      .dash-activity-days { font-size: 0.68rem; }
+      .dash-activity-last {
+        margin-left: 0;
+        font-size: 0.68rem;
+        width: 100%;
+        line-height: 1.3;
+      }
+      .dash-class-metrics {
+        gap: 0.35rem;
+        margin-top: 0.25rem;
+      }
+      .dash-class-metrics .num { font-size: 1.05rem; }
+      .dash-class-metrics .lbl-long { display: none; }
+      .dash-class-metrics .lbl-short { display: block; }
+      .dash-class-metrics .lbl {
+        font-size: 0.58rem;
+        letter-spacing: 0.04em;
+      }
+      .progress--activity { margin-top: 0.35rem !important; height: 5px; }
+      .dash-activity-foot {
+        font-size: 0.65rem;
+        margin-top: 0.25rem;
+      }
+      .dash-activity-foot .dash-activity-canc:empty { display: none; }
     }
     .kpi {
       padding: 1rem;
@@ -197,6 +460,82 @@
     .btn-ghost { background: transparent; }
     .btn-sm { padding: 0.35rem 0.65rem; font-size: 0.75rem; }
     .btn-danger { background: rgba(248, 113, 113, 0.15); color: var(--danger); border-color: rgba(248, 113, 113, 0.35); }
+
+    .activity-card-head { margin-bottom: 0.35rem; }
+    .activity-card-head h3 { margin: 0; }
+    .activity-participation-wrap {
+      display: flex; justify-content: center; align-items: center;
+      width: 100%; margin: 0.55rem 0 0.7rem;
+    }
+    .btn-participation {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      background: linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #2dd4bf 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      line-height: 1.35;
+      box-shadow: 0 3px 12px rgba(13, 148, 136, 0.4);
+      cursor: pointer;
+    }
+    .btn-participation:hover {
+      background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%);
+      box-shadow: 0 5px 16px rgba(13, 148, 136, 0.5);
+      transform: translateY(-1px);
+    }
+    .btn-participation:active { transform: translateY(0); }
+    .btn-participation-icon {
+      font-size: 1.15rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .btn-participation-label { flex: 0 1 auto; text-align: center; }
+    .participation-detail {
+      margin-top: 0.35rem;
+      font-size: 0.72rem;
+      line-height: 1.45;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .participation-detail .part-dispensed { color: #f472b6; }
+    .participation-detail .part-absent { color: var(--danger); }
+    .session-exempt-notice {
+      margin: 0 0 0.85rem;
+      padding: 0.15rem 0 0.15rem 0.6rem;
+      border-left: 3px solid rgba(244, 114, 182, 0.55);
+    }
+    .session-exempt-notice__title {
+      margin: 0 0 0.35rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #f472b6;
+    }
+    .session-exempt-notice__item {
+      margin: 0;
+      padding: 0.12rem 0;
+      font-size: 0.86rem;
+      line-height: 1.4;
+      color: var(--text);
+    }
+    .session-exempt-notice__item strong {
+      font-weight: 600;
+      color: #f9a8d4;
+    }
+    .session-exempt-notice__item span {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+    [data-theme="light"] .session-exempt-notice__item strong { color: #db2777; }
+    [data-theme="light"] .session-exempt-notice__title { color: #db2777; }
 
     /* ========== TABLES ========== */
     .table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
@@ -314,33 +653,13 @@
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
 
     /* ========== MOBILE ========== */
-    .menu-toggle {
-      display: none; position: fixed; bottom: 1rem; right: 1rem; z-index: 50;
-      width: 52px; height: 52px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), #818cf8);
-      color: #fff; box-shadow: var(--shadow); align-items: center; justify-content: center;
-    }
     @media (max-width: 900px) {
       .sidebar { transform: translateX(-100%); }
       .sidebar.open { transform: translateX(0); }
       .main { margin-left: 0; }
-      .menu-toggle { display: flex; }
     }
 
     /* ========== PRINT ========== */
-    .year-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 0.5rem;
-      font-size: 0.7rem;
-    }
-    .year-month {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.4rem;
-      background: var(--bg-elevated);
-    }
-    .year-month strong { display: block; margin-bottom: 0.25rem; }
     .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
     .flex-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
     .print-only { display: none; }
@@ -361,6 +680,7 @@
       border-left: 5px solid var(--dash-c, var(--accent));
       animation: kpiIn 0.42s ease backwards;
       transition: transform 0.2s, box-shadow 0.2s;
+      background: linear-gradient(165deg, rgba(108, 140, 255, 0.06), var(--surface));
     }
     .dash-class-card:hover { transform: translateY(-2px); box-shadow: 0 22px 50px rgba(0, 0, 0, 0.35); }
     .dash-class-card h3 { font-size: 1.15rem; margin-bottom: 0.35rem; letter-spacing: -0.02em; }
@@ -382,8 +702,838 @@
       margin-top: 0.15rem;
     }
 
+    /* ========== DASHBOARD — COULEURS INTUITIVES ========== */
+    .dash-date-nav--today {
+      padding: 0.5rem 0.85rem;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(108, 140, 255, 0.14), rgba(52, 211, 153, 0.08));
+      border: 1px solid rgba(108, 140, 255, 0.28);
+    }
+    .dash-date-label--today { color: var(--accent); }
+    #dash-today {
+      color: var(--accent);
+      font-weight: 700;
+      border-color: rgba(108, 140, 255, 0.35);
+      background: var(--accent-soft);
+    }
+    .kpi--tint {
+      position: relative;
+      overflow: hidden;
+      border-color: var(--kpi-border, var(--border));
+      background: linear-gradient(145deg, var(--kpi-bg, var(--surface)), var(--surface));
+    }
+    .kpi--tint::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: var(--kpi-accent, var(--accent));
+      border-radius: 4px 0 0 4px;
+    }
+    .kpi--weather { --kpi-accent: #38bdf8; --kpi-bg: rgba(56, 189, 248, 0.1); --kpi-border: rgba(56, 189, 248, 0.25); }
+    .kpi--sessions { --kpi-accent: #6c8cff; --kpi-bg: rgba(108, 140, 255, 0.1); --kpi-border: rgba(108, 140, 255, 0.25); }
+    .kpi--medical { --kpi-accent: #f472b6; --kpi-bg: rgba(244, 114, 182, 0.09); --kpi-border: rgba(244, 114, 182, 0.25); }
+    .kpi--medical.has-alert .kpi-value { color: var(--danger); }
+    .kpi--courses { --kpi-accent: #14b8a6; --kpi-bg: rgba(20, 184, 166, 0.1); --kpi-border: rgba(20, 184, 166, 0.28); }
+    .kpi--shortcut-classes { --kpi-accent: #a78bfa; --kpi-bg: rgba(167, 139, 250, 0.11); --kpi-border: rgba(167, 139, 250, 0.28); }
+    .kpi--shortcut-settings { --kpi-accent: #64748b; --kpi-bg: rgba(100, 116, 139, 0.1); --kpi-border: rgba(100, 116, 139, 0.22); }
+    .kpi--shortcut-prog { --kpi-accent: #e11d48; --kpi-bg: rgba(225, 29, 72, 0.09); --kpi-border: rgba(225, 29, 72, 0.28); }
+    .kpi--shortcut-prog.is-ready .kpi-sub { color: var(--success); font-weight: 600; }
+    .kpi--prog { --kpi-accent: #e11d48; --kpi-bg: rgba(225, 29, 72, 0.09); --kpi-border: rgba(225, 29, 72, 0.28); }
+    .kpi-grid--dash .kpi--prog {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .kpi-prog-action {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-top: 0.2rem;
+      color: var(--text-muted);
+    }
+    .kpi-prog-action.is-ready {
+      color: #e11d48;
+      letter-spacing: 0.03em;
+    }
+    #btn-dash-prog-pdf { cursor: pointer; }
+    .prog-pdf-fullscreen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.88);
+      padding: 1rem;
+      padding-top: calc(1rem + env(safe-area-inset-top, 0));
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
+    }
+    .prog-pdf-fullscreen.open { display: block; }
+    .prog-pdf-fullscreen .btn-close-pdf-fs {
+      position: absolute;
+      top: calc(1rem + env(safe-area-inset-top, 0));
+      right: 1.25rem;
+      z-index: 10001;
+      background: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 2.5rem;
+      height: 2.5rem;
+      font-size: 1.3rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    }
+    .prog-pdf-fullscreen iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: var(--radius);
+    }
+    .kpi--warning { --kpi-accent: #f59e0b; --kpi-bg: rgba(245, 158, 11, 0.1); --kpi-border: rgba(245, 158, 11, 0.3); }
+    .kpi--warning.has-alert { box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2); }
+    .kpi--schedule { --kpi-accent: #818cf8; --kpi-bg: rgba(129, 140, 248, 0.09); --kpi-border: rgba(129, 140, 248, 0.25); }
+    .kpi--sessions .kpi-value--active { color: var(--accent); }
+    .kpi-grid--dash .kpi--sessions .kpi-label,
+    .kpi-grid--dash .kpi--sessions .kpi-value,
+    .kpi-grid--dash .kpi--medical .kpi-label,
+    .kpi-grid--dash .kpi--medical .kpi-value,
+    .kpi-grid--dash .kpi--prog .kpi-label,
+    .kpi-grid--dash .kpi--prog .kpi-prog-action,
+    .kpi-grid--dash .kpi--prog .kpi-sub,
+    .kpi-grid--dash .kpi--warning .kpi-label,
+    .kpi-grid--dash .kpi--warning .kpi-value,
+    .kpi-grid--dash .kpi--warning .kpi-sub {
+      text-align: center;
+      width: 100%;
+    }
+    .dash-session-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      padding: 0.55rem 0.65rem;
+      border-top: 1px solid var(--border);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.15s;
+      border-left: 3px solid var(--session-c, var(--accent));
+    }
+    .dash-session-row:hover { background: var(--hover); }
+    .dash-session-row:first-child { border-top: none; margin-top: 0; }
+    .dash-session-time {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--session-c, var(--accent));
+      min-width: 4.5rem;
+    }
+    .dash-session-class {
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+      background: rgba(108, 140, 255, 0.12);
+      font-size: 0.82rem;
+    }
+    .dash-session-row .dash-session-class {
+      background: color-mix(in srgb, var(--session-c, var(--accent)) 20%, transparent);
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+    }
+    .status-pill--done { background: rgba(52, 211, 153, 0.18); color: var(--success); }
+    .status-pill--planned { background: rgba(108, 140, 255, 0.18); color: var(--accent); }
+    .status-pill--cancelled { background: rgba(248, 113, 113, 0.18); color: var(--danger); }
+    .status-pill--holiday { background: rgba(148, 163, 184, 0.18); color: var(--text-muted); }
+    .att-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
+      background: rgba(52, 211, 153, 0.12);
+      color: var(--success);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+    }
+    [data-theme="light"] .att-badge { color: #16a34a; background: #f0fdf4; border-color: #bbf7d0; }
+    .card--todo {
+      border-left: 4px solid var(--accent);
+      background: linear-gradient(135deg, rgba(108, 140, 255, 0.07), var(--surface));
+    }
+    .card--sequences {
+      border-left: 4px solid #14b8a6;
+      background: linear-gradient(135deg, rgba(20, 184, 166, 0.07), var(--surface));
+    }
+    .dash-class-card h3 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .dash-activity-block { padding: 0.65rem 0; border-top: 1px solid var(--border); }
+    .dash-activity-block:first-of-type { border-top: none; padding-top: 0; }
+    .dash-activity-head {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.45rem;
+    }
+    .dash-activity-name { font-size: 0.88rem; font-weight: 700; }
+    .dash-activity-days { font-size: 0.72rem; color: var(--text-muted); }
+    .dash-activity-last {
+      color: var(--danger);
+      font-weight: 700;
+      font-size: 0.78rem;
+      margin-left: auto;
+    }
+    .dash-activity-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-top: 0.35rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .dash-activity-foot .dash-activity-pct { font-weight: 700; color: var(--accent); }
+    .dash-class-metrics .lbl-short { display: none; }
+    .dash-metric-done .num { color: var(--success); }
+    .dash-metric-remaining .num { color: var(--warning); }
+    .dash-metric-total .num { color: var(--accent); }
+    .progress--activity > span {
+      background: linear-gradient(90deg, var(--act-c, var(--accent)), var(--success));
+    }
+    .dash-week-row {
+      padding: 0.55rem 0.65rem;
+      border-radius: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+    }
+    .dash-week-row--current {
+      border-color: rgba(108, 140, 255, 0.4);
+      background: rgba(108, 140, 255, 0.07);
+    }
+
+    .kpi--shortcut-classes,
+    .kpi--shortcut-settings,
+    .kpi--shortcut-prog {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .dash-session-class {
+      background: rgba(108, 140, 255, 0.12);
+    }
+    .session-num-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--accent);
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
+      margin-left: 0.25rem;
+    }
+
+    /* ========== TUTORIEL ========== */
+    .tutorial-guide { max-width: 52rem; line-height: 1.6; }
+    .tutorial-hero {
+      padding: 1.25rem 1.35rem;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--accent-soft), rgba(52, 211, 153, 0.1));
+      border: 1px solid var(--border);
+      margin-bottom: 1.25rem;
+    }
+    .tutorial-hero h2 { font-size: 1.15rem; margin-bottom: 0.35rem; letter-spacing: -0.02em; }
+    .tutorial-toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin: 0.85rem 0 0;
+    }
+    .tutorial-toc a {
+      font-size: 0.78rem;
+      padding: 0.28rem 0.55rem;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .tutorial-toc a:hover { color: var(--accent); border-color: var(--accent); }
+    .tutorial-section {
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg-elevated);
+      overflow: hidden;
+    }
+    .tutorial-section summary {
+      padding: 0.85rem 1.1rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .tutorial-section summary::-webkit-details-marker { display: none; }
+    .tutorial-section summary::before { content: "▸"; color: var(--accent); font-size: 0.85rem; }
+    .tutorial-section[open] summary::before { content: "▾"; }
+    .tutorial-section__body {
+      padding: 0 1.1rem 1.1rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .tutorial-section__body p { margin-bottom: 0.65rem; }
+    .tutorial-section__body ul, .tutorial-section__body ol { margin: 0.35rem 0 0.75rem 1.15rem; }
+    .tutorial-section__body li { margin-bottom: 0.35rem; }
+    .tutorial-section__body strong { color: var(--text); }
+    .tutorial-steps { counter-reset: tuto-step; list-style: none; margin-left: 0 !important; padding: 0; }
+    .tutorial-steps > li {
+      counter-increment: tuto-step;
+      position: relative;
+      padding-left: 2.35rem;
+      margin-bottom: 0.85rem;
+    }
+    .tutorial-steps > li::before {
+      content: counter(tuto-step);
+      position: absolute;
+      left: 0;
+      top: 0.05rem;
+      width: 1.65rem;
+      height: 1.65rem;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+    }
+    .tutorial-tip {
+      margin-top: 0.65rem;
+      padding: 0.65rem 0.85rem;
+      border-radius: var(--radius-sm);
+      background: rgba(251, 191, 36, 0.12);
+      border-left: 3px solid var(--warning);
+      font-size: 0.85rem;
+    }
+    .tutorial-goto {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-top: 0.35rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    .tutorial-goto:hover { text-decoration: underline; }
+    .btn-help {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      padding: 0;
+      border-radius: 50%;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      background: transparent;
+      flex-shrink: 0;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+    }
+    .btn-help:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+    .btn-help svg { display: block; pointer-events: none; }
+    .session-pdf-head {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.5rem;
+    }
+    .session-pdf-head__title {
+      font-weight: 700;
+      margin: 0;
+      flex: 1;
+      font-size: 0.9rem;
+      line-height: 1.3;
+    }
+    .session-pdf-add-btn,
+    .session-pdf-del-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      padding: 0;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+    }
+    .session-pdf-add-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .session-pdf-del-btn:hover {
+      color: var(--danger);
+      border-color: var(--danger);
+      background: rgba(248, 113, 113, 0.12);
+    }
+    .session-pdf-add-btn svg,
+    .session-pdf-del-btn svg { display: block; pointer-events: none; }
+
+    /* =============================================================================
+       PREMIUM iOS — Design system (visuel uniquement, logique inchangée)
+       ============================================================================= */
+    :root {
+      --bg: #09090b;
+      --bg-elevated: #141416;
+      --surface: rgba(28, 28, 31, 0.82);
+      --border: rgba(255, 255, 255, 0.07);
+      --text: #fafafa;
+      --text-muted: #a1a1aa;
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --accent-soft: rgba(99, 102, 241, 0.14);
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --radius: 16px;
+      --radius-sm: 12px;
+      --radius-xs: 8px;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24), 0 1px 8px rgba(0, 0, 0, 0.12);
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.45);
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", system-ui, sans-serif;
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --duration: 0.22s;
+      --touch: 44px;
+      --fg: var(--text);
+      --card: var(--bg-elevated);
+      --hover: rgba(99, 102, 241, 0.06);
+    }
+    [data-theme="light"] {
+      --bg: #f8f9fc;
+      --bg-elevated: #ffffff;
+      --surface: rgba(255, 255, 255, 0.92);
+      --border: rgba(15, 23, 42, 0.08);
+      --text: #18181b;
+      --text-muted: #71717a;
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+      --accent-soft: rgba(79, 70, 229, 0.1);
+      --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 2px 8px rgba(15, 23, 42, 0.04);
+      --shadow: 0 4px 20px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+      --shadow-lg: 0 24px 48px rgba(15, 23, 42, 0.1);
+    }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: var(--font);
+      font-feature-settings: "kern" 1, "liga" 1;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background:
+        radial-gradient(ellipse 120% 80% at 50% -30%, rgba(99, 102, 241, 0.12), transparent 55%),
+        radial-gradient(ellipse 80% 50% at 100% 0%, rgba(52, 211, 153, 0.06), transparent 45%),
+        var(--bg);
+      letter-spacing: -0.011em;
+    }
+    [data-theme="light"] body {
+      background:
+        radial-gradient(ellipse 100% 60% at 50% -20%, rgba(79, 70, 229, 0.06), transparent 50%),
+        var(--bg);
+    }
+    button, .btn, .nav-btn, .bottom-nav-item, .dash-session-row, .dash-class-card, .class-card, .kpi[role="button"] {
+      -webkit-tap-highlight-color: transparent;
+    }
+    .main {
+      padding: calc(0.75rem + env(safe-area-inset-top, 0)) 1rem calc(5.25rem + env(safe-area-inset-bottom, 0));
+      max-width: 100%;
+    }
+    @media (min-width: 901px) {
+      .main {
+        margin-left: var(--sidebar-w);
+        padding: 1.5rem 2rem 2rem;
+        max-width: 1200px;
+      }
+    }
+    .topbar {
+      margin-bottom: 1.25rem;
+      gap: 0.75rem;
+    }
+    .topbar h2 {
+      font-size: 1.625rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+    }
+    .topbar .subtitle {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+    .card, .kpi, .dash-block, .class-card, .program-card, .settings-section {
+      background: var(--surface);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--duration) var(--ease-out), box-shadow var(--duration) var(--ease-out), border-color var(--duration) var(--ease-out);
+    }
+    .card:hover, .class-card:hover, .program-card:hover {
+      border-color: rgba(99, 102, 241, 0.2);
+    }
+    .kpi {
+      padding: 1rem 1.05rem;
+      min-height: 5.5rem;
+    }
+    .kpi .kpi-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .kpi .kpi-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .kpi-grid {
+      gap: 0.65rem;
+    }
+    .btn {
+      min-height: var(--touch);
+      padding: 0.65rem 1.15rem;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.9375rem;
+      letter-spacing: -0.01em;
+      transition: background var(--duration) var(--ease-out), color var(--duration) var(--ease-out), transform 0.12s var(--ease-out), box-shadow var(--duration) var(--ease-out);
+    }
+    .btn:active:not(:disabled) { transform: scale(0.98); }
+    .btn-primary {
+      background: linear-gradient(180deg, var(--accent-hover) 0%, var(--accent) 100%);
+      border: none;
+      box-shadow: 0 2px 12px rgba(99, 102, 241, 0.35);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      filter: brightness(1.05);
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+    }
+    .btn-ghost, .btn-secondary {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+    }
+    [data-theme="light"] .btn-ghost,
+    [data-theme="light"] .btn-secondary {
+      background: rgba(15, 23, 42, 0.03);
+    }
+    .btn-sm {
+      min-height: 36px;
+      padding: 0.45rem 0.85rem;
+      font-size: 0.8125rem;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    input[type="search"],
+    input[type="email"],
+    select,
+    textarea {
+      min-height: var(--touch);
+      padding: 0.65rem 0.9rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.2);
+      font-size: 1rem;
+      transition: border-color var(--duration) var(--ease-out), box-shadow var(--duration) var(--ease-out);
+    }
+    [data-theme="light"] input[type="text"],
+    [data-theme="light"] input[type="number"],
+    [data-theme="light"] input[type="date"],
+    [data-theme="light"] input[type="time"],
+    [data-theme="light"] input[type="search"],
+    [data-theme="light"] input[type="email"],
+    [data-theme="light"] select,
+    [data-theme="light"] textarea {
+      background: #fff;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+    .bottom-nav {
+      background: rgba(20, 20, 22, 0.78);
+      backdrop-filter: saturate(180%) blur(24px);
+      -webkit-backdrop-filter: saturate(180%) blur(24px);
+      border-top: 1px solid var(--border);
+      padding: 0.35rem 0.75rem calc(0.35rem + env(safe-area-inset-bottom, 0));
+      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.25);
+    }
+    [data-theme="light"] .bottom-nav {
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.06);
+    }
+    .bottom-nav-item {
+      min-height: var(--touch);
+      border-radius: var(--radius-sm);
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      gap: 0.2rem;
+      transition: color var(--duration) var(--ease-out), background var(--duration) var(--ease-out);
+    }
+    .bottom-nav-item .icon {
+      font-size: 1.35rem;
+      line-height: 1;
+    }
+    .bottom-nav-item.active {
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .modal-backdrop {
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .modal {
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-lg);
+      background: var(--bg-elevated);
+    }
+    .modal-header h3 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .dash-block {
+      margin-bottom: 0.85rem;
+      overflow: hidden;
+      padding: 1rem 1.05rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .dash-block__title {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.65rem;
+      line-height: 1.3;
+    }
+    .dash-block--courses { border-left: 3px solid #2dd4bf; }
+    .dash-block--schedule { border-left: 3px solid var(--accent); }
+    .dash-block--todo { border-left: 3px solid var(--accent); }
+    .dash-block--sequences { border-left: 3px solid #34d399; }
+    .dash-class-card {
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      background: var(--surface);
+      backdrop-filter: saturate(180%) blur(16px);
+      -webkit-backdrop-filter: saturate(180%) blur(16px);
+    }
+    @media (max-width: 900px) {
+      .dash-class-card:hover { transform: none; box-shadow: var(--shadow-sm); }
+      .dash-class-card:active { transform: scale(0.99); background: var(--accent-soft); }
+    }
+    .dash-date-label {
+      font-weight: 700;
+      letter-spacing: -0.035em;
+    }
+    .dash-date-nav .btn {
+      min-width: var(--touch);
+      min-height: var(--touch);
+      border-radius: 50%;
+      padding: 0;
+      display: grid;
+      place-items: center;
+    }
+    .cal-cell {
+      border-radius: var(--radius-xs);
+      min-height: 64px;
+    }
+    .cal-cell.today {
+      outline: none;
+      box-shadow: inset 0 0 0 2px var(--accent);
+      background: var(--accent-soft);
+    }
+    .cal-chip { border-radius: 6px; font-weight: 600; }
+    .card h3, .modal h3 {
+      letter-spacing: -0.02em;
+    }
+    .card {
+      padding: 1.1rem 1.15rem;
+    }
+    .session-exempt-notice {
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(244, 114, 182, 0.2);
+      background: rgba(244, 114, 182, 0.06);
+      padding: 0.75rem 0.9rem;
+    }
+    .session-exempt-notice__title {
+      font-size: 0.8125rem;
+      font-weight: 650;
+      margin-bottom: 0.35rem;
+    }
+    .session-exempt-notice__item {
+      font-size: 0.8125rem;
+      line-height: 1.45;
+      color: var(--text-muted);
+    }
+    .table-wrap {
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      max-width: 100%;
+    }
+    .table-wrap table {
+      border-collapse: collapse;
+      width: max-content;
+      min-width: 100%;
+    }
+    .table-wrap tbody tr {
+      transition: background var(--duration) var(--ease-out);
+    }
+    .table-wrap tbody tr:active {
+      background: var(--accent-soft);
+    }
+    .progress > span {
+      background: linear-gradient(90deg, var(--accent), var(--success));
+    }
+    .brand-icon {
+      border-radius: 11px;
+      background: linear-gradient(145deg, var(--accent-hover), var(--accent));
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    }
+    .search-wrap {
+      border-radius: var(--radius-sm);
+      min-height: var(--touch);
+    }
+    .kpi-grid--dash .kpi {
+      border-radius: var(--radius-sm);
+    }
+    .kpi--warning {
+      border-color: rgba(251, 191, 36, 0.25);
+    }
+    .bottom-nav { border-top-width: 1px; }
+    .modal-backdrop.open .modal { transform: translateY(0); }
+    .dash-session-row {
+      min-height: var(--touch);
+      padding: 0.85rem 1.05rem;
+      border-radius: var(--radius-sm);
+      margin: 0 0.5rem 0.4rem;
+      transition: background var(--duration) var(--ease-out);
+    }
+    .dash-session-row:active {
+      background: var(--accent-soft);
+    }
+    .badge, .tag, .pill {
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.6875rem;
+      letter-spacing: 0.02em;
+    }
+    .app-loading {
+      background: var(--bg);
+    }
+    .app-loading-inner {
+      border-radius: var(--radius);
+    }
+    .sidebar {
+      background: rgba(14, 14, 16, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border);
+    }
+    [data-theme="light"] .sidebar {
+      background: rgba(255, 255, 255, 0.96);
+    }
+    .nav-btn {
+      border-radius: var(--radius-sm);
+      min-height: 40px;
+      transition: background var(--duration) var(--ease-out), color var(--duration) var(--ease-out);
+    }
+    .nav-btn.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .brand h1 {
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .help-fab, .btn-help-icon {
+      border-radius: 50%;
+      box-shadow: var(--shadow);
+    }
+    table th {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    .empty-state {
+      padding: 2rem 1.25rem;
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+      line-height: 1.5;
+    }
+    @media (max-width: 900px) {
+      .modal-backdrop {
+        align-items: flex-end;
+        padding: 0;
+      }
+      .modal {
+        width: 100%;
+        max-width: 100%;
+        max-height: min(92vh, 92dvh);
+        border-radius: 20px 20px 0 0;
+        margin: 0;
+        padding: 1.15rem 1.15rem calc(1.15rem + env(safe-area-inset-bottom, 0));
+        animation: sheet-up 0.32s var(--ease-out);
+      }
+      @keyframes sheet-up {
+        from { transform: translateY(100%); opacity: 0.6; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.55rem;
+      }
+      .topbar h2 { font-size: 1.375rem; }
+      .btn:not(.btn-sm) { min-height: var(--touch); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
     @media print {
-      .sidebar, .menu-toggle, .no-print, .nav-btn, .theme-toggle, .search-wrap { display: none !important; }
+      .sidebar, .bottom-nav, .no-print, .nav-btn, .theme-toggle, .search-wrap { display: none !important; }
+      .main { padding-bottom: 0.5rem; }
       .main { margin: 0; max-width: none; padding: 0.5rem; }
       body { background: #fff; color: #000; }
       .card, .kpi { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
@@ -411,9 +1561,9 @@
         <button type="button" class="btn btn-sm btn-ghost" id="btn-print">Imprimer la vue</button>
       </div>
     </aside>
-    <button type="button" class="menu-toggle no-print" id="btn-menu" aria-label="Menu">☰</button>
-    <main class="main" id="main"><div style="padding:2rem;text-align:center;color:#6c8cff;font-size:1.2rem">⏳ Chargement…</div></main>
+    <main class="main" id="main"><div class="app-loading">⏳ Chargement…</div></main>
   </div>
+  <nav class="bottom-nav no-print" id="bottom-nav" aria-label="Navigation principale"></nav>
   <div class="modal-backdrop" id="modal-root"></div>
 
   <script>
@@ -794,6 +1944,100 @@
       return { code: "planned", label: "Prévue", reason: "" };
     }
 
+    /** Dernière séance avec la même APSA (`activityId`) et la même classe, strictement avant `session`. */
+    function previousSameApsaSessionBefore(session) {
+      if (!session.activityId) return null;
+      const curKey = session.date + String(session.startTime || "");
+      const candidates = appData.sessions
+        .filter(
+          (x) =>
+            x.classId === session.classId &&
+            x.activityId === session.activityId &&
+            x.id !== session.id
+        )
+        .filter((x) => {
+          const st = computeSessionStatus(x);
+          return st.code !== "cancelled" && st.code !== "holiday";
+        })
+        .sort((a, b) => (a.date + String(a.startTime || "")).localeCompare(b.date + String(b.startTime || "")));
+      for (let i = candidates.length - 1; i >= 0; i--) {
+        const k = candidates[i].date + String(candidates[i].startTime || "");
+        if (k.localeCompare(curKey) < 0) return candidates[i];
+      }
+      return null;
+    }
+
+    /** Première séance suivante (même classe, même APSA), après `sessionRef`, hors annulé / vacances-férié. */
+    function nextSameApsaSessionAfter(sessionRef) {
+      if (!sessionRef.activityId) return null;
+      const refKey = sessionRef.date + String(sessionRef.startTime || "");
+      const candidates = appData.sessions
+        .filter(
+          (x) =>
+            x.classId === sessionRef.classId &&
+            x.activityId === sessionRef.activityId &&
+            x.id !== sessionRef.id
+        )
+        .filter((x) => {
+          const st = computeSessionStatus(x);
+          return st.code !== "cancelled" && st.code !== "holiday";
+        })
+        .sort((a, b) => (a.date + String(a.startTime || "")).localeCompare(b.date + String(b.startTime || "")));
+      for (let i = 0; i < candidates.length; i++) {
+        const k = candidates[i].date + String(candidates[i].startTime || "");
+        if (k.localeCompare(refKey) > 0) return candidates[i];
+      }
+      return null;
+    }
+
+    /** Prénoms / noms marqués « absent » sur l’appel d’une séance. */
+    function absentStudentNamesFromSessionAttendance(sess) {
+      if (!sess || !sess.attendance) return [];
+      const att = sess.attendance;
+      return Object.keys(att).filter((name) => att[name] === "absent");
+    }
+
+    /** Liste discrète des dispensés actifs pour une séance (sans encadré blanc). */
+    function injectSessionExemptionsInfo(container, classId, dateStr, sessionId) {
+      if (!container) return;
+      const activeEx = exemptionsForSession(classId, dateStr, sessionId);
+      if (!activeEx.length) {
+        container.innerHTML = "";
+        return;
+      }
+      activeEx.sort((a, b) => a.studentName.localeCompare(b.studentName, "fr"));
+      container.innerHTML = `<div class="session-exempt-notice" role="note">
+        <p class="session-exempt-notice__title">🏥 Élèves dispensés · ${activeEx.length}</p>
+        ${activeEx.map((e) => `<p class="session-exempt-notice__item"><strong>${escapeHtml(e.studentName)}</strong> <span>${escapeHtml(formatExemptionDetailLabel(e))}</span></p>`).join("")}
+      </div>`;
+    }
+
+    /** Texte discret (jaune, sans encadré) : absents du dernier cours de la même APSA. */
+    function injectPreviousAbsentReminder(container, session) {
+      if (!container) return;
+      if (!session.activityId) {
+        container.innerHTML = "";
+        return;
+      }
+      const prevSess = previousSameApsaSessionBefore(session);
+      const absentPrev = absentStudentNamesFromSessionAttendance(prevSess);
+      if (!absentPrev.length || !prevSess) {
+        container.innerHTML = "";
+        return;
+      }
+      const immediateNext = nextSameApsaSessionAfter(prevSess);
+      if (!immediateNext || immediateNext.id !== session.id) {
+        container.innerHTML = "";
+        return;
+      }
+      container.innerHTML = absentPrev
+        .map(
+          (name) =>
+            `<p style="margin:.15rem 0;font-size:.8rem;color:#ca8a04;font-weight:500;line-height:1.4;opacity:.95">${escapeHtml(name)} était absent lors du cours précédent.</p>`
+        )
+        .join("");
+    }
+
     function migrateDataModel() {
       appData.schedules.forEach((s) => {
         if (s.weekParity !== "A" && s.weekParity !== "B" && s.weekParity !== "all") s.weekParity = "all";
@@ -802,6 +2046,10 @@
         if (!Array.isArray(a.dayIndices)) a.dayIndices = [];
       });
       if (!Array.isArray(appData.exemptions)) appData.exemptions = [];
+      appData.exemptions.forEach((ex) => {
+        if (ex.sansCertificat === undefined) ex.sansCertificat = false;
+        if (ex.sessionId === undefined) ex.sessionId = null;
+      });
       if (!Array.isArray(appData.periods)) appData.periods = [];
       if (!Array.isArray(appData.venues)) appData.venues = [];
       if (appData.progEtabPdf === undefined) appData.progEtabPdf = null;
@@ -816,9 +2064,162 @@
       return appData.exemptions.filter((e) => e.classId === classId);
     }
 
+    function exemptionAppliesToSession(ex, session) {
+      if (!ex || !session || ex.classId !== session.classId) return false;
+      if (ex.sansCertificat && ex.sessionId) return ex.sessionId === session.id;
+      if (ex.sansCertificat) return session.date === ex.startDate;
+      return session.date >= ex.startDate && session.date <= ex.endDate;
+    }
+
+    function exemptionAppliesOnDate(ex, classId, dateStr, sessionId) {
+      if (!ex || ex.classId !== classId) return false;
+      if (ex.sansCertificat && ex.sessionId) return sessionId ? ex.sessionId === sessionId : false;
+      if (ex.sansCertificat) return dateStr === ex.startDate;
+      return dateStr >= ex.startDate && dateStr <= ex.endDate;
+    }
+
+    function exemptionsForSession(classId, dateStr, sessionId) {
+      return (appData.exemptions || []).filter((e) => exemptionAppliesOnDate(e, classId, dateStr, sessionId));
+    }
+
+    function formatExemptionDetailLabel(ex) {
+      if (ex.sansCertificat && ex.sessionId) {
+        const sess = appData.sessions.find((s) => s.id === ex.sessionId);
+        return "sans certificat · cours du " + fmtDateFr(sess ? sess.date : ex.startDate);
+      }
+      if (ex.sansCertificat) return "sans certificat · " + fmtDateFr(ex.startDate);
+      return "jusqu'au " + fmtDateFr(ex.endDate);
+    }
+
+    function formatExemptionDurationCell(ex) {
+      if (ex.sansCertificat && ex.sessionId) return "Sans certificat · ce cours";
+      if (ex.sansCertificat) return "Sans certificat · 1 jour";
+      return ex.days + " jour(s)";
+    }
+
+    function attachExemptionSansCertificatToggle(body, opts) {
+      const cb = body.querySelector(opts.checkboxSelector);
+      const blocks = body.querySelector(opts.durationBlocksSelector);
+      const certWrap = opts.certDateWrapSelector ? body.querySelector(opts.certDateWrapSelector) : null;
+      const certInput = opts.certDateInputSelector ? body.querySelector(opts.certDateInputSelector) : null;
+      if (!cb) return;
+      if (opts.defaultChecked) cb.checked = true;
+      const sync = () => {
+        const on = cb.checked;
+        if (blocks) blocks.style.display = on ? "none" : "";
+        if (certWrap) certWrap.style.display = on && opts.hideCertWhenSansCert ? "none" : "";
+        if (certInput && opts.sessionDate && on) certInput.value = opts.sessionDate;
+      };
+      cb.addEventListener("change", sync);
+      sync();
+    }
+
+    /** Dispense active pour un élève à la date de la séance. */
+    function isStudentDispensedOnSession(classId, studentName, dateStr, sessionId) {
+      return (appData.exemptions || []).some(
+        (ex) => ex.studentName === studentName && exemptionAppliesOnDate(ex, classId, dateStr, sessionId)
+      );
+    }
+
+    /** Séances effectuées d'une APSA (hors annulées, vacances, fériés). */
+    function sessionsHeldForActivity(classId, activityId) {
+      return sessionsForClass(classId)
+        .filter((s) => s.activityId === activityId)
+        .filter((s) => computeSessionStatus(s).code === "done");
+    }
+
+    /** Participation : pas absent à l'appel et pas dispensé ce jour-là. */
+    function studentParticipatedOnSession(session, studentName) {
+      if (isStudentDispensedOnSession(session.classId, studentName, session.date, session.id)) return false;
+      const att = session.attendance || {};
+      if (att[studentName] === "absent") return false;
+      return true;
+    }
+
+    function formatParticipationGaps(row) {
+      if (row.participated >= row.total) return "";
+      const fmtDatesLe = (dates) => dates.map((d) => fmtDateFr(d)).join(", le ");
+      const parts = [];
+      if (row.dispensedDates.length) {
+        parts.push(`<span class="part-dispensed">Dispensé le ${escapeHtml(fmtDatesLe(row.dispensedDates))}</span>`);
+      }
+      if (row.absentDates.length) {
+        parts.push(`<span class="part-absent">Absent le ${escapeHtml(fmtDatesLe(row.absentDates))}</span>`);
+      }
+      return parts.join("<br>");
+    }
+
+    /** Stats de participation par élève pour une APSA. */
+    function activityParticipationStats(classId, activityId) {
+      const cl = getClassById(classId);
+      const students = cl && Array.isArray(cl.students) ? [...cl.students].sort((a, b) => a.localeCompare(b, "fr")) : [];
+      const held = sessionsHeldForActivity(classId, activityId);
+      const total = held.length;
+      const rows = students.map((name) => {
+        let participated = 0;
+        const dispensedDates = [];
+        const absentDates = [];
+        held.forEach((s) => {
+          if (studentParticipatedOnSession(s, name)) {
+            participated++;
+          } else if (isStudentDispensedOnSession(classId, name, s.date, s.id)) {
+            dispensedDates.push(s.date);
+          } else if ((s.attendance || {})[name] === "absent") {
+            absentDates.push(s.date);
+          }
+        });
+        dispensedDates.sort();
+        absentDates.sort();
+        return { name, participated, total, dispensedDates, absentDates };
+      });
+      return { rows, totalSessions: total, activity: activityById(activityId) };
+    }
+
+    function openActivityParticipationModal(classId, activityId) {
+      const cl = getClassById(classId);
+      const act = activityById(activityId);
+      if (!cl || !act) return;
+      const stats = activityParticipationStats(classId, activityId);
+      let bodyHtml;
+      if (!stats.rows.length) {
+        bodyHtml = `<p class="kpi-sub">Aucun élève dans la liste de la classe. Ajoutez-les via Réglages → Mes classes → ⚙️ sur la carte de la classe.</p>`;
+      } else if (!stats.totalSessions) {
+        bodyHtml = `<p class="kpi-sub">Aucune séance effectuée pour cette activité pour le moment (seules les séances passées, non annulées, sont comptées).</p>`;
+      } else {
+        const tableRows = stats.rows
+          .map((r) => {
+            const pct = stats.totalSessions ? Math.round((r.participated / stats.totalSessions) * 100) : 0;
+            const gaps = formatParticipationGaps(r);
+            return `<tr>
+              <td><strong>${escapeHtml(r.name)}</strong>${gaps ? `<div class="participation-detail">${gaps}</div>` : ""}</td>
+              <td style="text-align:center;font-weight:600">${r.participated} / ${stats.totalSessions}</td>
+              <td style="text-align:center;color:var(--text-muted);font-size:.85rem">${pct}%</td>
+            </tr>`;
+          })
+          .join("");
+        bodyHtml = `<p class="kpi-sub" style="margin-bottom:.75rem">${stats.totalSessions} séance(s) effectuée(s) pour <strong>${escapeHtml(act.name)}</strong>. Comptées : présence ou retard à l'appel ; exclus : absent et dispensé (dates précisées sous le nom de l'élève).</p>
+          <div class="table-wrap"><table><thead><tr><th>Élève</th><th style="text-align:center">Participation</th><th style="text-align:center">Taux</th></tr></thead><tbody>${tableRows}</tbody></table></div>`;
+      }
+      const body = el(`<div>${bodyHtml}</div>`);
+      openModal("Participation des élèves — " + escapeHtml(act.name), body, () => {});
+    }
+
     function isExemptionActive(ex) {
       const today = fmtISODate(new Date());
+      if (ex.sansCertificat && ex.sessionId) {
+        const sess = appData.sessions.find((s) => s.id === ex.sessionId);
+        return sess ? today === sess.date : false;
+      }
+      if (ex.sansCertificat) return today === ex.startDate;
       return today >= ex.startDate && today <= ex.endDate;
+    }
+
+    function exemptionRemainingLabel(ex) {
+      if (!isExemptionActive(ex)) return "—";
+      if (ex.sansCertificat && ex.sessionId) return '<span style="color:var(--text-muted);font-size:.85rem">Ce cours</span>';
+      if (ex.sansCertificat) return '<strong style="color:var(--danger)">1 jour</strong>';
+      const remaining = Math.max(0, Math.round((parseISODate(ex.endDate).getTime() - todayStart().getTime()) / 86400000) + 1);
+      return `<strong style="color:var(--danger)">${remaining} jour(s)</strong>`;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -830,9 +2231,10 @@
       const start = parseISODate(appData.settings.schoolYearStart);
       const end = parseISODate(appData.settings.schoolYearEnd);
       const oldCanc = appData.cancellations.slice();
-      const oldByKey = new Map();
+      /** Ancienne séance par créneau (pour conserver appel, résumé, PDF après régénération). */
+      const oldSessionByKey = new Map();
       appData.sessions.forEach((s) => {
-        oldByKey.set(`${s.classId}|${s.date}|${s.startTime}`, s.id);
+        if (!s.extra) oldSessionByKey.set(`${s.classId}|${s.date}|${s.startTime}`, s);
       });
 
       const extraSessions = appData.sessions.filter((s) => s.extra);
@@ -848,8 +2250,10 @@
               const di = dayIndexMon0(cursor);
               if (!isBlockedByHoliday(dateStr) && matchesWeekParity(slot, cursor)) {
                 const act = pickActivityForSession(cl.id, dateStr, di);
-                const sid = oldByKey.get(`${cl.id}|${dateStr}|${slot.startTime}`) || uid();
-                nextSessions.push({
+                const key = `${cl.id}|${dateStr}|${slot.startTime}`;
+                const prevS = oldSessionByKey.get(key);
+                const sid = prevS ? prevS.id : uid();
+                const sess = {
                   id: sid,
                   classId: cl.id,
                   scheduleId: slot.id,
@@ -858,8 +2262,16 @@
                   startTime: slot.startTime,
                   endTime: slot.endTime,
                   venue: slot.venue,
-                  comment: "",
-                });
+                  comment: (prevS && prevS.comment) || "",
+                };
+                if (prevS) {
+                  sess.attendance = prevS.attendance && typeof prevS.attendance === "object" ? { ...prevS.attendance } : {};
+                  if (prevS.summary) sess.summary = prevS.summary;
+                  if (prevS.sessionPdf) sess.sessionPdf = prevS.sessionPdf;
+                } else {
+                  sess.attendance = {};
+                }
+                nextSessions.push(sess);
               }
             }
             cursor = addDays(cursor, 1);
@@ -1235,7 +2647,13 @@
         if (s.date === tStr && st.code !== "cancelled") {
           todayN++;
           const cl = getClassById(s.classId);
-          todayDetails.push({ className: cl ? cl.name : "—", startTime: s.startTime || "—", endTime: s.endTime || "" });
+          const act = activityById(s.activityId);
+          todayDetails.push({
+            className: cl ? cl.name : "—",
+            startTime: s.startTime || "—",
+            endTime: s.endTime || "",
+            activityName: act ? act.name : "",
+          });
         }
         if (st.code === "cancelled") cancelled++;
         else if (st.code === "done") done++;
@@ -1290,6 +2708,39 @@
       });
     }
 
+    function renderBottomNav() {
+      const nav = document.getElementById("bottom-nav");
+      if (!nav) return;
+      const tab =
+        currentView === "tools"
+          ? "settings"
+          : currentView === "classes" || currentView.startsWith("class:")
+            ? "classes"
+            : "home";
+      nav.innerHTML = `
+        <button type="button" class="bottom-nav-item ${tab === "home" ? "active" : ""}" data-tab="home">
+          <span class="bottom-nav-icon" aria-hidden="true">⌂</span><span>Accueil</span>
+        </button>
+        <button type="button" class="bottom-nav-item ${tab === "classes" ? "active" : ""}" data-tab="classes">
+          <span class="bottom-nav-icon" aria-hidden="true">📚</span><span>Classes</span>
+        </button>
+        <button type="button" class="bottom-nav-item ${tab === "settings" ? "active" : ""}" data-tab="settings">
+          <span class="bottom-nav-icon" aria-hidden="true">⚙️</span><span>Réglages</span>
+        </button>`;
+      nav.querySelector('[data-tab="home"]').onclick = () => {
+        document.getElementById("sidebar")?.classList.remove("open");
+        navigateTo("dashboard");
+      };
+      nav.querySelector('[data-tab="classes"]').onclick = () => {
+        document.getElementById("sidebar")?.classList.remove("open");
+        navigateTo("classes");
+      };
+      nav.querySelector('[data-tab="settings"]').onclick = () => {
+        document.getElementById("sidebar")?.classList.remove("open");
+        navigateTo("tools");
+      };
+    }
+
     function el(html) {
       const t = document.createElement("template");
       t.innerHTML = html.trim();
@@ -1325,6 +2776,44 @@
       };
     }
 
+    function hasProgEtabPdf() {
+      return !!(appData.progEtabPdf && appData.progEtabPdf.length > 100);
+    }
+
+    function closeProgEtabFullscreen() {
+      const fs = document.getElementById("prog-pdf-fullscreen");
+      if (fs) fs.classList.remove("open");
+    }
+
+    function openPdfFullscreen(dataUrl, title) {
+      if (!dataUrl) return;
+      let fs = document.getElementById("prog-pdf-fullscreen");
+      if (!fs) {
+        fs = document.createElement("div");
+        fs.id = "prog-pdf-fullscreen";
+        fs.className = "prog-pdf-fullscreen";
+        fs.innerHTML =
+          '<button type="button" class="btn-close-pdf-fs" aria-label="Fermer">✕</button>' +
+          "<iframe></iframe>";
+        document.body.appendChild(fs);
+        fs.querySelector(".btn-close-pdf-fs").addEventListener("click", closeProgEtabFullscreen);
+        fs.addEventListener("click", (e) => {
+          if (e.target === fs) closeProgEtabFullscreen();
+        });
+      }
+      const ifr = fs.querySelector("iframe");
+      if (ifr) {
+        ifr.title = title || "Document PDF";
+        ifr.src = dataUrl;
+      }
+      fs.classList.add("open");
+    }
+
+    function openProgEtabFullscreen() {
+      if (!hasProgEtabPdf()) return;
+      openPdfFullscreen(appData.progEtabPdf, "Programmation EPS");
+    }
+
     function studentPickerHtml(classId, inputId) {
       const cl = getClassById(classId);
       const students = (cl && cl.students) || [];
@@ -1334,22 +2823,37 @@
       return `<input id="${inputId}" placeholder="Prénom" />`;
     }
 
-    function buildSessionPdfBlock(session) {
+    const SESSION_PDF_ADD_ICON = `<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>`;
+    const SESSION_PDF_DEL_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`;
+
+    function buildSessionPdfBlock(session, opts) {
+      opts = opts || {};
+      const compactHeader = !!opts.compactHeader;
       const wrap = document.createElement("div");
       wrap.style.cssText = "margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem";
       const renderPdfUI = () => {
         const hasPdf = session.sessionPdf;
-        wrap.innerHTML = `<p style="font-weight:700;margin-bottom:.5rem">📄 Document PDF de séance</p>
+        const addLabel = hasPdf ? "Remplacer le document" : "Ajouter un document";
+        const headerCompact = `<div class="session-pdf-head">
+            <p class="session-pdf-head__title">📄 Document PDF de séance</p>
+            <label class="session-pdf-add-btn" title="${addLabel}" aria-label="${addLabel}">
+              ${SESSION_PDF_ADD_ICON}
+              <input type="file" accept="application/pdf" class="inp-session-pdf" style="display:none" />
+            </label>
+            ${hasPdf ? `<button type="button" class="session-pdf-del-btn btn-session-pdf-del" title="Supprimer le document" aria-label="Supprimer le document">${SESSION_PDF_DEL_ICON}</button>` : ""}
+          </div>`;
+        const headerClassic = `<p style="font-weight:700;margin-bottom:.5rem">📄 Document PDF de séance</p>`;
+        wrap.innerHTML = `${compactHeader ? headerCompact : headerClassic}
           ${hasPdf
             ? `<div style="margin-bottom:.5rem;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
                 <iframe src="${session.sessionPdf}" style="width:100%;height:220px;border:none"></iframe>
               </div>
               <div style="display:flex;gap:.5rem;flex-wrap:wrap">
                 <button type="button" class="btn btn-sm btn-primary btn-session-pdf-view">Plein écran</button>
-                <label class="btn btn-sm btn-ghost" style="cursor:pointer">Remplacer<input type="file" accept="application/pdf" class="inp-session-pdf" style="display:none" /></label>
-                <button type="button" class="btn btn-sm btn-danger btn-session-pdf-del">Supprimer</button>
+                ${compactHeader ? "" : `<label class="btn btn-sm btn-ghost" style="cursor:pointer">Remplacer<input type="file" accept="application/pdf" class="inp-session-pdf" style="display:none" /></label>
+                <button type="button" class="btn btn-sm btn-danger btn-session-pdf-del">Supprimer</button>`}
               </div>`
-            : `<label class="btn btn-sm btn-primary" style="cursor:pointer">Joindre un PDF<input type="file" accept="application/pdf" class="inp-session-pdf" style="display:none" /></label>`}`;
+            : compactHeader ? "" : `<label class="btn btn-sm btn-primary" style="cursor:pointer">Joindre un PDF<input type="file" accept="application/pdf" class="inp-session-pdf" style="display:none" /></label>`}`;
         wrap.querySelectorAll(".inp-session-pdf").forEach((inp) => {
           inp.addEventListener("change", () => {
             const file = inp.files[0];
@@ -1363,11 +2867,7 @@
         if (delBtn) delBtn.addEventListener("click", () => { session.sessionPdf = null; saveData(); renderPdfUI(); });
         const viewBtn = wrap.querySelector(".btn-session-pdf-view");
         if (viewBtn) viewBtn.addEventListener("click", () => {
-          const fs = document.getElementById("prog-pdf-fullscreen");
-          if (!fs) return;
-          const ifr = fs.querySelector("iframe");
-          if (ifr) ifr.src = session.sessionPdf;
-          fs.style.display = "flex";
+          openPdfFullscreen(session.sessionPdf, "Document PDF de séance");
         });
       };
       renderPdfUI();
@@ -1447,33 +2947,104 @@
       return wrap;
     }
 
+    function helpButtonHtml() {
+      return `<button type="button" class="btn-help no-print" data-tools="tutorial" title="Guide d'utilisation" aria-label="Aide">
+        <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </button>`;
+    }
+
     function renderTopbar(title, extra = "") {
       const backBtn = viewHistory.length
         ? `<button type="button" class="btn btn-sm btn-ghost no-print" id="btn-history-back" style="gap:.25rem;margin-right:.5rem">◀ Retour</button>`
         : "";
+      const showTitle = title && String(title).trim();
+      const actions = extra ? `<div class="topbar-actions no-print">${extra}</div>` : "";
       return `<div class="topbar">
-        <div style="display:flex;align-items:center">${backBtn}<h2>${escapeHtml(title)}</h2></div>
-        <div class="flex-row no-print">
-          <div class="search-wrap">
-            <input type="search" id="global-search" placeholder="Recherche instantanée…" value="${escapeHtml(searchQuery)}" />
-          </div>
-          ${extra}
-        </div>
+        <div style="display:flex;align-items:center;min-width:0;flex:1">${backBtn}${showTitle ? `<h2>${escapeHtml(title)}</h2>` : ""}</div>
+        ${actions}
       </div>`;
     }
 
-    let searchDebounce = null;
-    function bindSearch() {
-      const inp = document.getElementById("global-search");
-      if (!inp) return;
-      inp.addEventListener("input", () => {
-        const v = inp.value;
-        clearTimeout(searchDebounce);
-        searchDebounce = setTimeout(() => {
-          searchQuery = v;
-          render();
-        }, 180);
+    function dashTodayCoursesHtml(isToday, dayISO) {
+      const todaySessions = appData.sessions.filter((s) => s.date === dayISO)
+        .slice().sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""));
+      const label = isToday ? "Cours du jour" : "Cours de la journée";
+      if (!todaySessions.length) {
+        return `<div class="dash-block dash-block--courses"><h3 class="dash-block__title">🏃 ${label}</h3><p class="kpi-sub" style="margin:0">Aucun cours prévu ce jour.</p></div>`;
+      }
+      const lines = todaySessions.map((s) => {
+        const cl = getClassById(s.classId);
+        const act = activityById(s.activityId);
+        const stt = computeSessionStatus(s);
+        const col = stt.code === "cancelled" ? "var(--danger)" : stt.code === "done" ? "var(--success)" : "var(--accent)";
+        const canc = cancellationForSession(s);
+        const motif = canc ? (REASON_TYPES.find((x) => x[0] === canc.reasonType)?.[1] || canc.reasonType) : stt.reason || "";
+        const pillClass = stt.code === "cancelled" ? "status-pill--cancelled" : stt.code === "done" ? "status-pill--done" : stt.code === "holiday" ? "status-pill--holiday" : "status-pill--planned";
+        const statusHtml = `<span class="status-pill ${pillClass}"><span class="status-dot" style="background:${col}"></span>${escapeHtml(stt.label)}</span>`;
+        let sessionNumBadge = "";
+        if (act) {
+          const actSess = appData.sessions
+            .filter((x) => x.classId === s.classId && x.activityId === act.id)
+            .sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
+          const valid = actSess.filter((x) => { const c = computeSessionStatus(x).code; return c !== "cancelled" && c !== "holiday"; });
+          const idx = valid.findIndex((x) => x.id === s.id);
+          if (idx >= 0) sessionNumBadge = ` <span class="session-num-badge">n°${idx + 1}/${valid.length}</span>`;
+        }
+        const hasSummary = s.summary && s.summary.trim();
+        const classColor = cl ? cl.color : "#888";
+        return `<div class="btn-today-session dash-session-row" data-session-id="${s.id}" style="--session-c:${classColor}">
+          <span class="dash-session-time">${s.startTime || ""}–${s.endTime || ""}</span>
+          <span class="dash-session-class">${escapeHtml(cl ? cl.name : "—")}</span>
+          <span style="font-size:.82rem;color:var(--text-muted)">${escapeHtml(s.venue || "")}</span>
+          <span style="font-size:.82rem">${act ? escapeHtml(act.name) : "—"}${sessionNumBadge}</span>
+          ${statusHtml}
+          ${motif ? `<span style="font-size:.78rem;color:var(--text-muted)">(${escapeHtml(motif)})</span>` : ""}
+          ${hasSummary ? '<span style="font-size:.85rem" title="Résumé rédigé">📝</span>' : ""}
+          ${s.sessionPdf ? '<span style="font-size:.85rem" title="PDF joint">📄</span>' : ""}
+          ${(() => { const att = s.attendance || {}; const keys = Object.keys(att); if (!keys.length) return ""; const p = keys.filter((k) => att[k] === "present").length; const a = keys.filter((k) => att[k] === "absent").length; const l = keys.filter((k) => att[k] === "late").length; return `<span class="att-badge" title="Appel effectué">${p}P${l ? " " + l + "R" : ""}${a ? " " + a + "A" : ""}</span>`; })()}
+        </div>`;
+      }).join("");
+      return `<div class="dash-block dash-block--courses"><h3 class="dash-block__title">🏃 ${label} · ${todaySessions.length} séance${todaySessions.length > 1 ? "s" : ""}</h3><div style="display:flex;flex-direction:column;gap:0">${lines}</div></div>`;
+    }
+
+    function dashScheduleHtml(dash) {
+      const weeks = dash.next3Weeks.map((w, i) => {
+        const label = i === 0 ? "Cette semaine" : i === 1 ? "Semaine prochaine" : "Dans 2 semaines";
+        const dd = (d) => String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0");
+        const range = dd(w.start) + " – " + dd(w.end);
+        const cancPart = w.cancelled.length
+          ? `<span style="color:var(--danger);font-weight:600;font-size:.82rem">❌ ${w.cancelled.length} cours annulé(s) : ${w.cancelled.map((d) => escapeHtml(d)).join(" · ")}</span>`
+          : "";
+        const extraPart = w.extras.length
+          ? `<span style="color:#16a34a;font-weight:600;font-size:.82rem">➕ ${w.extras.length} cours ajouté(s) : ${w.extras.map((d) => escapeHtml(d)).join(" · ")}</span>`
+          : "";
+        const details = [cancPart, extraPart].filter(Boolean).join("<br>");
+        return `<div class="dash-week-row${i === 0 ? " dash-week-row--current" : ""}"><strong>${label}</strong> <span style="font-size:.72rem;color:var(--text-muted)">(${range})</span>${details ? "<br>" + details : " — <span class=\"kpi-sub\">Aucune modification</span>"}</div>`;
+      }).join("");
+      return `<div class="dash-block dash-block--schedule no-print"><h3 class="dash-block__title">📅 Modifications EDT à venir</h3><div style="display:flex;flex-direction:column;gap:.5rem">${weeks}</div></div>`;
+    }
+
+    function dashForgottenGearKpiHtml(animationDelay) {
+      const threshold = forgottenGearThreshold;
+      const todayStr = dashboardDateISO();
+      const alerts = [];
+      appData.classes.forEach((cl) => {
+        const clPeriods = periodsForClass(cl.id);
+        const curPeriod = clPeriods.find((p) => todayStr >= p.startDate && todayStr <= p.endDate);
+        if (!curPeriod) return;
+        const items = (appData.forgottenGear || []).filter((f) => f.classId === cl.id && f.date >= curPeriod.startDate && f.date <= curPeriod.endDate);
+        const byStudent = {};
+        items.forEach((f) => { byStudent[f.studentName] = (byStudent[f.studentName] || 0) + 1; });
+        Object.entries(byStudent).forEach(([name, count]) => {
+          if (count >= threshold) alerts.push({ name, className: cl.name, classId: cl.id, count });
+        });
       });
+      alerts.sort((a, b) => b.count - a.count);
+      const total = alerts.length;
+      const detail = alerts.map((a) => `<a href="#" class="link-fg-student" data-classid="${a.classId}" data-student="${escapeHtml(a.name)}" style="color:var(--danger);font-weight:700;text-decoration:underline;cursor:pointer">${escapeHtml(a.name)}</a> (${escapeHtml(a.className)}) — ${a.count} oubli(s)`).join("<br>");
+      return `<div class="kpi kpi--tint kpi--warning${total ? " has-alert" : ""}" style="animation-delay:${animationDelay}"><div class="kpi-label">⚠️ Oublis de matériel répétés <button type="button" id="btn-fg-threshold" title="Régler le seuil d'oublis" style="background:none;border:none;cursor:pointer;font-size:.95rem;padding:0;line-height:1;flex-shrink:0">⚙️</button></div>${total ? `<div class="kpi-value" style="color:var(--danger)">${total}</div><div class="kpi-sub" style="text-align:left;line-height:1.5">${detail}</div>` : '<div class="kpi-sub">Aucun élève concerné</div>'}</div>`;
     }
 
     function viewDashboard() {
@@ -1494,20 +3065,25 @@
             const dayLabel = a.dayIndices && a.dayIndices.length
               ? a.dayIndices.map((i) => DOW[i].slice(0, 3)).join(" / ")
               : "";
-            return `<div style="padding:0.65rem 0;border-top:1px solid var(--border)">
-              <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.45rem">
-                <span class="legend-dot" style="background:${escapeHtml(a.color)}"></span>
-                <strong style="font-size:0.88rem">${escapeHtml(a.name)}</strong>
-                ${dayLabel ? `<span class="kpi-sub">(${escapeHtml(dayLabel)})</span>` : ""}
-                ${lastDate ? `<span style="color:var(--danger);font-weight:700;font-size:0.78rem;margin-left:auto">Dernière séance : ${fmtDateFr(lastDate)}</span>` : ""}
+            return `<div class="dash-activity-block" style="--act-c:${escapeHtml(a.color)}">
+              <div class="dash-activity-head">
+                <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;width:100%">
+                  <span class="legend-dot" style="background:${escapeHtml(a.color)}"></span>
+                  <span class="dash-activity-name">${escapeHtml(a.name)}</span>
+                  ${dayLabel ? `<span class="dash-activity-days">${escapeHtml(dayLabel)}</span>` : ""}
+                </div>
+                ${lastDate ? `<span class="dash-activity-last">Dernière séance · ${fmtDateFr(lastDate)}</span>` : ""}
               </div>
               <div class="dash-class-metrics">
-                <div><span class="num">${ast.done}</span><span class="lbl">Effectuées</span></div>
-                <div><span class="num">${ast.remaining}</span><span class="lbl">Restantes</span></div>
-                <div><span class="num">${ast.done + ast.remaining}</span><span class="lbl">Total</span></div>
+                <div class="dash-metric-done"><span class="num">${ast.done}</span><span class="lbl"><span class="lbl-long">Effectuées</span><span class="lbl-short">Eff.</span></span></div>
+                <div class="dash-metric-remaining"><span class="num">${ast.remaining}</span><span class="lbl"><span class="lbl-long">Restantes</span><span class="lbl-short">Rest.</span></span></div>
+                <div class="dash-metric-total"><span class="num">${ast.done + ast.remaining}</span><span class="lbl"><span class="lbl-long">Total</span><span class="lbl-short">Tot.</span></span></div>
               </div>
-              <div class="progress" style="margin-top:0.5rem"><span style="width:${ast.pct}%"></span></div>
-              <p class="kpi-sub" style="margin-top:0.25rem">${ast.cancelled} annulation(s) · Avancement ${ast.pct}%</p>
+              <div class="progress progress--activity" style="margin-top:0.5rem"><span style="width:${ast.pct}%"></span></div>
+              <div class="dash-activity-foot">
+                <span class="dash-activity-canc">${ast.cancelled ? ast.cancelled + " annul." : ""}</span>
+                <span class="dash-activity-pct">${ast.pct}%</span>
+              </div>
             </div>`;
           }).join("");
 
@@ -1529,131 +3105,64 @@
       const dateLong = dashboardDate.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
       const dateCapitalized = dateLong.charAt(0).toUpperCase() + dateLong.slice(1);
       const isToday = fmtISODate(dashboardDate) === fmtISODate(new Date());
+      const hasProgPdf = hasProgEtabPdf();
       return `
-        ${renderTopbar("Tableau de bord", `<button type="button" class="btn btn-sm btn-primary" id="btn-regen">Régénérer séances</button>`)}
+        <div class="dash-page-header no-print">
+          ${helpButtonHtml()}
+          <button type="button" class="btn-regen-icon" id="btn-regen" title="Régénérer les séances" aria-label="Régénérer les séances">↻</button>
+        </div>
         ${appStorageIsMemory ? `<div class="card" style="margin-bottom:1rem;padding:.75rem 1rem;background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.35);font-size:.85rem;line-height:1.45"><strong>Mode fichier (AirDrop / Fichiers)</strong> — Safari ne peut pas enregistrer en local sur cette page. Vos saisies restent tant que l’onglet est ouvert ; pensez à <strong>Réglages → Sauvegarde → Export JSON</strong> pour garder une copie.</div>` : ""}
-        <div style="display:flex;align-items:center;gap:.6rem;margin:0 0 1.1rem;flex-wrap:wrap">
-          <button type="button" class="btn btn-sm btn-ghost" id="dash-prev-day" style="font-size:1.1rem;padding:.2rem .5rem">◀</button>
-          <p style="font-size:1.65rem;font-weight:800;margin:0;letter-spacing:-0.02em;color:var(--fg)">${escapeHtml(dateCapitalized)}</p>
-          <button type="button" class="btn btn-sm btn-ghost" id="dash-next-day" style="font-size:1.1rem;padding:.2rem .5rem">▶</button>
+        <div class="dash-date-nav${isToday ? " dash-date-nav--today" : ""}">
+          <button type="button" class="btn btn-sm btn-ghost" id="dash-prev-day" style="font-size:1.1rem;padding:.2rem .5rem" aria-label="Jour précédent">◀</button>
+          <p class="dash-date-label${isToday ? " dash-date-label--today" : ""}">${escapeHtml(dateCapitalized)}</p>
+          <button type="button" class="btn btn-sm btn-ghost" id="dash-next-day" style="font-size:1.1rem;padding:.2rem .5rem" aria-label="Jour suivant">▶</button>
           ${isToday ? "" : `<button type="button" class="btn btn-sm btn-ghost" id="dash-today" style="font-size:.82rem">Aujourd'hui</button>`}
         </div>
-        <div class="kpi-grid">
-          <div class="kpi" style="animation-delay:0.05s" id="weather-kpi"><div class="kpi-label">🌤️ Météo — Roissy-en-Brie</div><div class="kpi-value" id="weather-temp">…</div><div class="kpi-sub" id="weather-desc">Chargement…</div></div>
-          <div class="kpi" style="animation-delay:0.1s"><div class="kpi-label">Séances ${isToday ? "aujourd'hui" : "ce jour"}</div><div class="kpi-value">${g.todayN}</div>${
+        <div class="dash-weather dash-weather--compact no-print" id="weather-kpi" aria-live="polite">
+          <span class="dash-weather-line" id="weather-line">🌤️ Roissy-en-Brie · … · Chargement…</span>
+        </div>
+        <section class="dash-priority">
+        <div class="kpi-grid kpi-grid--dash">
+          <div class="kpi kpi--tint kpi--sessions" style="animation-delay:0.1s"><div class="kpi-label">Séances ${isToday ? "aujourd'hui" : "ce jour"}</div><div class="kpi-value${g.todayN ? " kpi-value--active" : ""}">${g.todayN}</div>${
             g.todayDetails.length
-              ? `<div class="kpi-sub" style="text-align:left;margin-top:.35rem;line-height:1.55;font-size:.78rem">${g.todayDetails.map(d => escapeHtml(d.className) + " · " + escapeHtml(d.startTime) + (d.endTime ? "–" + escapeHtml(d.endTime) : "")).join("<br>")}</div>`
+              ? `<div class="kpi-sub" style="text-align:left;margin-top:.35rem;line-height:1.55;font-size:.78rem">${g.todayDetails.map((d) => {
+                  const time = escapeHtml(d.startTime) + (d.endTime ? "–" + escapeHtml(d.endTime) : "");
+                  const apsa = d.activityName ? " · " + escapeHtml(d.activityName) : "";
+                  return escapeHtml(d.className) + " · " + time + apsa;
+                }).join("<br>")}</div>`
               : '<div class="kpi-sub">Aucun cours prévu</div>'
           }</div>
           ${(() => {
             const todayDate = dISO;
             const todayEx = (appData.exemptions || []).filter((e) =>
-              todayDate >= e.startDate && todayDate <= e.endDate &&
-              sessionsForClass(e.classId).some((s) => s.date === todayDate && computeSessionStatus(s).code !== "cancelled")
+              sessionsForClass(e.classId).some(
+                (s) => s.date === todayDate && computeSessionStatus(s).code !== "cancelled" && exemptionAppliesToSession(e, s)
+              )
             );
             const count = todayEx.length;
             const detail = todayEx
               .slice()
-              .sort((a, b) => a.endDate.localeCompare(b.endDate))
+              .sort((a, b) => a.studentName.localeCompare(b.studentName, "fr"))
               .map((ex) => {
                 const cl = getClassById(ex.classId);
-                return `<strong style="color:var(--danger)">${escapeHtml(ex.studentName)}</strong>` + " (" + escapeHtml(cl ? cl.name : "—") + ") → " + fmtDateFr(ex.endDate);
+                return `<strong style="color:var(--danger)">${escapeHtml(ex.studentName)}</strong>` + " (" + escapeHtml(cl ? cl.name : "—") + ") — " + escapeHtml(formatExemptionDetailLabel(ex));
               })
               .join("<br>");
-            return `<div class="kpi" style="animation-delay:0.15s"><div class="kpi-label">🏥 Élèves dispensés ${isToday ? "aujourd'hui" : "ce jour"}</div><div class="kpi-value" style="${count ? "color:var(--danger)" : ""}">${count}</div>${count ? `<div class="kpi-sub" style="text-align:left;margin-top:.35rem;line-height:1.55;font-size:.78rem">${detail}</div>` : '<div class="kpi-sub">Aucun élève dispensé ayant cours</div>'}</div>`;
+            return `<div class="kpi kpi--tint kpi--medical${count ? " has-alert" : ""}" style="animation-delay:0.15s"><div class="kpi-label">🏥 Élèves dispensés</div><div class="kpi-value">${count}</div>${count ? `<div class="kpi-sub" style="text-align:left;margin-top:.35rem;line-height:1.55;font-size:.78rem">${detail}</div>` : '<div class="kpi-sub">Aucun élève dispensé ayant cours</div>'}</div>`;
           })()}
+          <div class="kpi kpi--tint kpi--prog no-print" id="btn-dash-prog-pdf" style="animation-delay:0.18s" role="button" tabindex="0" aria-label="${hasProgPdf ? "Consulter la programmation EPS" : "Programmation EPS — déposer le PDF dans les réglages"}">
+            <div class="kpi-label">📋 Programmation EPS</div>
+            <div class="kpi-prog-action${hasProgPdf ? " is-ready" : ""}">${hasProgPdf ? "Consulter" : "—"}</div>
+            ${hasProgPdf ? "" : '<div class="kpi-sub">À déposer — Réglages</div>'}
+          </div>
+          ${dashForgottenGearKpiHtml("0.22s")}
         </div>
-        ${(() => {
-          const todayISO = dISO;
-          const todaySessions = appData.sessions.filter((s) => s.date === todayISO)
-            .slice().sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""));
-          if (!todaySessions.length) return '';
-          const lines = todaySessions.map((s) => {
-            const cl = getClassById(s.classId);
-            const act = activityById(s.activityId);
-            const stt = computeSessionStatus(s);
-            const col = stt.code === "cancelled" ? "var(--danger)" : stt.code === "done" ? "var(--success)" : "var(--accent)";
-            const canc = cancellationForSession(s);
-            const motif = canc ? (REASON_TYPES.find((x) => x[0] === canc.reasonType)?.[1] || canc.reasonType) : stt.reason || "";
-            const statusHtml = `<span class="status-dot" style="background:${col}"></span>${escapeHtml(stt.label)}`;
-            let sessionNumBadge = "";
-            if (act) {
-              const actSess = appData.sessions
-                .filter((x) => x.classId === s.classId && x.activityId === act.id)
-                .sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
-              const valid = actSess.filter((x) => { const c = computeSessionStatus(x).code; return c !== "cancelled" && c !== "holiday"; });
-              const idx = valid.findIndex((x) => x.id === s.id);
-              if (idx >= 0) sessionNumBadge = ` <span style="font-size:.75rem;font-weight:700;color:#fff;background:var(--accent);padding:.15rem .5rem;border-radius:10px;margin-left:.25rem">n°${idx + 1}/${valid.length}</span>`;
-            }
-            const hasSummary = s.summary && s.summary.trim();
-            return `<div class="btn-today-session" data-session-id="${s.id}" style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;padding:.55rem .4rem;border-top:1px solid var(--border);cursor:pointer;border-radius:6px;transition:background .15s" onmouseover="this.style.background='var(--hover)'" onmouseout="this.style.background='transparent'">
-              <span class="legend-dot" style="background:${cl ? cl.color : '#888'}"></span>
-              <strong style="min-width:4rem">${escapeHtml(cl ? cl.name : "—")}</strong>
-              <span style="font-size:.85rem">${s.startTime || ""}–${s.endTime || ""}</span>
-              <span style="font-size:.82rem;color:var(--text-muted)">${escapeHtml(s.venue || "")}</span>
-              <span style="font-size:.82rem">${act ? escapeHtml(act.name) : "—"}${sessionNumBadge}</span>
-              <span style="font-size:.82rem">${statusHtml}</span>
-              ${motif ? `<span style="font-size:.78rem;color:var(--text-muted)">(${escapeHtml(motif)})</span>` : ""}
-              ${hasSummary ? '<span style="font-size:.85rem" title="Résumé rédigé">📝</span>' : ""}
-              ${s.sessionPdf ? '<span style="font-size:.85rem" title="PDF joint">📄</span>' : ""}
-              ${(() => { const att = s.attendance || {}; const keys = Object.keys(att); if (!keys.length) return ""; const p = keys.filter((k) => att[k] === "present").length; const a = keys.filter((k) => att[k] === "absent").length; const l = keys.filter((k) => att[k] === "late").length; return `<span style="font-size:.75rem;font-weight:600;padding:.15rem .5rem;border-radius:10px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0" title="Appel effectué">${p}P${l ? " " + l + "R" : ""}${a ? " " + a + "A" : ""}</span>`; })()}
-            </div>`;
-          }).join("");
-          return `<div class="kpi" style="animation-delay:0.25s;width:100%;margin-bottom:1rem"><div class="kpi-label">Cours ${isToday ? "du jour" : "de la journée"}</div>
-            <div style="display:flex;flex-direction:column;margin-top:.5rem">${lines}</div>
-          </div>`;
-        })()}
-        <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
-          <div class="kpi no-print" style="animation-delay:0.25s;min-width:160px;margin-bottom:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center" id="btn-goto-classes">
-            <span style="font-size:1.6rem;margin-bottom:.3rem">📋</span>
-            <div class="kpi-label" style="display:flex;align-items:center;gap:.4rem">Mes classes <span style="font-size:1.05rem">⚙️</span></div>
-          </div>
-          <div class="kpi no-print" style="animation-delay:0.28s;min-width:160px;margin-bottom:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center" id="btn-goto-tools">
-            <span style="font-size:1.6rem;margin-bottom:.3rem">⚙️</span>
-            <div class="kpi-label">Réglages</div>
-          </div>
-          ${(() => {
-            const threshold = forgottenGearThreshold;
-            const todayStr = dISO;
-            const alerts = [];
-            appData.classes.forEach((cl) => {
-              const clPeriods = periodsForClass(cl.id);
-              const curPeriod = clPeriods.find((p) => todayStr >= p.startDate && todayStr <= p.endDate);
-              if (!curPeriod) return;
-              const items = (appData.forgottenGear || []).filter((f) => f.classId === cl.id && f.date >= curPeriod.startDate && f.date <= curPeriod.endDate);
-              const byStudent = {};
-              items.forEach((f) => { byStudent[f.studentName] = (byStudent[f.studentName] || 0) + 1; });
-              Object.entries(byStudent).forEach(([name, count]) => {
-                if (count >= threshold) alerts.push({ name, className: cl.name, classId: cl.id, count });
-              });
-            });
-            alerts.sort((a, b) => b.count - a.count);
-            const total = alerts.length;
-            const detail = alerts.map((a) => `<a href="#" class="link-fg-student" data-classid="${a.classId}" data-student="${escapeHtml(a.name)}" style="color:var(--danger);font-weight:700;text-decoration:underline;cursor:pointer">${escapeHtml(a.name)}</a> (${escapeHtml(a.className)}) — ${a.count} oubli(s)`).join("<br>");
-            return `<div class="kpi" style="animation-delay:0.3s;flex:1;min-width:220px;margin-bottom:0"><div class="kpi-label" style="display:flex;align-items:center;gap:.4rem">⚠️ Oublis de matériel répétés <button type="button" id="btn-fg-threshold" title="Régler le seuil d'oublis" style="background:none;border:none;cursor:pointer;font-size:1.05rem;padding:0;line-height:1">⚙️</button></div>${total ? `<div class="kpi-sub" style="text-align:left;margin-top:.5rem;line-height:1.55;font-size:.78rem">${detail}</div>` : '<div class="kpi-sub" style="margin-top:.5rem">Aucun élève concerné</div>'}</div>`;
-          })()}
-          <div class="kpi" style="animation-delay:0.35s;flex:1;min-width:280px;margin-bottom:0"><div class="kpi-label">Modifications de l'emploi du temps à venir</div>
-            <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem">${
-              dash.next3Weeks.map((w, i) => {
-                const label = i === 0 ? "Cette semaine" : i === 1 ? "Semaine prochaine" : "Dans 2 semaines";
-                const dd = (d) => String(d.getDate()).padStart(2,"0") + "/" + String(d.getMonth()+1).padStart(2,"0");
-                const range = dd(w.start) + " – " + dd(w.end);
-                const cancPart = w.cancelled.length
-                  ? `<span style="color:var(--danger);font-weight:600;font-size:.82rem">❌ ${w.cancelled.length} cours annulé(s) : ${w.cancelled.map(d => escapeHtml(d)).join(" · ")}</span>`
-                  : "";
-                const extraPart = w.extras.length
-                  ? `<span style="color:#16a34a;font-weight:600;font-size:.82rem">➕ ${w.extras.length} cours ajouté(s) : ${w.extras.map(d => escapeHtml(d)).join(" · ")}</span>`
-                  : "";
-                const details = [cancPart, extraPart].filter(Boolean).join("<br>");
-                return `<div><strong>${label}</strong> <span style="font-size:.72rem;color:var(--text-muted)">(${range})</span>${details ? "<br>" + details : " — <span class=\"kpi-sub\">Aucune modification</span>"}</div>`;
-              }).join("")
-            }</div>
-          </div>
-        </div>
-        <div class="card" style="margin-bottom:1rem;padding:1rem">
-          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem">
-            <h3 style="margin:0">📝 À faire</h3>
-          </div>
+        ${dashTodayCoursesHtml(isToday, dISO)}
+        ${dashScheduleHtml(dash)}
+        </section>
+        <section class="dash-secondary no-print">
+        <div class="dash-block dash-block--todo">
+          <h3 class="dash-block__title">📝 À faire${(() => { const n = (appData.todoList || []).filter((t) => !t.done).length; return n ? ` (${n})` : ""; })()}</h3>
           <div style="display:flex;gap:.4rem;margin-bottom:.7rem">
             <input type="text" id="todo-input" placeholder="Ajouter une tâche…" style="flex:1;padding:.45rem .65rem;border:1px solid var(--border);border-radius:var(--radius);font-size:.9rem;background:var(--card);color:var(--fg)" />
             <button type="button" class="btn btn-sm btn-primary" id="btn-todo-add" style="font-weight:700;padding:.45rem .8rem">+</button>
@@ -1666,10 +3175,11 @@
             </div>`
           ).join("") || '<p class="kpi-sub">Aucune tâche pour le moment.</p>'}</div>
         </div>
-        <div class="card" style="margin-bottom:1rem">
-          <div class="card-header"><h3>📚 Séquences en cours</h3></div>
-          <div class="dashboard-classes" style="margin-top:.5rem">${classCards || '<p class="kpi-sub">Aucune classe — utilisez « Réglages & données » &gt; Mes classes pour en ajouter.</p>'}</div>
+        <div class="dash-block dash-block--sequences">
+          <h3 class="dash-block__title">📚 Séquences en cours</h3>
+          <div class="dashboard-classes">${classCards || '<p class="kpi-sub">Aucune classe — Réglages → Mes classes.</p>'}</div>
         </div>
+        </section>
         <div class="print-only"><h1>EPS — Tableau de bord</h1><p>Généré le ${escapeHtml(dISO)}</p></div>`;
     }
 
@@ -1859,10 +3369,6 @@
         ${hasDoc
           ? `<div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer" id="prog-pdf-container" title="Cliquer pour afficher en plein écran">
               <iframe id="prog-pdf-viewer" src="${appData.progEtabPdf}" style="width:100%;height:70vh;border:none;pointer-events:none"></iframe>
-            </div>
-            <div id="prog-pdf-fullscreen" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);padding:1rem">
-              <button type="button" id="btn-close-pdf-fs" style="position:absolute;top:1rem;right:1.5rem;z-index:10000;background:#fff;border:none;border-radius:50%;width:2.5rem;height:2.5rem;font-size:1.3rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3)">✕</button>
-              <iframe src="${appData.progEtabPdf}" style="width:100%;height:100%;border:none;border-radius:var(--radius)"></iframe>
             </div>`
           : '<p class="kpi-sub"><em>Aucun document déposé.</em></p>'}
       </div>`;
@@ -1924,18 +3430,7 @@
           )
           .join("")}
         </tbody></table></div>
-        <div class="card"><h3 class="card-header">Aperçu annuel (mois)</h3><div class="year-grid">
-        ${["Sept", "Oct", "Nov", "Déc", "Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil"]
-          .map((m, i) => {
-            const ev = appData.holidays.filter((h) => matchesSearch(h.name));
-            return `<div class="year-month"><strong>${m}</strong>${ev
-              .slice(0, 3)
-              .map((h) => `<div class="cal-chip" style="background:${h.color}22;color:${h.color}">${escapeHtml(h.name)}</div>`)
-              .join("")}</div>`;
-          })
-          .join("")}
-        </div><p class="kpi-sub" style="margin-top:.5rem">Vue synthétique — le calendrier détaillé est dans l'outil « Calendrier visuel ».</p></div>`
-      );
+      `);
     }
 
     function viewHolidays() {
@@ -2029,17 +3524,12 @@
         return `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.5rem">${rows}</div>`;
       })();
 
-      const yearHtml = `<div class="year-grid">${["Sept", "Oct", "Nov", "Déc", "Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil"]
-        .map((name, idx) => `<div class="year-month"><strong>${name}</strong><p class="kpi-sub">${y}</p></div>`)
-        .join("")}</div>`;
-
       return (
         (calendarMode === "month"
           ? `<div class="card"><div class="cal-toolbar"><strong>${new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" }).format(new Date(y, m))}</strong></div>
           <div class="cal-grid">${["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((d) => `<div class="cal-dow">${d}</div>`).join("")}${cells}</div></div>`
           : "") +
-        (calendarMode === "week" ? `<div class="card">${weekHtml}</div>` : "") +
-        (calendarMode === "year" ? `<div class="card">${yearHtml}</div>` : "")
+        (calendarMode === "week" ? `<div class="card">${weekHtml}</div>` : "")
       );
     }
 
@@ -2052,7 +3542,6 @@
           <select id="cal-mode" class="btn btn-sm" style="border:1px solid var(--border)">
             <option value="month" ${calendarMode === "month" ? "selected" : ""}>Mensuel</option>
             <option value="week" ${calendarMode === "week" ? "selected" : ""}>Hebdomadaire</option>
-            <option value="year" ${calendarMode === "year" ? "selected" : ""}>Annuel</option>
           </select>
         </div>`) +
         viewCalendarBody()
@@ -2181,14 +3670,11 @@
           const badge = active
             ? '<span class="badge" style="background:var(--danger);color:#fff">En cours</span>'
             : '<span class="badge">Terminée</span>';
-          const remaining = active
-            ? Math.max(0, Math.round((parseISODate(ex.endDate).getTime() - todayStart().getTime()) / 86400000)) + 1
-            : 0;
-          const remainingLabel = active ? `<strong style="color:var(--danger)">${remaining} jour(s)</strong>` : "—";
+          const remainingLabel = exemptionRemainingLabel(ex);
           return `<tr>
             <td><strong>${escapeHtml(ex.studentName)}</strong></td>
-            <td>${ex.certDate ? fmtDateFr(ex.certDate) : "—"}</td>
-            <td>${ex.days} jour(s)</td>
+            <td>${ex.sansCertificat ? "—" : (ex.certDate ? fmtDateFr(ex.certDate) : "—")}</td>
+            <td>${formatExemptionDurationCell(ex)}</td>
             <td>${fmtDateFr(ex.startDate)}</td>
             <td>${fmtDateFr(ex.endDate)}</td>
             <td>${remainingLabel}</td>
@@ -2287,7 +3773,15 @@
         if (!subs.length) return;
         const aSt = sessionStatsForSessions(subs);
         sections.push(`<div class="card" style="border-left:5px solid ${escapeHtml(a.color)}">
-          <h3 style="margin-bottom:.35rem">${escapeHtml(a.name)} <span class="badge" style="font-size:0.78rem;vertical-align:middle">${aSt.remaining} restante(s)</span></h3>
+          <div class="activity-card-head">
+            <h3>${escapeHtml(a.name)} <span class="badge" style="font-size:0.78rem;vertical-align:middle">${aSt.remaining} restante(s)</span></h3>
+          </div>
+          <div class="activity-participation-wrap no-print">
+            <button type="button" class="btn btn-participation btn-activity-participation" data-classid="${classId}" data-activityid="${a.id}">
+              <span class="btn-participation-icon" aria-hidden="true">👥</span>
+              <span class="btn-participation-label">Participation des élèves aux séances</span>
+            </button>
+          </div>
           <p class="kpi-sub"><strong>Période</strong> ${fmtDateFr(a.startDate)} → ${fmtDateFr(a.endDate)} · <strong>Jours</strong> : ${escapeHtml(formatDayIndicesLabel(a))}</p>
           <div class="table-wrap"><table><thead><tr><th>Date</th><th>Jour</th><th>Horaire</th><th>Lieu</th><th>APSA</th><th>Statut</th><th>Motif / info</th><th class="no-print">Action</th></tr></thead><tbody>
           ${renderSessionRowsHtml(subs)}
@@ -2337,6 +3831,160 @@
     }
 
     /** Regroupe l'ancienne navigation « technique » derrière un seul point d'entrée. */
+    function viewTutorialBody() {
+      const goto = (target, label) =>
+        `<button type="button" class="tutorial-goto no-print" data-tuto-goto="${target}">${escapeHtml(label)} →</button>`;
+      return `<div class="tutorial-guide">
+        <div class="tutorial-hero">
+          <h2>Guide d'utilisation — Studio EPS Collège</h2>
+          <p class="kpi-sub" style="margin:0;line-height:1.55">Ce guide suit l'ordre logique d'une année scolaire : configuration une fois, puis usage quotidien depuis l'<strong>Accueil</strong> et les <strong>Classes</strong>. Les données sont enregistrées dans votre navigateur — pensez aux exports JSON.</p>
+          <nav class="tutorial-toc no-print" aria-label="Sommaire">
+            <a href="#tuto-principe">Principe</a>
+            <a href="#tuto-config">Configuration</a>
+            <a href="#tuto-quotidien">Quotidien</a>
+            <a href="#tuto-classe">Page classe</a>
+            <a href="#tuto-dispense">Dispenses</a>
+            <a href="#tuto-oublis">Oublis</a>
+            <a href="#tuto-cal">Calendrier</a>
+            <a href="#tuto-part">Participation</a>
+            <a href="#tuto-save">Sauvegarde</a>
+            <a href="#tuto-iphone">iPhone</a>
+          </nav>
+        </div>
+
+        <details class="tutorial-section" id="tuto-principe" open>
+          <summary>1 · Principe de l'application</summary>
+          <div class="tutorial-section__body">
+            <p><strong>Studio EPS</strong> centralise votre suivi pédagogique : séances générées automatiquement à partir de l'emploi du temps, appels, résumés, PDF de séance, dispenses médicales, oublis de matériel, annulations et programmation de l'établissement.</p>
+            <ul>
+              <li><strong>Accueil</strong> — vue du jour : cours, KPI, tâches, aperçu des 3 prochaines semaines.</li>
+              <li><strong>Classes</strong> — fiches par classe : toutes les séances, dispenses, oublis, participation par APSA.</li>
+              <li><strong>Réglages</strong> — configuration (classes, périodes, EDT, APSA, calendrier, sauvegarde) et ce guide.</li>
+            </ul>
+            <p>Sur ordinateur, le menu latéral permet d'ouvrir directement une classe. Sur iPhone, utilisez la barre du bas.</p>
+          </div>
+        </details>
+
+        <details class="tutorial-section" id="tuto-config">
+          <summary>2 · Configuration initiale (à faire une fois par année)</summary>
+          <div class="tutorial-section__body">
+            <p>Suivez cet ordre : chaque étape alimente la suivante. Après toute modification structurelle, cliquez sur <strong>↻ Régénérer les séances</strong> (en haut de l'Accueil).</p>
+            <ol class="tutorial-steps">
+              <li><strong>Année scolaire</strong> — dates de début et fin. ${goto("tools:backup", "Réglages → Sauvegarde")}</li>
+              <li><strong>Mes classes</strong> — créez chaque classe (nom, cycle, effectif, couleur) puis <strong>⚙️ → Élèves</strong> pour la liste des prénoms (indispensable pour l'appel et les listes déroulantes). ${goto("tools:classes", "Réglages → Mes classes")}</li>
+              <li><strong>Périodes</strong> — P1, P2, P3… avec dates et classes concernées. ${goto("tools:orgPeriodes", "Réglages → Périodes")}</li>
+              <li><strong>Créneaux des classes</strong> — emploi du temps hebdomadaire (jour, horaire, lieu par défaut). ${goto("tools:orgCreneaux", "Réglages → Créneaux")}</li>
+              <li><strong>APSA & séquences</strong> — activités par classe, période, jours de cours, dates de début/fin. ${goto("tools:orgApsa", "Réglages → APSA")}</li>
+              <li><strong>Lieux de pratique</strong> — gymnase, stade, piscine… réutilisables dans les créneaux. ${goto("tools:orgLieux", "Réglages → Lieux")}</li>
+              <li><strong>Calendrier scolaire</strong> — vacances, fériés, journées banalisées ; bouton <em>Appliquer le calendrier officiel</em> selon votre zone. ${goto("tools:calendriers", "Réglages → Calendriers")}</li>
+              <li><strong>Régénérer les séances</strong> — bouton ↻ sur l'Accueil pour créer/mettre à jour toutes les séances de l'année. ${goto("dashboard", "Aller à l'Accueil")}</li>
+              <li><strong>Programmation EPS</strong> — déposez le PDF de l'établissement ; il sera consultable depuis l'Accueil. ${goto("tools:orgProg", "Réglages → Programmation")}</li>
+            </ol>
+            <div class="tutorial-tip"><strong>Astuce :</strong> sans périodes ni APSA sur la période du jour, l'Accueil affichera « Aucune APSA sur la période du jour » dans les cartes de séquences.</div>
+          </div>
+        </details>
+
+        <details class="tutorial-section" id="tuto-quotidien">
+          <summary>3 · Routine quotidienne (Accueil)</summary>
+          <div class="tutorial-section__body">
+            <p>Ouvrez l'application le matin sur <strong>Accueil</strong> (⌂). ${goto("dashboard", "Accueil")}</p>
+            <ul>
+              <li><strong>Navigation par date</strong> — flèches ◀ ▶ pour préparer un autre jour ; bouton <em>Aujourd'hui</em> si vous avez navigué.</li>
+              <li><strong>4 indicateurs</strong> — séances du jour, élèves dispensés ayant cours, programmation EPS (Consulter), oublis de matériel répétés (seuil réglable via ⚙️ sur la carte).</li>
+              <li><strong>Cours du jour</strong> — liste cliquable : chaque ligne ouvre la fiche séance (résumé, appel, dispense, oubli, PDF). Badges : 📝 résumé, 📄 PDF, <em>3P 1A</em> = appel (Présents / Retards / Absents).</li>
+              <li><strong>Modifications EDT à venir</strong> — annulations et cours ajoutés sur les 3 prochaines semaines.</li>
+              <li><strong>À faire</strong> — liste de tâches personnelles (cocher / supprimer).</li>
+              <li><strong>Séquences en cours</strong> — avancement par classe et par APSA ; touchez une carte pour ouvrir la page classe.</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="tutorial-section" id="tuto-classe">
+          <summary>4 · Page classe — séances, appel, résumé</summary>
+          <div class="tutorial-section__body">
+            <p>Accédez via <strong>Classes</strong> ou une carte sur l'Accueil. ${goto("classes", "Onglet Classes")}</p>
+            <ul>
+              <li><strong>Sélecteur de période</strong> — filtre les tableaux par P1, P2… ou « Toutes les périodes ».</li>
+              <li><strong>Tableau des séances</strong> — une section par APSA : date, horaire, lieu, statut. Cliquez une ligne pour le <strong>résumé de séance</strong> : texte libre, <strong>appel</strong> (Présent / Retard / Absent, ou « Tous présents »), <strong>PDF de séance</strong> (joindre / plein écran).</li>
+              <li><strong>Annuler une séance</strong> — bouton sur les séances à venir ; choisissez le motif (pluie, gymnase, sortie…).</li>
+              <li><strong>+ Ajouter un cours</strong> — cours ponctuel hors EDT (remplacement, séance rattrapée) ; apparaît dans « Cours ajoutés — sans APSA ».</li>
+              <li><strong>Imprimer</strong> — bouton en haut de la page classe pour une vue papier du tableau.</li>
+            </ul>
+            <p>Le rappel <em>« Absents au cours précédent (même APSA) »</em> s'affiche dans les modales de séance pour ne pas oublier les élèves absents la dernière fois.</p>
+          </div>
+        </details>
+
+        <details class="tutorial-section" id="tuto-dispense">
+          <summary>5 · Dispenses médicales</summary>
+          <div class="tutorial-section__body">
+            <p><strong>Avec certificat</strong> — date du certificat + durée en jours ou date de fin ; la dispense couvre toute la plage sur les séances de la classe.</p>
+            <p><strong>Sans certificat</strong> — deux cas :</p>
+            <ul>
+              <li>Depuis <strong>Cours du jour</strong> (Accueil) : case cochée par défaut → dispense <strong>pour ce cours uniquement</strong> (un créneau précis).</li>
+              <li>Depuis la <strong>page classe → + Ajouter une dispense</strong> : case « journée uniquement » → tous les cours EPS de cet élève ce jour-là.</li>
+            </ul>
+            <p>Les dispensés actifs apparaissent discrètement en haut de la fiche séance (Accueil). Le KPI « Élèves dispensés » liste ceux qui ont cours le jour affiché.</p>
+            <p>Tableau <strong>Dispenses</strong> sur la page classe : statut En cours / Terminée, modifier ou supprimer.</p>
+          </div>
+        </details>
+
+        <details class="tutorial-section" id="tuto-oublis">
+          <summary>6 · Oublis de matériel</summary>
+          <div class="tutorial-section__body">
+            <p>Signalez un oubli (gourde, tenue, baskets) depuis la fiche <strong>Cours du jour</strong> ou <strong>page classe → + Ajouter un oubli</strong>.</p>
+            <p>Sur l'Accueil, la carte <strong>Oublis répétés</strong> alerte lorsqu'un élève dépasse le seuil (par défaut 3) sur la période en cours — réglable via ⚙️ sur la carte. Cliquez un nom pour ouvrir la classe concernée.</p>
+          </div>
+        </details>
+
+        <details class="tutorial-section" id="tuto-cal">
+          <summary>7 · Calendrier, annulations, statuts</summary>
+          <div class="tutorial-section__body">
+            <ul>
+              <li><strong>Calendrier scolaire</strong> — vacances et événements ; les séances concernées passent en statut adapté (vacances, férié, banalisé…). ${goto("tools:calendriers", "Calendriers")}</li>
+              <li><strong>Calendrier visuel</strong> — vue mois / semaine des séances colorées par statut.</li>
+              <li><strong>Annulation manuelle</strong> — depuis le tableau de séances d'une classe (motif + commentaire) ou depuis l'écran dédié dans Calendriers.</li>
+            </ul>
+            <p>Les séances <strong>effectuées</strong> (date passée, non annulées) alimentent les statistiques et la participation.</p>
+          </div>
+        </details>
+
+        <details class="tutorial-section" id="tuto-part">
+          <summary>8 · Participation des élèves (par APSA)</summary>
+          <div class="tutorial-section__body">
+            <p>Sur la page classe, bouton <strong>Participation des élèves aux séances</strong> sous chaque APSA.</p>
+            <p>Comptabilise les séances <strong>effectuées</strong> : comptées si présent ou en retard à l'appel ; exclues si absent ou dispensé. Si participation incomplète, le détail indique <em>Dispensé le …</em> et <em>Absent le …</em> avec les dates.</p>
+          </div>
+        </details>
+
+        <details class="tutorial-section" id="tuto-save">
+          <summary>9 · Sauvegarde et transfert</summary>
+          <div class="tutorial-section__body">
+            <p>Les données vivent dans le <strong>navigateur</strong> pour l'adresse exacte du fichier (Safari, Chrome, serveur local, aperçu Cursor… sont des emplacements différents).</p>
+            <ul>
+              <li><strong>Export JSON</strong> — copie de sauvegarde à conserver (cloud, clé USB, mail).</li>
+              <li><strong>Import JSON</strong> — restaurer sur un autre appareil ou navigateur.</li>
+              <li><strong>Reset</strong> — efface tout (à utiliser avec précaution).</li>
+            </ul>
+            ${goto("tools:backup", "Réglages → Sauvegarde")}
+            <div class="tutorial-tip"><strong>Mode fichier (iPhone / AirDrop) :</strong> si un bandeau jaune s'affiche sur l'Accueil, exportez régulièrement : les données peuvent disparaître à la fermeture de l'onglet.</div>
+          </div>
+        </details>
+
+        <details class="tutorial-section" id="tuto-iphone">
+          <summary>10 · Utilisation sur iPhone</summary>
+          <div class="tutorial-section__body">
+            <ol>
+              <li>Ajoutez la page à l'<strong>écran d'accueil</strong> (Safari → Partager → Sur l'écran d'accueil) pour un accès en une touche.</li>
+              <li>Travaillez en <strong>portrait</strong> : l'Accueil est optimisé (grille 2×2, cours du jour en priorité).</li>
+              <li>Chaque matin : Accueil → <strong>Cours du jour</strong> → appel + dispenses/oublis du créneau.</li>
+              <li>Export JSON hebdomadaire si vous ouvrez le fichier depuis Fichiers sans serveur local.</li>
+            </ol>
+            <p>Thème clair/sombre : menu ☰ (barre latérale) sur iPad ou ordinateur ; bouton en bas du menu latéral.</p>
+          </div>
+        </details>
+      </div>`;
+    }
+
     function viewTools() {
       if (toolsPanel === "schedule") toolsPanel = "orgCreneaux";
       if (toolsPanel === "activities") toolsPanel = "orgApsa";
@@ -2360,7 +4008,7 @@
           </div>`
         ).join("");
         return (
-          renderTopbar("Réglages & données") +
+          renderTopbar("Réglages & données", helpButtonHtml()) +
           `<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">${cards}</div>
           <div style="text-align:center;margin-top:1.5rem">
             <button type="button" class="btn btn-sm" id="btn-reset-all" style="background:#dc2626;color:#fff;font-weight:700;padding:.5rem 1.2rem;border-radius:var(--radius)">🗑️ Réinitialiser toutes les données</button>
@@ -2429,7 +4077,6 @@
               <select id="cal-mode" class="btn btn-sm" style="border:1px solid var(--border)">
                 <option value="month" ${calendarMode === "month" ? "selected" : ""}>Mensuel</option>
                 <option value="week" ${calendarMode === "week" ? "selected" : ""}>Hebdomadaire</option>
-                <option value="year" ${calendarMode === "year" ? "selected" : ""}>Annuel</option>
               </select>
             </div></div>` +
             viewCalendarBody();
@@ -2438,6 +4085,10 @@
           panelTitle = "💾 Sauvegarde";
           panel = viewBackupBody();
           break;
+        case "tutorial":
+          panelTitle = "Guide d'utilisation";
+          panel = viewTutorialBody();
+          break;
         default:
           toolsPanel = "home";
           return viewTools();
@@ -2445,13 +4096,30 @@
       const isOrgSub = ["orgPeriodes", "orgCreneaux", "orgApsa", "orgLieux", "orgProg"].includes(toolsPanel);
       const backLabel = isOrgSub ? "◀ Organisation" : "◀ Réglages";
       const backTarget = isOrgSub ? "orgEPS" : "home";
+      const helpAside = toolsPanel === "tutorial" ? "" : helpButtonHtml();
       return (
-        renderTopbar("Réglages — " + panelTitle, `<button type="button" class="btn btn-sm btn-ghost" data-tools="${backTarget}" style="gap:.25rem">${backLabel}</button>` + extraBtns.join("")) +
+        renderTopbar("Réglages — " + panelTitle, `<button type="button" class="btn btn-sm btn-ghost" data-tools="${backTarget}" style="gap:.25rem">${backLabel}</button>` + extraBtns.join("") + helpAside) +
         panel
       );
     }
 
     function wireEvents(main) {
+      main.querySelectorAll("[data-tuto-goto]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const t = btn.getAttribute("data-tuto-goto");
+          if (t === "dashboard") {
+            currentView = "dashboard";
+            toolsPanel = "home";
+          } else if (t === "classes") {
+            currentView = "classes";
+            toolsPanel = "home";
+          } else if (t && t.startsWith("tools:")) {
+            currentView = "tools";
+            toolsPanel = t.slice(6);
+          }
+          render();
+        });
+      });
       main.querySelector("#btn-regen")?.addEventListener("click", () => {
         regenerateSessions();
         render();
@@ -2533,13 +4201,18 @@
           render();
         });
       });
-      main.querySelector("#btn-goto-tools")?.addEventListener("click", () => {
-        toolsPanel = "home";
-        navigateTo("tools");
+      main.querySelector("#btn-dash-prog-pdf")?.addEventListener("click", () => {
+        if (hasProgEtabPdf()) openProgEtabFullscreen();
+        else {
+          toolsPanel = "orgProg";
+          navigateTo("tools");
+        }
       });
-      main.querySelector("#btn-goto-classes")?.addEventListener("click", () => {
-        toolsPanel = "classes";
-        navigateTo("tools");
+      main.querySelector("#btn-dash-prog-pdf")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          e.currentTarget.click();
+        }
       });
       main.querySelector("#btn-back-dashboard")?.addEventListener("click", () => {
         goBack();
@@ -2555,12 +4228,24 @@
           render();
         }
       });
+      main.querySelectorAll(".btn-activity-participation").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const cid = btn.getAttribute("data-classid");
+          const aid = btn.getAttribute("data-activityid");
+          if (cid && aid) openActivityParticipationModal(cid, aid);
+        });
+      });
       main.querySelector("#btn-add-exemption")?.addEventListener("click", () => {
         const cid = main.querySelector("#btn-add-exemption").getAttribute("data-classid");
         const todayISO = fmtISODate(new Date());
         const body = el(`<div>
           <div class="form-group"><label>Élève</label>${studentPickerHtml(cid, "f-ex-name")}</div>
-          <div class="form-group"><label>Date du certificat médical</label><input type="date" id="f-ex-certdate" value="${todayISO}" max="${todayISO}" /></div>
+          <label class="exempt-sans-cert-label" style="display:flex;align-items:center;gap:.45rem;margin:.35rem 0 .65rem;cursor:pointer;font-size:.88rem">
+            <input type="checkbox" id="f-ex-sans-cert" style="width:1.05rem;height:1.05rem;accent-color:var(--danger)" />
+            <span>Sans certificat (dispense pour la journée uniquement)</span>
+          </label>
+          <div id="ex-cert-date-wrap" class="form-group"><label id="f-ex-certdate-label">Date du certificat médical</label><input type="date" id="f-ex-certdate" value="${todayISO}" max="${todayISO}" /></div>
+          <div id="ex-duration-blocks">
           <div class="form-group"><label>Mode de saisie de la durée</label>
             <select id="f-ex-mode">
               <option value="days">Nombre de jours de dispense</option>
@@ -2572,6 +4257,7 @@
           </div>
           <div id="ex-block-date" class="form-group" style="display:none"><label>Date de fin (inscrite sur le certificat)</label><input type="date" id="f-ex-enddate" />
           </div>
+          </div>
         </div>`);
         const modeSelect = body.querySelector("#f-ex-mode");
         modeSelect.addEventListener("change", () => {
@@ -2579,32 +4265,57 @@
           body.querySelector("#ex-block-days").style.display = isDays ? "" : "none";
           body.querySelector("#ex-block-date").style.display = isDays ? "none" : "";
         });
+        attachExemptionSansCertificatToggle(body, {
+          checkboxSelector: "#f-ex-sans-cert",
+          durationBlocksSelector: "#ex-duration-blocks",
+        });
+        body.querySelector("#f-ex-sans-cert").addEventListener("change", () => {
+          const on = body.querySelector("#f-ex-sans-cert").checked;
+          body.querySelector("#f-ex-certdate-label").textContent = on ? "Date du cours" : "Date du certificat médical";
+        });
         openModal("Nouvelle dispense", body, () => {
           const name = body.querySelector("#f-ex-name").value.trim();
           if (!name) return;
+          const sansCert = body.querySelector("#f-ex-sans-cert").checked;
           const certDate = body.querySelector("#f-ex-certdate").value;
           if (!certDate) return;
-          const startDate = certDate;
-          let endDate, days;
-          if (modeSelect.value === "days") {
-            days = parseInt(body.querySelector("#f-ex-days").value, 10);
-            if (!days || days < 1) return;
-            endDate = fmtISODate(addDays(parseISODate(certDate), days - 1));
+          if (sansCert) {
+            appData.exemptions.push({
+              id: uid(),
+              classId: cid,
+              studentName: name,
+              days: 1,
+              startDate: certDate,
+              endDate: certDate,
+              certDate: null,
+              sansCertificat: true,
+              sessionId: null,
+            });
           } else {
-            endDate = body.querySelector("#f-ex-enddate").value;
-            if (!endDate || endDate < certDate) return;
-            const diff = Math.round((parseISODate(endDate).getTime() - parseISODate(certDate).getTime()) / 86400000) + 1;
-            days = Math.max(1, diff);
+            let endDate, days;
+            const startDate = certDate;
+            if (modeSelect.value === "days") {
+              days = parseInt(body.querySelector("#f-ex-days").value, 10);
+              if (!days || days < 1) return;
+              endDate = fmtISODate(addDays(parseISODate(certDate), days - 1));
+            } else {
+              endDate = body.querySelector("#f-ex-enddate").value;
+              if (!endDate || endDate < certDate) return;
+              const diff = Math.round((parseISODate(endDate).getTime() - parseISODate(certDate).getTime()) / 86400000) + 1;
+              days = Math.max(1, diff);
+            }
+            appData.exemptions.push({
+              id: uid(),
+              classId: cid,
+              studentName: name,
+              days,
+              startDate,
+              endDate,
+              certDate,
+              sansCertificat: false,
+              sessionId: null,
+            });
           }
-          appData.exemptions.push({
-            id: uid(),
-            classId: cid,
-            studentName: name,
-            days: days,
-            startDate: startDate,
-            endDate: endDate,
-            certDate: certDate,
-          });
           saveData();
           render();
         });
@@ -2661,17 +4372,28 @@
           const eid = b.getAttribute("data-id");
           const ex = appData.exemptions.find((e) => e.id === eid);
           if (!ex) return;
+          const sess = ex.sessionId ? appData.sessions.find((s) => s.id === ex.sessionId) : null;
+          const sansCertLabel = ex.sessionId
+            ? "Sans certificat (dispense pour ce cours uniquement" + (sess ? " · " + fmtDateFr(sess.date) : "") + ")"
+            : "Sans certificat (dispense pour la journée uniquement)";
           const body = el(`<div>
             <div class="form-group"><label>Prénom de l'élève</label><input id="f-ex-name" value="${escapeHtml(ex.studentName)}" /></div>
-            <div class="form-group"><label>Date du certificat médical</label><input type="date" id="f-ex-certdate" value="${ex.certDate || ex.startDate}" /></div>
+            <label class="exempt-sans-cert-label" style="display:flex;align-items:center;gap:.45rem;margin:.35rem 0 .65rem;cursor:pointer;font-size:.88rem">
+              <input type="checkbox" id="f-ex-sans-cert" ${ex.sansCertificat ? "checked" : ""} style="width:1.05rem;height:1.05rem;accent-color:var(--danger)" />
+              <span>${sansCertLabel}</span>
+            </label>
+            ${ex.sessionId ? '<p class="kpi-sub" style="margin:-.35rem 0 .65rem">La dispense reste liée à ce cours ; seul le nom peut être modifié.</p>' : ""}
+            <div id="ex-cert-date-wrap" class="form-group"><label id="f-ex-certdate-label">${ex.sansCertificat ? "Date du cours" : "Date du certificat médical"}</label><input type="date" id="f-ex-certdate" value="${ex.sansCertificat ? ex.startDate : (ex.certDate || ex.startDate)}" ${ex.sessionId ? "disabled" : ""} /></div>
+            <div id="ex-duration-blocks">
             <div class="form-group"><label>Mode de saisie de la durée</label>
               <select id="f-ex-mode">
                 <option value="days">Nombre de jours de dispense</option>
                 <option value="date">Date de fin inscrite sur le certificat</option>
               </select>
             </div>
-            <div id="ex-block-days" class="form-group"><label>Nombre de jours</label><input type="number" id="f-ex-days" min="1" value="${ex.days}" /></div>
+            <div id="ex-block-days" class="form-group"><label>Nombre de jours</label><input type="number" id="f-ex-days" min="1" value="${ex.days || 1}" /></div>
             <div id="ex-block-date" class="form-group" style="display:none"><label>Date de fin</label><input type="date" id="f-ex-enddate" value="${ex.endDate}" /></div>
+            </div>
           </div>`);
           const modeSelect = body.querySelector("#f-ex-mode");
           modeSelect.addEventListener("change", () => {
@@ -2679,27 +4401,58 @@
             body.querySelector("#ex-block-days").style.display = isDays ? "" : "none";
             body.querySelector("#ex-block-date").style.display = isDays ? "none" : "";
           });
+          attachExemptionSansCertificatToggle(body, {
+            checkboxSelector: "#f-ex-sans-cert",
+            durationBlocksSelector: "#ex-duration-blocks",
+          });
+          if (ex.sessionId) {
+            body.querySelector("#f-ex-sans-cert").disabled = true;
+            body.querySelector("#ex-duration-blocks").style.display = "none";
+          }
+          body.querySelector("#f-ex-sans-cert").addEventListener("change", () => {
+            const on = body.querySelector("#f-ex-sans-cert").checked;
+            body.querySelector("#f-ex-certdate-label").textContent = on ? "Date du cours" : "Date du certificat médical";
+          });
           openModal("Modifier la dispense", body, () => {
             const name = body.querySelector("#f-ex-name").value.trim();
             if (!name) return;
+            if (ex.sessionId) {
+              ex.studentName = name;
+              saveData();
+              render();
+              return;
+            }
+            const sansCert = body.querySelector("#f-ex-sans-cert").checked;
             const certDate = body.querySelector("#f-ex-certdate").value;
             if (!certDate) return;
-            let endDate, days;
-            if (modeSelect.value === "days") {
-              days = parseInt(body.querySelector("#f-ex-days").value, 10);
-              if (!days || days < 1) return;
-              endDate = fmtISODate(addDays(parseISODate(certDate), days - 1));
+            if (sansCert) {
+              ex.studentName = name;
+              ex.sansCertificat = true;
+              ex.sessionId = null;
+              ex.certDate = null;
+              ex.startDate = certDate;
+              ex.endDate = certDate;
+              ex.days = 1;
             } else {
-              endDate = body.querySelector("#f-ex-enddate").value;
-              if (!endDate || endDate < certDate) return;
-              const diff = Math.round((parseISODate(endDate).getTime() - parseISODate(certDate).getTime()) / 86400000) + 1;
-              days = Math.max(1, diff);
+              let endDate, days;
+              if (modeSelect.value === "days") {
+                days = parseInt(body.querySelector("#f-ex-days").value, 10);
+                if (!days || days < 1) return;
+                endDate = fmtISODate(addDays(parseISODate(certDate), days - 1));
+              } else {
+                endDate = body.querySelector("#f-ex-enddate").value;
+                if (!endDate || endDate < certDate) return;
+                const diff = Math.round((parseISODate(endDate).getTime() - parseISODate(certDate).getTime()) / 86400000) + 1;
+                days = Math.max(1, diff);
+              }
+              ex.studentName = name;
+              ex.sansCertificat = false;
+              ex.sessionId = null;
+              ex.certDate = certDate;
+              ex.startDate = certDate;
+              ex.days = days;
+              ex.endDate = endDate;
             }
-            ex.studentName = name;
-            ex.certDate = certDate;
-            ex.startDate = certDate;
-            ex.days = days;
-            ex.endDate = endDate;
             saveData();
             render();
           });
@@ -2745,6 +4498,7 @@
       });
       main.querySelectorAll("[data-tools]").forEach((b) => {
         b.addEventListener("click", () => {
+          currentView = "tools";
           toolsPanel = b.getAttribute("data-tools");
           render();
         });
@@ -2761,12 +4515,7 @@
         reader.readAsDataURL(file);
       });
       main.querySelector("#prog-pdf-container")?.addEventListener("click", () => {
-        const fs = document.getElementById("prog-pdf-fullscreen");
-        if (fs) fs.style.display = "block";
-      });
-      main.querySelector("#btn-close-pdf-fs")?.addEventListener("click", () => {
-        const fs = document.getElementById("prog-pdf-fullscreen");
-        if (fs) fs.style.display = "none";
+        openProgEtabFullscreen();
       });
       main.querySelector("#btn-del-prog-pdf")?.addEventListener("click", () => {
         if (confirm("Supprimer le document PDF ?")) {
@@ -3230,7 +4979,7 @@
         render();
       });
       main.querySelector("#cal-mode")?.addEventListener("change", (e) => {
-        calendarMode = e.target.value;
+        calendarMode = e.target.value === "year" ? "month" : e.target.value;
         render();
       });
       main.querySelector("#btn-export")?.addEventListener("click", exportJSON);
@@ -3264,10 +5013,10 @@
             const idx = nonCancelled.findIndex((x) => x.id === s.id);
             if (idx >= 0) sessionNumLabel = `Séance n°${idx + 1} sur ${nonCancelled.length}`;
           }
-          const activeEx = (appData.exemptions || []).filter((e) => s.date >= e.startDate && s.date <= e.endDate && e.classId === s.classId);
           const body = el(`<div>
             <p style="font-size:1rem;font-weight:700;margin-bottom:.25rem">${escapeHtml(cl ? cl.name : "—")} · ${s.startTime || ""}–${s.endTime || ""}${act ? " · " + escapeHtml(act.name) : ""}</p>
             ${sessionNumLabel ? `<p style="margin-bottom:.75rem;font-weight:600;color:var(--accent)">${escapeHtml(sessionNumLabel)}</p>` : ""}
+            <div id="td-prev-absent-reminder"></div>
             <div id="td-ex-info"></div>
             <div class="form-group"><label>Résumé de la séance</label><textarea id="f-td-summary" rows="5" style="width:100%;font-size:.9rem;line-height:1.5" placeholder="Contenu de la séance, observations, points à retenir…"></textarea></div>
             <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
@@ -3284,9 +5033,15 @@
             <p style="font-weight:700;margin-bottom:.5rem">Dispense élève</p>
             <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end">
               <div class="form-group" style="flex:1;min-width:8rem"><label>Élève</label>${studentPickerHtml(s.classId, "f-td-ex-name")}</div>
-              <div class="form-group" style="min-width:8rem"><label>Date certificat</label><input type="date" id="f-td-ex-certdate" value="${fmtISODate(new Date())}" /></div>
             </div>
-            <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;margin-top:.25rem">
+            <label class="exempt-sans-cert-label" style="display:flex;align-items:center;gap:.45rem;margin:.5rem 0;cursor:pointer;font-size:.88rem;width:100%">
+              <input type="checkbox" id="f-td-ex-sans-cert" checked style="width:1.05rem;height:1.05rem;accent-color:var(--danger)" />
+              <span>Sans certificat (dispense pour ce cours uniquement · ${fmtDateFr(s.date)})</span>
+            </label>
+            <div id="td-ex-cert-wrap" style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end">
+              <div class="form-group" style="min-width:8rem"><label>Date certificat</label><input type="date" id="f-td-ex-certdate" value="${s.date}" /></div>
+            </div>
+            <div id="td-ex-duration-blocks" style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end;margin-top:.25rem">
               <div class="form-group" style="min-width:7rem"><label>Mode</label>
                 <select id="f-td-ex-mode"><option value="days">Nombre de jours</option><option value="date">Date de fin</option></select>
               </div>
@@ -3297,23 +5052,29 @@
             <div id="td-ex-list" style="margin-top:.5rem"></div>
           </div>`);
           body.querySelector("#f-td-summary").value = s.summary || "";
-          if (activeEx.length) {
-            const exDiv = body.querySelector("#td-ex-info");
-            exDiv.innerHTML = `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:.6rem .8rem;margin-bottom:.75rem">
-              <p style="font-weight:700;margin:0 0 .3rem;color:#dc2626;font-size:.88rem">🏥 Élèves dispensés (${activeEx.length})</p>
-              ${activeEx.map((e) => '<div style="font-size:.85rem;padding:.15rem 0"><strong style="color:#dc2626">' + escapeHtml(e.studentName) + '</strong> <span style="color:#666">— jusqu\'au ' + fmtDateFr(e.endDate) + '</span></div>').join("")}
-            </div>`;
-          }
+          injectPreviousAbsentReminder(body.querySelector("#td-prev-absent-reminder"), s);
+          injectSessionExemptionsInfo(body.querySelector("#td-ex-info"), s.classId, s.date, s.id);
           const tdExMode = body.querySelector("#f-td-ex-mode");
           tdExMode.addEventListener("change", () => {
             body.querySelector("#td-ex-block-days").style.display = tdExMode.value === "days" ? "" : "none";
             body.querySelector("#td-ex-block-date").style.display = tdExMode.value === "days" ? "none" : "";
           });
+          attachExemptionSansCertificatToggle(body, {
+            checkboxSelector: "#f-td-ex-sans-cert",
+            durationBlocksSelector: "#td-ex-duration-blocks",
+            certDateWrapSelector: "#td-ex-cert-wrap",
+            hideCertWhenSansCert: true,
+            sessionDate: s.date,
+            defaultChecked: true,
+          });
           const exList = [];
           const renderExList = () => {
             const container = body.querySelector("#td-ex-list");
             container.innerHTML = exList.length
-              ? exList.map((ex, i) => `<div style="display:flex;align-items:center;gap:.5rem;padding:.25rem 0"><span>✓ <strong style="color:var(--danger)">${escapeHtml(ex.name)}</strong> — ${ex.days}j (${fmtDateFr(ex.startDate)} → ${fmtDateFr(ex.endDate)})</span><button type="button" class="btn btn-sm btn-danger td-ex-del" data-idx="${i}" style="padding:.15rem .4rem;font-size:.7rem">✕</button></div>`).join("")
+              ? exList.map((ex, i) => {
+                  const lbl = ex.sansCertificat && ex.sessionId ? "Sans certificat · ce cours" : (ex.sansCertificat ? "Sans certificat · " + fmtDateFr(ex.startDate) : ex.days + "j (" + fmtDateFr(ex.startDate) + " → " + fmtDateFr(ex.endDate) + ")");
+                  return `<div style="display:flex;align-items:center;gap:.5rem;padding:.25rem 0"><span>✓ <strong style="color:var(--danger)">${escapeHtml(ex.name)}</strong> — ${escapeHtml(lbl)}</span><button type="button" class="btn btn-sm btn-danger td-ex-del" data-idx="${i}" style="padding:.15rem .4rem;font-size:.7rem">✕</button></div>`;
+                }).join("")
               : "";
             container.querySelectorAll(".td-ex-del").forEach((b) => {
               b.addEventListener("click", () => { exList.splice(parseInt(b.getAttribute("data-idx"), 10), 1); renderExList(); });
@@ -3321,19 +5082,25 @@
           };
           body.querySelector("#btn-td-add-ex").addEventListener("click", () => {
             const name = body.querySelector("#f-td-ex-name").value.trim();
-            const certDate = body.querySelector("#f-td-ex-certdate").value;
-            if (!name || !certDate) return;
-            let endDate, days;
-            if (tdExMode.value === "days") {
-              days = parseInt(body.querySelector("#f-td-ex-days").value, 10);
-              if (!days || days < 1) return;
-              endDate = fmtISODate(addDays(parseISODate(certDate), days - 1));
+            if (!name) return;
+            const sansCert = body.querySelector("#f-td-ex-sans-cert").checked;
+            if (sansCert) {
+              exList.push({ name, sansCertificat: true, sessionId: s.id, startDate: s.date, endDate: s.date, days: 1, certDate: null });
             } else {
-              endDate = body.querySelector("#f-td-ex-enddate").value;
-              if (!endDate || endDate < certDate) return;
-              days = Math.max(1, Math.round((parseISODate(endDate).getTime() - parseISODate(certDate).getTime()) / 86400000) + 1);
+              const certDate = body.querySelector("#f-td-ex-certdate").value;
+              if (!certDate) return;
+              let endDate, days;
+              if (tdExMode.value === "days") {
+                days = parseInt(body.querySelector("#f-td-ex-days").value, 10);
+                if (!days || days < 1) return;
+                endDate = fmtISODate(addDays(parseISODate(certDate), days - 1));
+              } else {
+                endDate = body.querySelector("#f-td-ex-enddate").value;
+                if (!endDate || endDate < certDate) return;
+                days = Math.max(1, Math.round((parseISODate(endDate).getTime() - parseISODate(certDate).getTime()) / 86400000) + 1);
+              }
+              exList.push({ name, sansCertificat: false, sessionId: null, certDate, startDate: certDate, days, endDate });
             }
-            exList.push({ name, certDate, startDate: certDate, days, endDate });
             body.querySelector("#f-td-ex-name").value = "";
             renderExList();
           });
@@ -3356,7 +5123,7 @@
             renderFgList();
           });
           body.appendChild(buildAttendanceBlock(s));
-          body.appendChild(buildSessionPdfBlock(s));
+          body.appendChild(buildSessionPdfBlock(s, { compactHeader: true }));
           openModal("Cours du jour — " + escapeHtml(cl ? cl.name : ""), body, () => {
             s.summary = body.querySelector("#f-td-summary").value;
             const todayISO = fmtISODate(new Date());
@@ -3364,7 +5131,17 @@
               appData.forgottenGear.push({ id: uid(), classId: s.classId, studentName: f.name, date: todayISO, item: f.item });
             });
             exList.forEach((ex) => {
-              appData.exemptions.push({ id: uid(), classId: s.classId, studentName: ex.name, certDate: ex.certDate, startDate: ex.startDate, days: ex.days, endDate: ex.endDate });
+              appData.exemptions.push({
+                id: uid(),
+                classId: s.classId,
+                studentName: ex.name,
+                certDate: ex.certDate || null,
+                startDate: ex.startDate,
+                days: ex.days,
+                endDate: ex.endDate,
+                sansCertificat: !!ex.sansCertificat,
+                sessionId: ex.sessionId || null,
+              });
             });
             saveData();
             render();
@@ -3380,9 +5157,11 @@
           const act = activityById(s.activityId);
           const body = el(`<div>
             <p class="kpi-sub" style="margin-bottom:.75rem"><strong>${fmtDateFr(s.date)}</strong> · ${s.startTime}–${s.endTime}${act ? " · " + escapeHtml(act.name) : ""}</p>
+            <div id="cp-prev-absent-reminder"></div>
             <div class="form-group"><label>Résumé de la séance</label><textarea id="f-summary" rows="6" style="width:100%;font-size:.9rem;line-height:1.5" placeholder="Contenu de la séance, observations, points à retenir…"></textarea></div>
           </div>`);
           body.querySelector("#f-summary").value = s.summary || "";
+          injectPreviousAbsentReminder(body.querySelector("#cp-prev-absent-reminder"), s);
           body.appendChild(buildAttendanceBlock(s));
           body.appendChild(buildSessionPdfBlock(s));
           openModal("Résumé de séance", body, () => {
@@ -3459,10 +5238,13 @@
 
     function render() {
       renderNav();
+      renderBottomNav();
       const main = document.getElementById("main");
       let body = "";
       if (currentView === "dashboard") {
         body = viewDashboard();
+      } else if (currentView === "classes") {
+        body = viewClasses();
       } else if (currentView === "tools") {
         body = viewTools();
       } else if (currentView.startsWith("class:")) {
@@ -3477,15 +5259,8 @@
         body = viewDashboard();
       }
       main.innerHTML = body;
-      bindSearch();
       wireEvents(main);
       if (currentView === "dashboard") fetchWeather();
-      const se = document.getElementById("global-search");
-      if (se && searchQuery) {
-        se.focus();
-        const L = se.value.length;
-        se.setSelectionRange(L, L);
-      }
     }
 
     const WMO_WEATHER = {
@@ -3527,22 +5302,22 @@
     }
 
     function updateWeatherUI(current, daily) {
-      const elTemp = document.getElementById("weather-temp");
-      const elDesc = document.getElementById("weather-desc");
-      if (!elTemp || !elDesc) return;
+      const elLine = document.getElementById("weather-line");
+      if (!elLine) return;
+      const place = "Roissy-en-Brie";
       if (!current && !daily) {
-        elTemp.textContent = "—";
-        elDesc.textContent = "Indisponible";
+        elLine.textContent = `🌤️ ${place} · — · Indisponible`;
         return;
       }
       if (current) {
         const label = WMO_WEATHER[current.weather_code] || "Inconnu";
-        elTemp.textContent = Math.round(current.temperature_2m) + "°C";
-        elDesc.innerHTML = escapeHtml(label) + `<br><span style="font-size:.72rem">Vent ${Math.round(current.wind_speed_10m)} km/h</span>`;
+        const temp = Math.round(current.temperature_2m) + "°C";
+        const wind = Math.round(current.wind_speed_10m);
+        elLine.innerHTML = `🌤️ ${escapeHtml(place)} · <span class="weather-temp">${escapeHtml(temp)}</span> · ${escapeHtml(label)} · Vent ${wind} km/h`;
       } else {
         const label = WMO_WEATHER[daily.code] || "Inconnu";
-        elTemp.textContent = Math.round(daily.tMin) + "° / " + Math.round(daily.tMax) + "°";
-        elDesc.innerHTML = escapeHtml(label) + `<br><span style="font-size:.72rem">Prévision</span>`;
+        const temps = Math.round(daily.tMin) + "° / " + Math.round(daily.tMax) + "°C";
+        elLine.innerHTML = `🌤️ ${escapeHtml(place)} · <span class="weather-temp">${escapeHtml(temps)}</span> · ${escapeHtml(label)} · Prévision`;
       }
     }
 
@@ -3553,14 +5328,20 @@
         regenerateSessions();
       }
 
+      function syncThemeColor() {
+        const t = document.documentElement.getAttribute("data-theme");
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", t === "light" ? "#f8f9fc" : "#09090b");
+      }
       document.getElementById("btn-theme").onclick = () => {
         const t = document.documentElement.getAttribute("data-theme");
         document.documentElement.setAttribute("data-theme", t === "light" ? "dark" : "light");
         lsSet("eps_theme", document.documentElement.getAttribute("data-theme") || "dark");
+        syncThemeColor();
       };
       if (lsGet("eps_theme") === "light") document.documentElement.setAttribute("data-theme", "light");
+      syncThemeColor();
 
-      document.getElementById("btn-menu").onclick = () => document.getElementById("sidebar").classList.toggle("open");
       document.getElementById("btn-print").onclick = () => window.print();
 
       render();
