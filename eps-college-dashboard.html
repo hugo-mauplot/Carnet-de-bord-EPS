@@ -5400,7 +5400,7 @@
               <div class="form-group" style="flex:1;min-width:10rem"><label>Ajouter un élève</label><input id="f-add-student" placeholder="Prénom" /></div>
               <button type="button" class="btn btn-sm btn-primary" id="btn-add-student-manual" style="margin-bottom:.35rem">+ Ajouter</button>
             </div>
-            <div class="form-group" style="margin-top:.5rem"><label>Ou importer un fichier CSV</label><input type="file" accept=".csv,.txt" id="f-csv-import" /></div>
+            <div class="form-group" style="margin-top:.5rem"><label>Ou importer un fichier CSV</label><input type="file" accept=".csv,text/csv,text/comma-separated-values,application/csv,application/vnd.ms-excel" id="f-csv-import" /></div>
             <div id="f-students-list" style="margin-top:.5rem;max-height:200px;overflow-y:auto"></div>
           </div>`);
           const studentsList = cl.students.slice();
@@ -5431,7 +5431,7 @@
             if (!file) return;
             const reader = new FileReader();
             reader.onload = () => {
-              const text = reader.result;
+              const text = String(reader.result || "").replace(/^\uFEFF/, "");
               const skipHeaders = ["prénom","prenom","nom","name","élève","eleve","firstname","lastname","étudiant"];
               const lines = text.split(/\r?\n/)
                 .map((l) => l.split(/[;,\t]/)[0].replace(/^["']|["']$/g, "").trim())
