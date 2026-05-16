@@ -325,6 +325,15 @@
     .tools-card--orgEPS { --tools-c: #8ba4ff; --tools-bg: rgba(139, 164, 255, 0.26); }
     .tools-card--calendriers { --tools-c: #2dd4bf; --tools-bg: rgba(45, 212, 191, 0.24); }
     .tools-card--backup { --tools-c: #fcd34d; --tools-bg: rgba(252, 211, 77, 0.2); }
+    .add-class-toolbar {
+      display: flex;
+      justify-content: center;
+      margin: 0 0 1rem;
+    }
+    .add-class-toolbar .btn {
+      min-width: min(100%, 220px);
+      font-weight: 800;
+    }
     .topbar {
       display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
       gap: 1rem; margin-bottom: 1.25rem;
@@ -540,6 +549,161 @@
       box-shadow: var(--shadow-zone);
       margin-bottom: 1rem;
     }
+    .class-overview-card {
+      overflow: hidden;
+    }
+    .class-overview-card .kpi-sub {
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+    .class-period-selector-card {
+      position: relative;
+      overflow: hidden;
+      border-left: 5px solid var(--period-c, var(--accent));
+      border-color: color-mix(in srgb, var(--period-c, var(--accent)) 38%, var(--border));
+      background: linear-gradient(135deg, color-mix(in srgb, var(--period-c, var(--accent)) 13%, transparent), var(--surface) 58%);
+    }
+    .class-period-selector-card::after {
+      content: "";
+      position: absolute;
+      right: -2rem;
+      top: -2rem;
+      width: 7rem;
+      height: 7rem;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--period-c, var(--accent)) 14%, transparent);
+      pointer-events: none;
+    }
+    .class-period-selector-head {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      margin-bottom: 0.75rem;
+      z-index: 1;
+    }
+    .class-period-selector-icon {
+      width: 2.3rem;
+      height: 2.3rem;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: color-mix(in srgb, var(--period-c, var(--accent)) 18%, transparent);
+      color: var(--period-c, var(--accent));
+      font-size: 1.15rem;
+      flex-shrink: 0;
+    }
+    .class-period-selector-title {
+      font-weight: 900;
+      font-size: 1rem;
+      line-height: 1.2;
+      color: var(--text);
+    }
+    .class-period-selector-sub {
+      display: block;
+      margin-top: 0.1rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .class-period-selector-card select {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      border: 1px solid color-mix(in srgb, var(--period-c, var(--accent)) 48%, var(--border));
+      padding: 0.58rem 2.15rem 0.58rem 0.78rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: var(--text);
+      background: color-mix(in srgb, var(--period-c, var(--accent)) 10%, var(--surface));
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image:
+        url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2214%22 height=%2214%22 viewBox=%220 0 24 24%22 fill=%22%23b4bdd0%22><path d=%22M7 10l5 5 5-5z%22/></svg>');
+      background-repeat: no-repeat, no-repeat;
+      background-position: right 0.75rem center, center;
+      background-size: 14px 14px;
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--period-c, var(--accent)) 12%, transparent);
+    }
+    .class-apSA-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin: 0.45rem 0 0.65rem;
+    }
+    .class-apSA-period {
+      border-radius: var(--radius-sm);
+      border: 1px solid color-mix(in srgb, var(--period-c, var(--accent)) 34%, var(--border));
+      border-left: 5px solid var(--period-c, var(--accent));
+      padding: 0.55rem;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--period-c, var(--accent)) 13%, transparent), rgba(255,255,255,0.02));
+    }
+    .class-apSA-period.is-selected {
+      border-color: color-mix(in srgb, var(--period-c, var(--accent)) 72%, white 8%);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--period-c, var(--accent)) 34%, transparent);
+    }
+    .class-apSA-period-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.45rem;
+      flex-wrap: wrap;
+    }
+    .class-apSA-period-title {
+      font-weight: 900;
+      color: var(--period-c, var(--accent));
+      line-height: 1.2;
+    }
+    .class-apSA-period-dates {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .class-apSA-period-badge {
+      font-size: 0.66rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--period-c, var(--accent)) 24%, transparent);
+      color: var(--period-c, var(--accent));
+    }
+    .class-apSA-item {
+      display: block;
+      padding: 0.5rem 0.6rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid color-mix(in srgb, var(--period-c, var(--accent)) 28%, var(--border));
+      background: rgba(255,255,255,0.035);
+      color: var(--text);
+      overflow-wrap: anywhere;
+      opacity: 0.76;
+    }
+    .class-apSA-item + .class-apSA-item {
+      margin-top: 0.35rem;
+    }
+    .class-apSA-item.is-active {
+      opacity: 1;
+      border-color: color-mix(in srgb, var(--period-c, var(--accent)) 76%, white 10%);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--period-c, var(--accent)) 24%, transparent), rgba(255,255,255,0.05));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--period-c, var(--accent)) 34%, transparent);
+    }
+    .class-apSA-name {
+      display: block;
+      font-weight: 800;
+      color: var(--period-c, var(--accent));
+      line-height: 1.25;
+    }
+    .class-apSA-meta {
+      display: block;
+      margin-top: 0.15rem;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
     .card-header {
       display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
       margin-bottom: 0.85rem;
@@ -660,6 +824,35 @@
     th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); background: var(--bg-elevated); }
     tr:hover td { background: rgba(108, 140, 255, 0.04); }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 0.35rem; vertical-align: middle; }
+    .session-table-wrap { position: relative; }
+    .session-table-hint {
+      display: none;
+      margin: 0.4rem 0 0;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-align: center;
+    }
+    .table-landscape-modal {
+      width: min(1000px, calc(100vw - 1.5rem));
+      max-height: min(90vh, 90dvh);
+    }
+    .table-landscape-view {
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+    }
+    .table-landscape-view table {
+      min-width: 850px;
+    }
+    .table-landscape-note {
+      margin: 0 0 0.65rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
 
     /* ========== CLASS CARDS GRID ========== */
     .class-grid {
@@ -913,6 +1106,33 @@
       margin-top: 0.2rem;
       line-height: 1.3;
     }
+    .session-interrupt-row td {
+      border-bottom: 1px solid var(--border);
+      cursor: default;
+    }
+    .session-interrupt {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      width: 100%;
+      padding: 0.5rem 0.65rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+    .session-interrupt--vacances {
+      background: rgba(251, 113, 133, 0.16);
+      color: #fecdd3;
+      border: 1px solid rgba(251, 113, 133, 0.42);
+    }
+    .session-interrupt--ferie {
+      background: rgba(252, 211, 77, 0.16);
+      color: #fde68a;
+      border: 1px solid rgba(252, 211, 77, 0.42);
+    }
+    [data-theme="light"] .session-interrupt--vacances { color: #be123c; background: rgba(225, 29, 72, 0.1); }
+    [data-theme="light"] .session-interrupt--ferie { color: #b45309; background: rgba(217, 119, 6, 0.1); }
     .modal h3 { margin-bottom: 1rem; font-size: 1.1rem; }
     .form-group { margin-bottom: 0.85rem; }
     .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; }
@@ -1669,6 +1889,100 @@
       .table-wrap td.no-print::before {
         width: 100%;
       }
+      .table-wrap .session-interrupt-row {
+        padding: 0;
+        border: none;
+        box-shadow: none;
+        background: transparent;
+      }
+      .table-wrap .session-interrupt-row td {
+        display: block;
+        padding: 0;
+        border: none;
+      }
+      .table-wrap .session-interrupt-row td::before {
+        display: none;
+      }
+      .session-interrupt {
+        font-size: 0.78rem;
+        padding: 0.6rem 0.7rem;
+      }
+      .session-table-hint {
+        display: block;
+      }
+      .session-table-wrap {
+        overflow: hidden;
+        cursor: zoom-in;
+      }
+      .session-table-wrap::after {
+        content: "";
+        position: absolute;
+        inset: 0 0 0 auto;
+        width: 2.5rem;
+        pointer-events: none;
+        background: linear-gradient(90deg, transparent, var(--surface));
+      }
+      .session-table-wrap table,
+      .session-table-wrap thead,
+      .session-table-wrap tbody,
+      .session-table-wrap tr,
+      .session-table-wrap th,
+      .session-table-wrap td {
+        display: revert;
+        width: auto;
+      }
+      .session-table-wrap table {
+        display: table;
+        width: max-content;
+        min-width: 820px;
+        border-collapse: collapse;
+        font-size: 0.74rem;
+      }
+      .session-table-wrap thead {
+        display: table-header-group;
+      }
+      .session-table-wrap tbody {
+        display: table-row-group;
+      }
+      .session-table-wrap tr {
+        display: table-row;
+        margin: 0;
+        padding: 0;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        background: transparent;
+      }
+      .session-table-wrap th,
+      .session-table-wrap td {
+        display: table-cell;
+        padding: 0.48rem 0.55rem;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.72rem;
+        line-height: 1.25;
+        white-space: nowrap;
+      }
+      .session-table-wrap td::before {
+        content: none;
+      }
+      .session-table-wrap td.no-print {
+        display: table-cell;
+      }
+      .session-table-wrap .session-interrupt-row td {
+        display: table-cell;
+        padding: 0.35rem 0.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .session-table-wrap .session-interrupt {
+        width: 100%;
+        white-space: normal;
+      }
+      .table-landscape-modal {
+        width: calc(100vw - 1rem);
+        max-width: calc(100vw - 1rem);
+        max-height: min(92vh, 92dvh);
+        border-radius: 18px;
+      }
       .session-cycle-num {
         font-size: 0.7rem;
       }
@@ -1693,6 +2007,32 @@
       }
       .modal {
         max-height: min(88vh, 88dvh);
+        width: calc(100vw - 1rem);
+        max-width: calc(100vw - 1rem);
+        margin: 0 auto max(0.35rem, env(safe-area-inset-bottom, 0px));
+        padding: 0.9rem 0.85rem calc(0.9rem + env(safe-area-inset-bottom, 0px));
+        border-radius: 18px;
+        overflow-x: hidden;
+      }
+      .modal-body {
+        min-width: 0;
+        overflow-x: hidden;
+      }
+      .modal-footer {
+        flex-wrap: wrap;
+      }
+      .modal-footer .btn {
+        flex: 1 1 8rem;
+      }
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      .form-group,
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        min-width: 0;
+        max-width: 100%;
       }
     }
 
@@ -1723,7 +2063,6 @@
           <span>Thème</span>
           <button type="button" class="btn btn-sm" id="btn-theme">Sombre / Clair</button>
         </div>
-        <button type="button" class="btn btn-sm btn-ghost" id="btn-print">Imprimer la vue</button>
       </div>
     </aside>
     <main class="main" id="main"><div class="app-loading">⏳ Chargement…</div></main>
@@ -3009,6 +3348,35 @@
       };
     }
 
+    function openLandscapeTable(tableWrap) {
+      const root = document.getElementById("modal-root");
+      const table = tableWrap && tableWrap.querySelector("table");
+      if (!root || !table) return;
+      root.innerHTML = "";
+      root.classList.add("open");
+      const title = tableWrap.getAttribute("data-table-title") || "Tableau des séances";
+      const clone = table.cloneNode(true);
+      clone.querySelectorAll("button").forEach((button) => {
+        button.setAttribute("disabled", "disabled");
+        button.style.opacity = "0.55";
+      });
+      const wrap = el(`<div class="modal table-landscape-modal">
+        <div class="modal-header">
+          <button type="button" class="modal-close" aria-label="Fermer">×</button>
+          <h3 class="modal-title"></h3>
+        </div>
+        <p class="table-landscape-note">Tournez l'iPhone en paysage pour consulter le tableau en entier.</p>
+        <div class="table-landscape-view"></div>
+      </div>`);
+      wrap.querySelector(".modal-title").textContent = title;
+      wrap.querySelector(".table-landscape-view").appendChild(clone);
+      wrap.querySelector(".modal-close").onclick = closeModal;
+      root.appendChild(wrap);
+      root.onclick = (e) => {
+        if (e.target === root) closeModal();
+      };
+    }
+
     function hasProgEtabPdf() {
       return !!(appData.progEtabPdf && appData.progEtabPdf.length > 100);
     }
@@ -3458,7 +3826,8 @@
 
     function viewClasses() {
       return (
-        renderTopbar("Mes classes", `<button type="button" class="btn btn-sm btn-primary" id="btn-add-class">+ Classe</button>`) +
+        renderTopbar("Mes classes", "") +
+        `<div class="add-class-toolbar no-print"><button type="button" class="btn btn-primary" id="btn-add-class">Ajouter une classe</button></div>` +
         viewClassesBody()
       );
     }
@@ -3853,7 +4222,6 @@
             <button type="button" class="btn btn-primary" id="btn-export">Export JSON</button>
             <label class="btn btn-ghost" style="border:1px solid var(--border);cursor:pointer">Import JSON<input type="file" id="inp-import" accept="application/json" class="hidden" /></label>
             <button type="button" class="btn btn-danger" id="btn-reset">Reset données</button>
-            <button type="button" class="btn btn-ghost" id="btn-pdf">PDF (via impression)</button>
           </div>
         </div>`
       );
@@ -3866,17 +4234,68 @@
     /**
      * Lignes de tableau pour une liste de séances (même colonnes que l'ancienne vue annuelle).
      */
+    function activityHasScheduledSlotOnDate(activity, dateStr) {
+      if (!activity || dateStr < activity.startDate || dateStr > activity.endDate) return false;
+      const d = parseISODate(dateStr);
+      const dayIndex = dayIndexMon0(d);
+      const picked = pickActivityForSession(activity.classId, dateStr, dayIndex);
+      if (!picked || picked.id !== activity.id) return false;
+      return schedulesForClass(activity.classId).some(
+        (slot) => slot.dayIndex === dayIndex && matchesWeekParity(slot, d)
+      );
+    }
+
+    function holidayTouchesActivityBetween(holiday, activity, previousDate, nextDate) {
+      const firstDate = [holiday.startDate, fmtISODate(addDays(parseISODate(previousDate), 1))].sort().pop();
+      const lastDate = [holiday.endDate, fmtISODate(addDays(parseISODate(nextDate), -1))].sort()[0];
+      if (firstDate > lastDate) return false;
+      const end = parseISODate(lastDate);
+      for (let cursor = parseISODate(firstDate); cursor <= end; cursor = addDays(cursor, 1)) {
+        const iso = fmtISODate(cursor);
+        if (iso >= holiday.startDate && iso <= holiday.endDate && activityHasScheduledSlotOnDate(activity, iso)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function interruptionsBetweenSessions(prevSession, nextSession) {
+      if (!prevSession || !nextSession || prevSession.activityId !== nextSession.activityId) return [];
+      const activity = activityById(prevSession.activityId);
+      if (!activity) return [];
+      return (appData.holidays || [])
+        .filter((h) => h.blocksSessions && (h.type === "vacances" || h.type === "ferie"))
+        .filter((h) => h.endDate > prevSession.date && h.startDate < nextSession.date)
+        .filter((h) => holidayTouchesActivityBetween(h, activity, prevSession.date, nextSession.date))
+        .sort((a, b) => a.startDate.localeCompare(b.startDate));
+    }
+
+    function renderSessionInterruptionRow(holiday) {
+      const isFerie = holiday.type === "ferie";
+      const label = isFerie
+        ? `Pas de séance car férié le ${fmtDateFr(holiday.startDate)}${holiday.name ? " · " + holiday.name : ""}`
+        : `Vacances du ${fmtDateFr(holiday.startDate)} au ${fmtDateFr(holiday.endDate)}${holiday.name ? " · " + holiday.name : ""}`;
+      const klass = isFerie ? "session-interrupt--ferie" : "session-interrupt--vacances";
+      const icon = isFerie ? "🟧" : "🟥";
+      return `<tr class="session-interrupt-row"><td colspan="8"><span class="session-interrupt ${klass}">${icon} ${escapeHtml(label)}</span></td></tr>`;
+    }
+
     function renderSessionRowsHtml(sessions) {
       const sorted = sessions.slice().sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
-      const rows = sorted
-        .filter((s) => matchesSearch(s.date) || matchesSearch(activityById(s.activityId)?.name || ""))
-        .map((s) => {
+      const filtered = sorted.filter((s) => matchesSearch(s.date) || matchesSearch(activityById(s.activityId)?.name || ""));
+      const rowParts = [];
+      filtered.forEach((s, index) => {
+          if (index > 0) {
+            interruptionsBetweenSessions(filtered[index - 1], s).forEach((h) => {
+              rowParts.push(renderSessionInterruptionRow(h));
+            });
+          }
           const stt = computeSessionStatus(s);
           const act = activityById(s.activityId);
           const d = parseISODate(s.date);
           const jour = new Intl.DateTimeFormat("fr-FR", { weekday: "long" }).format(d);
           const canc = cancellationForSession(s);
-          let action = "—";
+          let action = "";
           if (canc) {
             action = `<button type="button" class="btn btn-sm btn-ghost btn-remove-canc-row" data-canc-id="${canc.id}">Lever l'annulation</button>`;
           } else if (stt.code === "planned" || stt.code === "today") {
@@ -3889,14 +4308,13 @@
           const isToday = stt.code === "today";
           const hasSummary = s.summary && s.summary.trim();
           const hasPdf = !!s.sessionPdf;
-          const summaryIcon = hasSummary ? "📝" : "＋";
-          const summaryStyle = hasSummary ? "color:var(--accent);font-weight:700" : "color:var(--text-muted)";
+          const summaryIcon = hasSummary ? '<span style="color:var(--accent);font-weight:700;font-size:1rem;margin-right:.35rem" title="Résumé rédigé">📝</span>' : "";
           const pdfIcon = hasPdf ? '<span style="color:var(--danger);font-size:1rem;margin-right:.2rem" title="PDF joint">📄</span>' : "";
           const cyclePos = sessionCyclePosition(s);
           const actCell = act
             ? `${escapeHtml(act.name)}${cyclePos ? `<span class="session-cycle-num">Séance n°${cyclePos.index} / ${cyclePos.total}</span>` : ""}`
             : "—";
-          return `<tr style="${isToday ? "background:#16a34a22;font-weight:600" : ""};cursor:pointer" class="btn-session-summary" data-session-id="${s.id}" title="${hasSummary ? "Voir / modifier le résumé" : "Ajouter un résumé"}">
+          rowParts.push(`<tr style="${isToday ? "background:#16a34a22;font-weight:600" : ""};cursor:pointer" class="btn-session-summary" data-session-id="${s.id}" title="${hasSummary ? "Voir / modifier le résumé" : "Ajouter un résumé"}">
             <td>${fmtDateFr(s.date)}</td>
             <td>${escapeHtml(jour)}</td>
             <td>${s.startTime}–${s.endTime}</td>
@@ -3904,10 +4322,10 @@
             <td>${actCell}</td>
             <td><span class="status-dot" style="background:${col}"></span>${escapeHtml(stt.label)}</td>
             <td>${escapeHtml(canc ? REASON_TYPES.find((x) => x[0] === canc.reasonType)?.[1] || canc.reasonType : stt.reason || "")}</td>
-            <td class="no-print">${(() => { const att = s.attendance || {}; const keys = Object.keys(att); if (!keys.length) return ""; const p = keys.filter((k) => att[k] === "present").length; const ab = keys.filter((k) => att[k] === "absent").length; const l = keys.filter((k) => att[k] === "late").length; return `<span style="font-size:.7rem;font-weight:600;padding:.15rem .45rem;border-radius:10px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;margin-right:.3rem" title="Appel">${p}P${l ? " "+l+"R" : ""}${ab ? " "+ab+"A" : ""}</span>`; })()}${pdfIcon}<span style="${summaryStyle};font-size:1rem;margin-right:.35rem">${summaryIcon}</span>${action}</td>
-          </tr>`;
-        })
-        .join("");
+            <td class="no-print">${(() => { const att = s.attendance || {}; const keys = Object.keys(att); if (!keys.length) return ""; const p = keys.filter((k) => att[k] === "present").length; const ab = keys.filter((k) => att[k] === "absent").length; const l = keys.filter((k) => att[k] === "late").length; return `<span style="font-size:.7rem;font-weight:600;padding:.15rem .45rem;border-radius:10px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;margin-right:.3rem" title="Appel">${p}P${l ? " "+l+"R" : ""}${ab ? " "+ab+"A" : ""}</span>`; })()}${pdfIcon}${summaryIcon}${action}</td>
+          </tr>`);
+        });
+      const rows = rowParts.join("");
       return rows || `<tr><td colspan="8">Aucune séance dans ce groupe.</td></tr>`;
     }
 
@@ -3998,9 +4416,12 @@
       const currentPeriod = clPeriods.find((p) => todayStr >= p.startDate && todayStr <= p.endDate);
       const selectedPeriodId = classSelectedPeriod[classId] || (currentPeriod ? currentPeriod.id : null);
       const activePeriod = clPeriods.find((p) => p.id === selectedPeriodId) || null;
+      const periodPalette = ["#8ba4ff", "#2dd4bf", "#fcd34d", "#fb7185", "#a5b4fc", "#38bdf8", "#4ade80"];
+      const activePeriodIndex = activePeriod ? clPeriods.findIndex((p) => p.id === activePeriod.id) : -1;
+      const selectorColor = activePeriodIndex >= 0 ? periodPalette[activePeriodIndex % periodPalette.length] : "#94a3b8";
 
       const periodSelector = clPeriods.length
-        ? `<select id="class-period-select" style="border:none;padding:.55rem .85rem;border-radius:var(--radius);font-size:.92rem;font-weight:600;flex:1;min-width:200px;color:#fff;background:var(--accent);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22white%22><path d=%22M7 10l5 5 5-5z%22/></svg>');background-repeat:no-repeat;background-position:right .7rem center;padding-right:2rem;box-shadow:0 2px 8px rgba(0,0,0,.15)">
+        ? `<select id="class-period-select" aria-label="Sélectionner une période">
               ${clPeriods.map((p) => {
                 const isCur = currentPeriod && p.id === currentPeriod.id;
                 return `<option value="${p.id}" ${p.id === selectedPeriodId ? "selected" : ""}>${escapeHtml(p.name)} (${fmtDateFr(p.startDate)} → ${fmtDateFr(p.endDate)})${isCur ? " ● en cours" : ""}</option>`;
@@ -4008,20 +4429,71 @@
               <option value="__all__" ${!selectedPeriodId ? "selected" : ""}>Toutes les périodes</option>
             </select>`
         : "";
+      const periodSelectorCard = periodSelector
+        ? `<div class="card class-period-selector-card no-print" style="--period-c:${selectorColor}">
+          <div class="class-period-selector-head">
+            <span class="class-period-selector-icon" aria-hidden="true">📅</span>
+            <div>
+              <div class="class-period-selector-title">Sélectionner une période</div>
+              <span class="class-period-selector-sub">Filtre les tableaux APSA affichés ci-dessous.</span>
+            </div>
+          </div>
+          ${periodSelector}
+        </div>`
+        : "";
 
       const periodActs = activePeriod
         ? activitiesForClass(classId).filter((a) => a.startDate >= activePeriod.startDate && a.endDate <= activePeriod.endDate || (a.periodId && a.periodId === activePeriod.id))
         : activitiesForClass(classId);
 
-      const pactStr = periodActs.length
-        ? periodActs
-            .map((a) => {
-              const subs = sessionsForClass(classId).filter((s) => s.activityId === a.id);
-              const programmed = subs.filter((s) => computeSessionStatus(s).code !== "cancelled").length;
-              const cycleInfo = programmed ? ` · ${programmed} séance${programmed > 1 ? "s" : ""} programmée${programmed > 1 ? "s" : ""}` : "";
-              return `${escapeHtml(a.name)} (${fmtDateFr(a.startDate)} – ${fmtDateFr(a.endDate)}${cycleInfo})`;
-            })
-            .join(" · ")
+      const activityBelongsToPeriod = (activity, period) =>
+        activity.periodId === period.id || (activity.startDate >= period.startDate && activity.endDate <= period.endDate);
+      const allClassActs = activitiesForClass(classId);
+      const activePeriodActIds = new Set(activePeriod ? periodActs.map((a) => a.id) : []);
+      const programmedCountForActivity = (activityId) => {
+        const subs = sessionsForClass(classId).filter((s) => s.activityId === activityId);
+        return subs.filter((s) => computeSessionStatus(s).code !== "cancelled").length;
+      };
+      const periodProgramming = clPeriods.map((p, idx) => {
+        const periodColor = periodPalette[idx % periodPalette.length];
+        const acts = allClassActs.filter((a) => activityBelongsToPeriod(a, p));
+        const isSelected = activePeriod && p.id === activePeriod.id;
+        const actHtml = acts.length
+          ? acts.map((a) => {
+              const programmed = programmedCountForActivity(a.id);
+              const cycleInfo = programmed ? `${programmed} séance${programmed > 1 ? "s" : ""} programmée${programmed > 1 ? "s" : ""}` : "Aucune séance programmée";
+              const activeClass = activePeriodActIds.has(a.id) ? " is-active" : "";
+              return `<span class="class-apSA-item${activeClass}">
+                <span class="class-apSA-name">${escapeHtml(a.name)}</span>
+                <span class="class-apSA-meta">${fmtDateFr(a.startDate)} → ${fmtDateFr(a.endDate)} · ${cycleInfo}</span>
+              </span>`;
+            }).join("")
+          : '<p class="kpi-sub" style="margin:0">Aucune APSA sur cette période.</p>';
+        return `<div class="class-apSA-period${isSelected ? " is-selected" : ""}" style="--period-c:${periodColor}">
+          <div class="class-apSA-period-head">
+            <span class="class-apSA-period-title">${escapeHtml(p.name)}</span>
+            ${isSelected ? '<span class="class-apSA-period-badge">Période sélectionnée</span>' : ""}
+            <span class="class-apSA-period-dates">${fmtDateFr(p.startDate)} → ${fmtDateFr(p.endDate)}</span>
+          </div>
+          ${actHtml}
+        </div>`;
+      }).join("");
+      const orphanActs = allClassActs.filter((a) => !a.periodId || !clPeriods.some((p) => activityBelongsToPeriod(a, p)));
+      const orphanProgramming = orphanActs.length
+        ? `<div class="class-apSA-period" style="--period-c:#94a3b8">
+          <div class="class-apSA-period-head"><span class="class-apSA-period-title">Sans période</span></div>
+          ${orphanActs.map((a) => {
+            const programmed = programmedCountForActivity(a.id);
+            const cycleInfo = programmed ? `${programmed} séance${programmed > 1 ? "s" : ""} programmée${programmed > 1 ? "s" : ""}` : "Aucune séance programmée";
+            return `<span class="class-apSA-item">
+              <span class="class-apSA-name">${escapeHtml(a.name)}</span>
+              <span class="class-apSA-meta">${fmtDateFr(a.startDate)} → ${fmtDateFr(a.endDate)} · ${cycleInfo}</span>
+            </span>`;
+          }).join("")}
+        </div>`
+        : "";
+      const pactStr = periodProgramming || orphanProgramming
+        ? periodProgramming + orphanProgramming
         : "—";
 
       const sections = [];
@@ -4040,9 +4512,10 @@
             </button>
           </div>
           <p class="kpi-sub"><strong>Période</strong> ${fmtDateFr(a.startDate)} → ${fmtDateFr(a.endDate)} · <strong>Jours</strong> : ${escapeHtml(formatDayIndicesLabel(a))}</p>
-          <div class="table-wrap"><table><thead><tr><th>Date</th><th>Jour</th><th>Horaire</th><th>Lieu</th><th>APSA</th><th>Statut</th><th>Motif / info</th><th class="no-print">Action</th></tr></thead><tbody>
+          <div class="table-wrap session-table-wrap" data-table-title="${escapeHtml(a.name)} — ${escapeHtml(cl.name)}"><table><thead><tr><th>Date</th><th>Jour</th><th>Horaire</th><th>Lieu</th><th>APSA</th><th>Statut</th><th>Motif / info</th><th class="no-print">Action</th></tr></thead><tbody>
           ${renderSessionRowsHtml(subs)}
           </tbody></table></div>
+          <p class="session-table-hint no-print">Touchez le tableau pour l'ouvrir en vue paysage.</p>
         </div>`);
       });
       {
@@ -4052,9 +4525,10 @@
           sections.push(`<div class="card" style="border-left:5px solid #d97706">
             <h3 style="margin-bottom:.35rem">📌 Cours ajoutés — sans APSA</h3>
             <p class="kpi-sub">Ces cours ont été ajoutés manuellement et ne sont rattachés à aucune activité.</p>
-            <div class="table-wrap"><table><thead><tr><th>Date</th><th>Jour</th><th>Horaire</th><th>Lieu</th><th>APSA</th><th>Statut</th><th>Motif / info</th><th class="no-print">Action</th></tr></thead><tbody>
+            <div class="table-wrap session-table-wrap" data-table-title="Cours ajoutés — ${escapeHtml(cl.name)}"><table><thead><tr><th>Date</th><th>Jour</th><th>Horaire</th><th>Lieu</th><th>APSA</th><th>Statut</th><th>Motif / info</th><th class="no-print">Action</th></tr></thead><tbody>
             ${renderSessionRowsHtml(orphan)}
             </tbody></table></div>
+            <p class="session-table-hint no-print">Touchez le tableau pour l'ouvrir en vue paysage.</p>
           </div>`);
         }
       }
@@ -4064,25 +4538,20 @@
           : `<div class="card"><p class="kpi-sub">${activePeriod ? "Aucune séance sur cette période." : "Aucune séance générée — renseignez l'emploi du temps et les APSA dans Réglages, puis « Régénérer les séances »."}</p></div>`;
 
       return (
-        renderTopbar(
-          `${cl.name} — Séances`,
-          `<button type="button" class="btn btn-sm btn-primary no-print" onclick="window.print()">Imprimer</button>`
-        ) +
-        `<div class="card">
+        renderTopbar(`${cl.name} — Séances`, "") +
+        `<div class="card class-overview-card">
           <h3 style="margin-bottom:.5rem"><span class="legend-dot" style="background:${cl.color}"></span> ${escapeHtml(cl.name)}</h3>
           <p class="kpi-sub">Effectif ${cl.enrollment} · ${cycleLabel(cl.cycleYears)} · <strong>${st.total}</strong> séances sur l'année (${st.done} effectuées, ${st.remaining} restantes, ${st.cancelled} annulées)</p>
           <p class="kpi-sub"><strong>Emploi du temps :</strong> ${escapeHtml(weekdaysForClass(classId) || "—")}</p>
-          <p class="kpi-sub"><strong>APSA :</strong> ${pactStr}</p>
+          <div class="kpi-sub"><strong>Programmation des APSA :</strong><div class="class-apSA-list">${pactStr}</div></div>
           <p class="kpi-sub"><strong>Prochaine séance :</strong> ${next ? `${fmtDateFr(next.date)} ${next.startTime}` : "—"} · <strong>Dernière effectuée :</strong> ${lastDone ? `${fmtDateFr(lastDone.date)} ${lastDone.startTime}` : "—"}</p>
           <div style="display:flex;gap:.5rem;margin-top:0.75rem;flex-wrap:wrap">
             <button type="button" class="btn btn-sm btn-primary no-print" id="btn-add-extra-session" data-classid="${classId}" style="font-weight:700">+ Ajouter un cours</button>
           </div>
         </div>
+        ${periodSelectorCard}
         ${renderExemptionsBlock(classId)}
         ${renderForgottenGearBlock(classId, activePeriod)}
-        ${periodSelector ? `<div class="card no-print" style="border-left:5px solid var(--accent);padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
-          <strong style="font-size:1rem">📅 Période</strong>${periodSelector}
-        </div>` : ""}
         ${sectionsHtml}`
       );
     }
@@ -4165,7 +4634,6 @@
               <li><strong>Tableau des séances</strong> — une section par APSA : date, horaire, lieu, statut. Cliquez une ligne pour le <strong>résumé de séance</strong> : texte libre, <strong>appel</strong> (Présent / Retard / Absent, ou « Tous présents »), <strong>PDF de séance</strong> (joindre / plein écran).</li>
               <li><strong>Annuler une séance</strong> — bouton sur les séances à venir ; choisissez le motif (pluie, gymnase, sortie…).</li>
               <li><strong>+ Ajouter un cours</strong> — cours ponctuel hors EDT (remplacement, séance rattrapée) ; apparaît dans « Cours ajoutés — sans APSA ».</li>
-              <li><strong>Imprimer</strong> — bouton en haut de la page classe pour une vue papier du tableau.</li>
             </ul>
             <p>Le rappel <em>« Absents au cours précédent (même APSA) »</em> s'affiche dans les modales de séance pour ne pas oublier les élèves absents la dernière fois.</p>
           </div>
@@ -4279,7 +4747,7 @@
       switch (toolsPanel) {
         case "classes":
           panelTitle = "📋 Mes classes";
-          extraBtns.push(`<button type="button" class="btn btn-sm btn-primary" id="btn-add-class">+ Classe</button>`);
+          extraBtns.push(`<button type="button" class="btn btn-sm btn-primary" id="btn-add-class">Ajouter une classe</button>`);
           panel = viewClassesBody();
           break;
         case "orgEPS": {
@@ -4358,6 +4826,15 @@
     }
 
     function wireEvents(main) {
+      main.querySelectorAll(".session-table-wrap").forEach((wrap) => {
+        wrap.addEventListener("click", (e) => {
+          if (e.target.closest("button")) return;
+          if (!window.matchMedia("(max-width: 480px) and (orientation: portrait)").matches) return;
+          e.preventDefault();
+          e.stopPropagation();
+          openLandscapeTable(wrap);
+        }, true);
+      });
       main.querySelectorAll("[data-tuto-goto]").forEach((btn) => {
         btn.addEventListener("click", () => {
           const t = btn.getAttribute("data-tuto-goto");
@@ -5228,7 +5705,6 @@
       });
       main.querySelector("#btn-reset")?.addEventListener("click", resetAll);
       main.querySelector("#btn-reset-all")?.addEventListener("click", resetAll);
-      main.querySelector("#btn-pdf")?.addEventListener("click", () => window.print());
       main.querySelector("#btn-save-settings")?.addEventListener("click", () => {
         appData.settings.schoolYearStart = main.querySelector("#set-start").value;
         appData.settings.schoolYearEnd = main.querySelector("#set-end").value;
@@ -5618,8 +6094,6 @@
       if (lsGet("eps_theme") === "light") document.documentElement.setAttribute("data-theme", "light");
       else document.documentElement.removeAttribute("data-theme");
       syncThemeColor();
-
-      document.getElementById("btn-print").onclick = () => window.print();
 
       render();
     }
