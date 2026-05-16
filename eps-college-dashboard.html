@@ -59,7 +59,7 @@
       --hover: rgba(37, 99, 235, 0.06);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; }
+    html, body { height: 100%; overflow-x: hidden; }
     body {
       font-family: var(--font);
       background:
@@ -70,6 +70,7 @@
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
       transition: background 0.35s ease, color 0.25s ease;
+      min-width: 0;
     }
     [data-theme="light"] body {
       background:
@@ -152,6 +153,8 @@
       flex: 1;
       padding: 1.25rem 1.5rem calc(5.5rem + env(safe-area-inset-bottom, 0));
       max-width: 1400px;
+      min-width: 0;
+      width: 100%;
     }
     .dash-date-nav {
       display: flex;
@@ -500,11 +503,11 @@
         margin-top: 0.25rem;
       }
       .dash-class-metrics .num { font-size: 1.05rem; }
-      .dash-class-metrics .lbl-long { display: none; }
-      .dash-class-metrics .lbl-short { display: block; }
+      .dash-class-metrics .lbl-long { display: block !important; }
+      .dash-class-metrics .lbl-short { display: none !important; }
       .dash-class-metrics .lbl {
-        font-size: 0.58rem;
-        letter-spacing: 0.04em;
+        font-size: 0.54rem;
+        letter-spacing: 0.03em;
       }
       .progress--activity { margin-top: 0.35rem !important; height: 5px; }
       .dash-activity-foot {
@@ -1496,6 +1499,200 @@
         width: 2.5rem;
         height: 2.5rem;
         min-width: 2.5rem;
+      }
+    }
+
+    @media (max-width: 480px) and (orientation: portrait) {
+      body {
+        font-size: 15px;
+        overscroll-behavior-x: none;
+      }
+      .app-shell,
+      .main,
+      .topbar,
+      .card,
+      .class-grid,
+      .tools-cards-grid {
+        max-width: 100%;
+      }
+      .main:not(.main--dashboard) {
+        padding: max(3.15rem, calc(0.9rem + env(safe-area-inset-top, 0px))) 0.75rem calc(5.85rem + env(safe-area-inset-bottom, 0px));
+      }
+      .main--classes,
+      .main--tools,
+      .main--class {
+        overflow-x: hidden;
+      }
+      .topbar {
+        gap: 0.55rem;
+        margin-bottom: 0.85rem;
+        align-items: flex-start;
+      }
+      .topbar h2 {
+        width: 100%;
+        font-size: clamp(1.22rem, 6vw, 1.45rem);
+        line-height: 1.15;
+        letter-spacing: -0.04em;
+        overflow-wrap: anywhere;
+      }
+      .topbar-actions {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+      }
+      .search-wrap {
+        width: 100%;
+        min-width: 0;
+        padding: 0.42rem 0.7rem;
+      }
+      .card {
+        padding: 0.85rem 0.9rem;
+        margin-bottom: 0.75rem;
+        border-radius: 13px;
+      }
+      .card h3 {
+        font-size: clamp(1rem, 5.2vw, 1.25rem);
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+      }
+      .kpi-sub,
+      .class-card .meta {
+        font-size: 0.8rem;
+        line-height: 1.45;
+      }
+      .btn {
+        padding: 0.48rem 0.72rem;
+        font-size: 0.8rem;
+        border-radius: 10px;
+        max-width: 100%;
+        white-space: normal;
+        text-align: center;
+      }
+      .btn-sm {
+        padding: 0.34rem 0.58rem;
+        font-size: 0.74rem;
+      }
+      .class-grid {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+      }
+      .class-card {
+        padding: 0.9rem 0.95rem 0.95rem;
+        border-radius: 13px;
+      }
+      .class-card h4 {
+        font-size: 1rem;
+        padding-right: 2.2rem;
+      }
+      .class-card .flex-row,
+      .card .flex-row {
+        gap: 0.4rem;
+      }
+      .tools-cards-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+      }
+      .tools-card {
+        min-width: 0;
+        min-height: 0;
+        padding: 1.05rem 0.9rem;
+        border-radius: 13px;
+      }
+      .tools-card__icon {
+        font-size: 1.55rem;
+        margin-bottom: 0.35rem;
+      }
+      .tools-card__label {
+        font-size: 0.92rem;
+        line-height: 1.25;
+      }
+      .tools-card__sub {
+        font-size: 0.74rem;
+        line-height: 1.35;
+      }
+      .table-wrap {
+        overflow-x: hidden;
+        border: none;
+        background: transparent;
+      }
+      .table-wrap table,
+      .table-wrap thead,
+      .table-wrap tbody,
+      .table-wrap tr,
+      .table-wrap th,
+      .table-wrap td {
+        display: block;
+        width: 100%;
+      }
+      .table-wrap thead {
+        display: none;
+      }
+      .table-wrap tr {
+        margin-bottom: 0.65rem;
+        padding: 0.65rem 0.7rem;
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-sm);
+        background: var(--surface);
+        box-shadow: var(--shadow-sm);
+      }
+      .table-wrap td {
+        display: grid;
+        grid-template-columns: minmax(5.8rem, 38%) minmax(0, 1fr);
+        gap: 0.55rem;
+        align-items: baseline;
+        padding: 0.32rem 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.78rem;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+      }
+      .table-wrap td:last-child {
+        border-bottom: none;
+      }
+      .table-wrap td::before {
+        content: attr(data-label);
+        color: var(--text-muted);
+        font-size: 0.66rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      .table-wrap td.no-print {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        align-items: center;
+      }
+      .table-wrap td.no-print::before {
+        width: 100%;
+      }
+      .session-cycle-num {
+        font-size: 0.7rem;
+      }
+      .cal-toolbar {
+        align-items: stretch;
+      }
+      .cal-toolbar .btn,
+      .cal-toolbar select {
+        flex: 1 1 auto;
+      }
+      .cal-grid {
+        gap: 3px;
+        font-size: 0.62rem;
+      }
+      .cal-cell {
+        min-height: 54px;
+        padding: 3px;
+      }
+      .cal-chip {
+        font-size: 0.5rem;
+        padding: 1px 3px;
+      }
+      .modal {
+        max-height: min(88vh, 88dvh);
       }
     }
 
@@ -5271,6 +5468,7 @@
       currentView = view;
       if (view === "tools") toolsPanel = nextPanel;
       render();
+      scrollPageToStart();
     }
 
     function goBack() {
@@ -5279,6 +5477,33 @@
       currentView = prev.view;
       toolsPanel = prev.toolsPanel || "home";
       render();
+      scrollPageToStart();
+    }
+
+    function viewClassName(view) {
+      if (view === "dashboard") return "main main--dashboard";
+      if (view === "classes") return "main main--classes";
+      if (view === "tools") return "main main--tools";
+      if (view.startsWith("class:")) return "main main--class";
+      return "main";
+    }
+
+    function enhanceMobileTables(root) {
+      root.querySelectorAll(".table-wrap table").forEach((table) => {
+        const headers = [...table.querySelectorAll("thead th")].map((th) => th.textContent.trim());
+        if (!headers.length) return;
+        table.querySelectorAll("tbody tr").forEach((row) => {
+          [...row.children].forEach((cell, index) => {
+            if (headers[index]) cell.setAttribute("data-label", headers[index]);
+          });
+        });
+      });
+    }
+
+    function scrollPageToStart() {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      });
     }
 
     function render() {
@@ -5303,7 +5528,9 @@
         currentView = "dashboard";
         body = viewDashboard();
       }
+      main.className = viewClassName(currentView);
       main.innerHTML = body;
+      enhanceMobileTables(main);
       wireEvents(main);
       if (currentView === "dashboard") fetchWeather();
     }
