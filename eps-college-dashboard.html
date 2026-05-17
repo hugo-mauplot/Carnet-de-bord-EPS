@@ -2408,88 +2408,104 @@
         border-radius: 7px;
       }
       .level-program-table-wrap {
-        border: none;
-        background: transparent;
+        overflow-x: hidden;
+        border: 1px solid var(--border-strong);
+        background: var(--surface);
       }
       .level-program-table {
-        display: block;
+        display: table;
         width: 100%;
         min-width: 0;
-        table-layout: auto;
-        font-size: 0.72rem;
-        border-collapse: separate;
+        table-layout: fixed;
+        font-size: 0.5rem;
+        border-collapse: collapse;
       }
       .level-program-table thead {
-        display: none;
+        display: table-header-group;
       }
       .level-program-table tbody {
-        display: grid;
-        gap: 0.75rem;
+        display: table-row-group;
       }
       .level-program-table tr {
-        display: block;
-        overflow: hidden;
-        border: 1px solid color-mix(in srgb, var(--level-c, var(--accent)) 30%, var(--border));
-        border-radius: 16px;
-        background: color-mix(in srgb, var(--level-c, var(--accent)) 9%, var(--surface));
+        display: table-row;
+        overflow: visible;
+        border: none;
+        border-radius: 0;
+        background: transparent;
       }
       .level-program-table th,
       .level-program-table td {
-        display: block;
-        width: 100%;
+        display: table-cell;
+        width: auto;
         max-width: none;
-        padding: 0.58rem 0.62rem;
-        text-align: left;
+        padding: 0.26rem 0.12rem;
+        text-align: center;
         border-bottom: 1px solid color-mix(in srgb, var(--level-c, var(--accent)) 18%, var(--border));
+        vertical-align: middle;
         white-space: normal;
-        background: transparent;
+        line-height: 1.12;
+        overflow-wrap: anywhere;
+        background: color-mix(in srgb, var(--level-c, var(--accent)) 8%, var(--surface));
       }
-      .level-program-table td::before {
-        content: attr(data-label);
+      .level-program-table th {
+        font-size: 0.48rem;
+        letter-spacing: 0;
+        text-transform: none;
+        background: color-mix(in srgb, var(--level-c, var(--accent)) 18%, var(--surface));
+      }
+      .level-program-table th .kpi-sub {
         display: block;
-        margin-bottom: 0.38rem;
-        font-size: 0.58rem;
-        line-height: 1.2;
-        font-weight: 900;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        color: var(--level-c, var(--accent));
+        font-size: 0.42rem;
+        line-height: 1.08;
+        margin-top: 0.08rem;
       }
       .level-program-table td:first-child {
         position: static;
-        width: 100%;
-        max-width: none;
-        min-width: 0;
-        color: var(--text);
-        background: color-mix(in srgb, var(--level-c, var(--accent)) 18%, transparent);
-      }
-      .level-program-table td:first-child::before {
-        content: none;
+        width: 3.2rem;
+        max-width: 3.2rem;
+        min-width: 3.2rem;
+        color: var(--level-c, var(--text));
+        background: color-mix(in srgb, var(--level-c, var(--accent)) 22%, var(--surface));
       }
       .level-program-class-cell strong,
       .level-program-class-cell span {
         display: block;
       }
       .level-program-class-cell strong {
-        font-size: 0.95rem;
-        line-height: 1.2;
+        font-size: 0.52rem;
+        line-height: 1.12;
       }
       .level-program-class-cell span {
-        margin-top: 0.12rem;
-        font-size: 0.68rem;
+        margin-top: 0.08rem;
+        font-size: 0.42rem;
         color: var(--text-muted);
         font-weight: 800;
       }
       .level-program-days {
-        padding: 0;
+        padding: 0.1rem;
+        gap: 0.14rem;
         border: none;
         background: transparent;
       }
+      .level-program-slot {
+        gap: 0.1rem;
+        padding: 0.08rem 0;
+        border-bottom: none;
+      }
       .level-program-slot-open {
-        padding: 0.35rem 0.38rem;
+        padding: 0.22rem 0.14rem;
+        border-radius: 8px;
+        min-height: 2.9rem;
+      }
+      .level-program-slot-name {
+        font-size: 0.46rem;
+        line-height: 1.08;
+        white-space: normal;
       }
       .level-program-slot-summary {
-        font-size: 0.52rem;
+        margin-top: 0.08rem;
+        font-size: 0.43rem;
+        line-height: 1.08;
       }
       .class-create-form {
         gap: 0.65rem;
