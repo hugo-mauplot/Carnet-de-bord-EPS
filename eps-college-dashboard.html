@@ -794,6 +794,25 @@
       font-size: 0.72rem;
       line-height: 1.25;
     }
+    .level-ca-pill__remove {
+      margin-left: 0.35rem;
+      border: none;
+      background: color-mix(in srgb, var(--level-c, var(--accent)) 14%, transparent);
+      color: inherit;
+      border-radius: 999px;
+      width: 1.05rem;
+      height: 1.05rem;
+      display: inline-grid;
+      place-items: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      line-height: 1;
+      font-weight: 900;
+    }
+    .level-ca-pill__remove:hover {
+      background: rgba(239, 68, 68, 0.16);
+      color: var(--danger);
+    }
     .level-program-table-wrap {
       overflow-x: auto;
       border: 1px solid var(--border-strong);
@@ -830,6 +849,9 @@
       text-align: center;
       color: var(--level-c, var(--text));
       overflow-wrap: anywhere;
+    }
+    .level-program-class-cell span {
+      display: none;
     }
     .level-program-cell {
       display: grid;
@@ -927,7 +949,7 @@
     }
     .class-create-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(5.5rem, 0.45fr) minmax(5.5rem, 0.55fr) minmax(0, 0.8fr);
+      grid-template-columns: minmax(0, 1.2fr) minmax(5.5rem, 0.45fr) minmax(5.5rem, 0.55fr) minmax(0, 0.8fr) minmax(5.8rem, 0.72fr);
       gap: 0.65rem;
       align-items: end;
     }
@@ -2173,7 +2195,9 @@
         display: block;
       }
       .session-table-wrap {
-        overflow: hidden;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
         cursor: zoom-in;
       }
       .session-table-wrap::after {
@@ -2383,6 +2407,84 @@
         font-size: 0.56rem;
         border-radius: 7px;
       }
+      .level-program-table-wrap {
+        border: none;
+        background: transparent;
+      }
+      .level-program-table {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        table-layout: auto;
+        font-size: 0.72rem;
+        border-collapse: separate;
+      }
+      .level-program-table thead {
+        display: none;
+      }
+      .level-program-table tbody {
+        display: grid;
+        gap: 0.75rem;
+      }
+      .level-program-table tr {
+        display: block;
+        overflow: hidden;
+        border: 1px solid color-mix(in srgb, var(--level-c, var(--accent)) 30%, var(--border));
+        border-radius: 16px;
+        background: color-mix(in srgb, var(--level-c, var(--accent)) 9%, var(--surface));
+      }
+      .level-program-table th,
+      .level-program-table td {
+        display: block;
+        width: 100%;
+        max-width: none;
+        padding: 0.58rem 0.62rem;
+        text-align: left;
+        border-bottom: 1px solid color-mix(in srgb, var(--level-c, var(--accent)) 18%, var(--border));
+        white-space: normal;
+        background: transparent;
+      }
+      .level-program-table td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 0.38rem;
+        font-size: 0.58rem;
+        line-height: 1.2;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--level-c, var(--accent));
+      }
+      .level-program-table td:first-child {
+        position: static;
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        color: var(--text);
+        background: color-mix(in srgb, var(--level-c, var(--accent)) 18%, transparent);
+      }
+      .level-program-table td:first-child::before {
+        content: none;
+      }
+      .level-program-class-cell strong,
+      .level-program-class-cell span {
+        display: block;
+      }
+      .level-program-class-cell strong {
+        font-size: 0.95rem;
+        line-height: 1.2;
+      }
+      .level-program-class-cell span {
+        margin-top: 0.12rem;
+        font-size: 0.68rem;
+        color: var(--text-muted);
+        font-weight: 800;
+      }
+      .level-program-days {
+        padding: 0;
+        border: none;
+        background: transparent;
+      }
       .level-program-slot-open {
         padding: 0.35rem 0.38rem;
       }
@@ -2408,7 +2510,7 @@
         text-align: right;
       }
       .class-create-grid {
-        grid-template-columns: minmax(0, 1.1fr) 2.6rem 3.5rem 3rem;
+        grid-template-columns: minmax(0, 1fr) 2.4rem 3rem 2.8rem 3.2rem;
         gap: 0.35rem;
       }
       .class-create-slot {
@@ -2997,6 +3099,7 @@
       appData.classes.forEach((cl) => {
         if (!Array.isArray(cl.students)) cl.students = [];
         if (!cl.level) cl.level = inferClassLevel(cl.name) || (Number(cl.cycleYears) === 3 ? "6e" : "5e");
+        cl.apsaPerPeriod = Number(cl.apsaPerPeriod) === 1 ? 1 : 2;
         cl.enrollment = cl.students.length ? cl.students.length : Math.max(0, Number(cl.enrollment) || 0);
       });
       appData.sessions.forEach((s) => { if (!s.attendance) s.attendance = {}; });
@@ -3266,15 +3369,19 @@
         sessionsForClass(cl.id).forEach((s) => {
           const d = parseISODate(s.date);
           const st = computeSessionStatus(s);
-          const fmtDD = (date) => String(date.getDate()).padStart(2,"0") + "/" + String(date.getMonth()+1).padStart(2,"0");
+          const item = {
+            className: cl.name,
+            date: s.date,
+            dayName: DOW[dayIndexMon0(d)],
+            time: s.startTime ? s.startTime + (s.endTime ? "–" + s.endTime : "") : "",
+          };
           for (const w of next3Weeks) {
             if (d >= w.start && d <= w.end) {
-              const timeLabel = s.startTime ? " " + s.startTime + (s.endTime ? "–" + s.endTime : "") : "";
               if (st.code === "cancelled") {
-                w.cancelled.push(cl.name + " – " + fmtDD(d) + timeLabel);
+                w.cancelled.push(item);
               }
               if (s.extra) {
-                w.extras.push(cl.name + " – " + fmtDD(d) + timeLabel);
+                w.extras.push(item);
               }
               break;
             }
@@ -3312,32 +3419,98 @@
     /* -------------------------------------------------------------------------- */
 
     function seedDemo() {
-      const c6 = uid(), c5 = uid(), c4 = uid();
+      const c6a = uid(), c6b = uid(), c4 = uid(), c3 = uid();
+      Object.assign(appData, {
+        settings: {
+          schoolYearStart: "2025-09-01",
+          schoolYearEnd: "2026-07-05",
+          zone: "C",
+          academy: "Paris",
+        },
+        classes: [],
+        schedules: [],
+        activities: [],
+        levelApsaNames: {},
+        levelApsaByCA: {},
+        holidays: [],
+        cancellations: [],
+        sessions: [],
+        exemptions: [],
+        periods: [],
+        venues: [],
+        forgottenGear: [],
+        todoList: [],
+      });
       appData.classes = [
-        { id: c6, name: "6e1", color: "#6366f1", enrollment: 26, cycleYears: 3 },
-        { id: c5, name: "5e3", color: "#10b981", enrollment: 28, cycleYears: 4 },
-        { id: c4, name: "4e2", color: "#f59e0b", enrollment: 25, cycleYears: 3 },
+        { id: c6a, name: "6e4", color: "#6366f1", level: "6e", apsaPerPeriod: 1, enrollment: 24, students: ["Adam","Aïcha","Baptiste","Camille","Chloé","Elias","Emma","Hugo","Inès","Jade","Lina","Léo","Maël","Mila","Nina","Noah","Nora","Oscar","Rayan","Rose","Sacha","Sarah","Tom","Yanis"] },
+        { id: c6b, name: "6EPS_1", color: "#10b981", level: "6e", apsaPerPeriod: 2, enrollment: 25, students: ["Alice","Amine","Clara","Eden","Enzo","Eva","Gabriel","Inaya","Iris","Jules","Léna","Liam","Lou","Lucas","Manon","Mathis","Maya","Naël","Noémie","Paul","Romy","Samy","Théo","Yara","Zoé"] },
+        { id: c4, name: "4e2", color: "#f59e0b", level: "4e", apsaPerPeriod: 2, enrollment: 27, students: ["Anaïs","Arthur","Assia","Axel","Bilal","Célia","Diane","Eliott","Fatou","Gabin","Ilona","Imran","Jeanne","Kylian","Laura","Lina","Loris","Maïa","Mehdi","Nolan","Océane","Raphaël","Salomé","Sofia","Timéo","Victor","Yasmine"] },
+        { id: c3, name: "3e1", color: "#fb7185", level: "3e", apsaPerPeriod: 2, enrollment: 26, students: ["Adrien","Alix","Ambre","Anis","Capucine","Dylan","Élise","Flora","Ibrahim","Juliette","Kenza","Lenny","Lola","Marceau","Margot","Nassim","Nélia","Noé","Oumar","Romane","Sami","Tessa","Valentin","Wassim","Younès","Zélie"] },
       ];
+      appData.venues = [
+        { id: uid(), name: "Gymnase", type: "Gymnase", notes: "Plateau principal" },
+        { id: uid(), name: "Salle T.T", type: "Salle spécialisée", notes: "Tennis de table" },
+        { id: uid(), name: "Piste", type: "Extérieur", notes: "Athlétisme et demi-fond" },
+        { id: uid(), name: "Dojo", type: "Salle spécialisée", notes: "Combat / acrosport" },
+        { id: uid(), name: "City stade", type: "Extérieur", notes: "Sports collectifs" },
+      ];
+      appData.periods = [
+        { id: uid(), name: "P1", startDate: "2025-09-08", endDate: "2025-11-14", levels: ["6e","5e","4e","3e"], classIds: [] },
+        { id: uid(), name: "P2", startDate: "2025-11-17", endDate: "2026-01-23", levels: ["6e","5e","4e","3e"], classIds: [] },
+        { id: uid(), name: "P3", startDate: "2026-01-26", endDate: "2026-04-03", levels: ["6e","5e","4e","3e"], classIds: [] },
+        { id: uid(), name: "P4", startDate: "2026-04-20", endDate: "2026-05-29", levels: ["6e","5e","4e","3e"], classIds: [] },
+        { id: uid(), name: "P5", startDate: "2026-06-01", endDate: "2026-07-03", levels: ["6e","5e","4e","3e"], classIds: [] },
+      ];
+      appData.periods.forEach((p) => {
+        p.classIds = appData.classes.filter((cl) => p.levels.includes(cl.level)).map((cl) => cl.id);
+      });
       appData.schedules = [
-        { id: uid(), classId: c6, dayIndex: 1, startTime: "10:00", endTime: "12:00", venue: "Gymnase A", frequency: 1, weekParity: "all" },
-        { id: uid(), classId: c6, dayIndex: 3, startTime: "14:00", endTime: "15:00", venue: "Cour extérieure", frequency: 1, weekParity: "all" },
-        { id: uid(), classId: c5, dayIndex: 2, startTime: "09:00", endTime: "11:00", venue: "Gymnase B", frequency: 1, weekParity: "all" },
-        { id: uid(), classId: c5, dayIndex: 4, startTime: "15:00", endTime: "16:00", venue: "Salle TT", frequency: 1, weekParity: "all" },
-        { id: uid(), classId: c4, dayIndex: 0, startTime: "11:00", endTime: "12:00", venue: "Stade", frequency: 1, weekParity: "all" },
-        { id: uid(), classId: c4, dayIndex: 3, startTime: "10:00", endTime: "12:00", venue: "Gymnase A", frequency: 1, weekParity: "all" },
+        { id: uid(), classId: c6a, dayIndex: 4, startTime: "12:50", endTime: "13:50", venue: "", frequency: 1, weekParity: "all" },
+        { id: uid(), classId: c6a, dayIndex: 2, startTime: "12:50", endTime: "13:50", venue: "", frequency: 1, weekParity: "all" },
+        { id: uid(), classId: c6b, dayIndex: 0, startTime: "12:50", endTime: "13:50", venue: "", frequency: 1, weekParity: "all" },
+        { id: uid(), classId: c6b, dayIndex: 3, startTime: "12:50", endTime: "13:50", venue: "", frequency: 1, weekParity: "all" },
+        { id: uid(), classId: c4, dayIndex: 1, startTime: "10:35", endTime: "12:30", venue: "", frequency: 1, weekParity: "all" },
+        { id: uid(), classId: c4, dayIndex: 4, startTime: "08:20", endTime: "10:15", venue: "", frequency: 1, weekParity: "all" },
+        { id: uid(), classId: c3, dayIndex: 0, startTime: "13:50", endTime: "14:50", venue: "", frequency: 1, weekParity: "all" },
+        { id: uid(), classId: c3, dayIndex: 2, startTime: "09:25", endTime: "11:20", venue: "", frequency: 1, weekParity: "all" },
       ];
-      appData.activities = [
-        { id: uid(), classId: c6, name: "Tennis de table", field: "AF — s'adapter", color: "#818cf8", startDate: "2025-09-08", endDate: "2025-11-07", venue: "Salle TT", objectives: "Services variés", competencies: "C1 C2", plannedSessions: 0, dayIndices: [1] },
-        { id: uid(), classId: c6, name: "Basket-ball", field: "AC — coopérer", color: "#34d399", startDate: "2025-11-10", endDate: "2026-01-24", venue: "Gymnase A", objectives: "Jeu collectif", competencies: "C3", plannedSessions: 0, dayIndices: [3] },
-        { id: uid(), classId: c6, name: "Badminton", field: "AP — combiner", color: "#f472b6", startDate: "2026-01-26", endDate: "2026-04-04", venue: "Gymnase B", objectives: "Volants", competencies: "C2", plannedSessions: 0, dayIndices: [1, 3] },
-        { id: uid(), classId: c5, name: "Demi-fond", field: "AE — se dépenser", color: "#22d3ee", startDate: "2025-09-08", endDate: "2025-12-19", venue: "Stade", objectives: "Allure", competencies: "C1", plannedSessions: 0, dayIndices: [2] },
-        { id: uid(), classId: c5, name: "Acrosport", field: "AP — combiner", color: "#a78bfa", startDate: "2026-01-05", endDate: "2026-03-20", venue: "Gymnase A", objectives: "Portés", competencies: "C4", plannedSessions: 0, dayIndices: [4] },
-        { id: uid(), classId: c4, name: "Ultimate", field: "AC — coopérer", color: "#fb923c", startDate: "2025-09-08", endDate: "2025-11-28", venue: "Stade", objectives: "Respect du jeu", competencies: "C3", plannedSessions: 0, dayIndices: [0] },
-        { id: uid(), classId: c4, name: "Danse", field: "AC — coopérer", color: "#ec4899", startDate: "2025-12-01", endDate: "2026-03-06", venue: "Salle danse", objectives: "Composition", competencies: "C2 C3", plannedSessions: 0, dayIndices: [3] },
-        { id: uid(), classId: c4, name: "Gymnastique / relais", field: "AP — combiner", color: "#14b8a6", startDate: "2026-03-09", endDate: "2026-07-05", venue: "Gymnase A", objectives: "Enchaînements / vitesse", competencies: "C2 C4", plannedSessions: 0, dayIndices: [0] },
-        { id: uid(), classId: c6, name: "Arts du cirque", field: "AP — combiner", color: "#c084fc", startDate: "2026-04-21", endDate: "2026-07-05", venue: "Gymnase B", objectives: "Jonglage / équilibre", competencies: "C2", plannedSessions: 0, dayIndices: [1, 3] },
-        { id: uid(), classId: c5, name: "Badminton", field: "AP — combiner", color: "#f472b6", startDate: "2026-03-23", endDate: "2026-07-05", venue: "Gymnase B", objectives: "Échanges", competencies: "C2", plannedSessions: 0, dayIndices: [2, 4] },
-      ];
+      appData.levelApsaByCA = {
+        "6e": { CA1: ["Triathlon athlétique","Demi-fond"], CA2: ["Course d'orientation"], CA3: ["Cirque"], CA4: ["Basket-ball","Tennis de table","Badminton"] },
+        "5e": { CA1: ["Relais vitesse"], CA2: ["Escalade"], CA3: ["Danse"], CA4: ["Handball","Badminton"] },
+        "4e": { CA1: ["Athlétisme"], CA2: ["Course d'orientation"], CA3: ["Acrosport"], CA4: ["Basket-ball","Tennis de table"] },
+        "3e": { CA1: ["Demi-fond"], CA2: ["Sauvetage"], CA3: ["Danse"], CA4: ["Volley-ball","Ultimate"] },
+      };
+      appData.levelApsaNames = {};
+      CLASS_LEVELS.forEach((level) => { appData.levelApsaNames[level] = Object.values(appData.levelApsaByCA[level] || {}).flat(); });
+      const actColors = ["#818cf8","#34d399","#f472b6","#22d3ee","#a78bfa","#fb923c","#ec4899","#14b8a6","#facc15","#38bdf8"];
+      const addAct = (classId, periodName, name, venue, dayIndices, colorIdx) => {
+        const cl = appData.classes.find((item) => item.id === classId);
+        const period = appData.periods.find((p) => p.name === periodName);
+        if (!cl || !period) return;
+        appData.activities.push({
+          id: uid(),
+          classId,
+          periodId: period.id,
+          name,
+          field: caForLevelApsa(cl.level, name),
+          color: actColors[colorIdx % actColors.length],
+          startDate: period.startDate,
+          endDate: period.endDate,
+          venue,
+          objectives: "",
+          competencies: "",
+          plannedSessions: 0,
+          dayIndices,
+          quickProgram: true,
+          level: cl.level,
+        });
+      };
+      ["P1","P2","P3","P4","P5"].forEach((p, idx) => {
+        addAct(c6a, p, ["Triathlon athlétique","Gymnastique","Tennis de table","Ultimate","Demi-fond"][idx] || "Demi-fond", ["Piste","Gymnase","Salle T.T","Gymnase","Piste"][idx] || "Gymnase", [4,2], idx);
+        addAct(c6b, p, ["Demi-fond","Cirque","Badminton","Basket-ball","Course d'orientation"][idx] || "Badminton", ["Piste","Gymnase","Gymnase","City stade","Piste"][idx] || "Gymnase", idx % 2 ? [0] : [0,3], idx + 2);
+        addAct(c4, p, ["Athlétisme","Tennis de table","Acrosport","Basket-ball","Course d'orientation"][idx] || "Basket-ball", ["Piste","Salle T.T","Dojo","Gymnase","Piste"][idx] || "Gymnase", idx % 2 ? [1] : [1,4], idx + 4);
+        addAct(c3, p, ["Volley-ball","Demi-fond","Danse","Ultimate","Sauvetage"][idx] || "Ultimate", ["Gymnase","Piste","Gymnase","City stade","Gymnase"][idx] || "Gymnase", idx % 2 ? [2] : [0,2], idx + 6);
+      });
       appData.holidays = [
         { id: uid(), type: "vacances", name: "Toussaint", startDate: "2025-10-18", endDate: "2025-11-03", color: "#64748b", blocksSessions: true },
         { id: uid(), type: "vacances", name: "Noël", startDate: "2025-12-20", endDate: "2026-01-04", color: "#64748b", blocksSessions: true },
@@ -3349,31 +3522,55 @@
         { id: uid(), type: "sortie", name: "Cross départemental", startDate: "2025-11-26", endDate: "2025-11-26", color: "#0ea5e9", blocksSessions: false },
       ];
       appData.cancellations = [];
+      appData.forgottenGear = [
+        { id: uid(), classId: c6b, studentName: "Lucas", date: "2026-04-27", item: "Tenue", comment: "Oubli répété" },
+        { id: uid(), classId: c6b, studentName: "Lucas", date: "2026-05-04", item: "Baskets", comment: "" },
+        { id: uid(), classId: c4, studentName: "Mehdi", date: "2026-05-05", item: "Gourde", comment: "" },
+      ];
+      appData.exemptions = [
+        { id: uid(), classId: c4, studentName: "Océane", certDate: "2026-05-12", startDate: "2026-05-12", endDate: "2026-05-26", days: 15, reason: "Entorse cheville", sansCertificat: false, sessionId: null },
+      ];
+      appData.todoList = [
+        { text: "Préparer la fiche séance 6e4 - demi-fond", done: false },
+        { text: "Vérifier les certificats médicaux", done: false },
+      ];
       regenerateSessions();
-      const s0 = appData.sessions.find((s) => s.classId === c6 && s.date === "2025-10-07");
+      const s0 = appData.sessions.find((s) => s.classId === c3 && s.date === "2026-05-18");
       if (s0) {
         appData.cancellations.push({
           id: uid(),
           sessionId: s0.id,
-          classId: c6,
+          classId: c3,
           date: s0.date,
           startTime: s0.startTime,
-          reasonType: "pluie",
-          comment: "Gymnase déjà occupé — report mental",
+          reasonType: "sortie",
+          comment: "Sortie pédagogique",
         });
       }
-      const sMay = appData.sessions.find((s) => s.classId === c4 && s.date === "2026-05-14");
+      const sMay = appData.sessions.find((s) => s.classId === c6a && s.date === "2026-05-22");
       if (sMay) {
         appData.cancellations.push({
           id: uid(),
           sessionId: sMay.id,
-          classId: c4,
+          classId: c6a,
           date: sMay.date,
           startTime: sMay.startTime,
-          reasonType: "sortie",
-          comment: "Sortie culturelle — séance récupérée plus tard",
+          reasonType: "installation",
+          comment: "Gymnase indisponible",
         });
       }
+      appData.sessions.push({
+        id: uid(),
+        classId: c6b,
+        scheduleId: null,
+        date: "2026-05-20",
+        startTime: "15:00",
+        endTime: "16:00",
+        venue: "Gymnase",
+        activityId: null,
+        extra: true,
+      });
+      regenerateSessions();
       saveData();
     }
 
@@ -3810,10 +4007,6 @@
       root.classList.add("open");
       const title = tableWrap.getAttribute("data-table-title") || "Tableau des séances";
       const clone = table.cloneNode(true);
-      clone.querySelectorAll("button").forEach((button) => {
-        button.setAttribute("disabled", "disabled");
-        button.style.opacity = "0.55";
-      });
       const wrap = el(`<div class="modal table-landscape-modal">
         <div class="modal-header">
           <button type="button" class="modal-close" aria-label="Fermer">×</button>
@@ -3824,6 +4017,26 @@
       </div>`);
       wrap.querySelector(".modal-title").textContent = title;
       wrap.querySelector(".table-landscape-view").appendChild(clone);
+      clone.querySelectorAll(".btn-cancel-session, .btn-del-extra-session").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const sid = button.getAttribute("data-session-id");
+          const selector = button.classList.contains("btn-cancel-session") ? ".btn-cancel-session" : ".btn-del-extra-session";
+          const original = [...document.querySelectorAll(selector)].find((item) => item.getAttribute("data-session-id") === sid);
+          closeModal();
+          setTimeout(() => original?.click(), 0);
+        });
+      });
+      clone.querySelectorAll(".btn-session-summary").forEach((row) => {
+        row.addEventListener("click", (event) => {
+          if (event.target.closest("button")) return;
+          const sid = row.getAttribute("data-session-id");
+          const original = [...document.querySelectorAll(".btn-session-summary")].find((item) => item.getAttribute("data-session-id") === sid);
+          closeModal();
+          setTimeout(() => original?.click(), 0);
+        });
+      });
       wrap.querySelector(".modal-close").onclick = closeModal;
       root.appendChild(wrap);
       root.onclick = (e) => {
@@ -4079,16 +4292,20 @@
     }
 
     function dashScheduleHtml(dash) {
+      const itemHtml = (item) => {
+        const date = item.date ? fmtDateFr(item.date).slice(0, 5) : "";
+        const day = item.dayName ? item.dayName.toLowerCase() : "";
+        return `<div style="margin-top:.25rem;font-size:.8rem;line-height:1.35;color:var(--text)">${escapeHtml(day)} ${escapeHtml(date)} - ${escapeHtml(item.className)} - ${escapeHtml(item.time)}</div>`;
+      };
+      const groupHtml = (title, items, color) => items.length
+        ? `<div style="margin-top:.35rem"><div style="color:${color};font-weight:800;font-size:.82rem">${title} :</div>${items.map(itemHtml).join("")}</div>`
+        : "";
       const weeks = dash.next3Weeks.map((w, i) => {
         const label = i === 0 ? "Cette semaine" : i === 1 ? "Semaine prochaine" : "Dans 2 semaines";
         const dd = (d) => String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0");
         const range = dd(w.start) + " – " + dd(w.end);
-        const cancPart = w.cancelled.length
-          ? `<span style="color:var(--danger);font-weight:600;font-size:.82rem">❌ ${w.cancelled.length} cours annulé(s) : ${w.cancelled.map((d) => escapeHtml(d)).join(" · ")}</span>`
-          : "";
-        const extraPart = w.extras.length
-          ? `<span style="color:#16a34a;font-weight:600;font-size:.82rem">➕ ${w.extras.length} cours ajouté(s) : ${w.extras.map((d) => escapeHtml(d)).join(" · ")}</span>`
-          : "";
+        const cancPart = groupHtml(`❌ Cours annulé${w.cancelled.length > 1 ? "s" : ""}`, w.cancelled, "var(--danger)");
+        const extraPart = groupHtml(`➕ Cours ajouté${w.extras.length > 1 ? "s" : ""}`, w.extras, "#16a34a");
         const details = [cancPart, extraPart].filter(Boolean).join("<br>");
         return `<div class="dash-week-row${i === 0 ? " dash-week-row--current" : ""}"><strong>${label}</strong> <span style="font-size:.72rem;color:var(--text-muted)">(${range})</span>${details ? "<br>" + details : " — <span class=\"kpi-sub\">Aucune modification</span>"}</div>`;
       }).join("");
@@ -4395,7 +4612,7 @@
         const cells = caCols.map((ca) => {
           const names = (appData.levelApsaByCA && appData.levelApsaByCA[level] && appData.levelApsaByCA[level][ca]) || [];
           const list = names.length
-            ? `<div class="level-ca-list">${names.map((name) => `<span class="level-ca-pill">${escapeHtml(name)}</span>`).join("")}</div>`
+            ? `<div class="level-ca-list">${names.map((name) => `<span class="level-ca-pill">${escapeHtml(name)}<button type="button" class="level-ca-pill__remove no-print" data-level="${level}" data-ca="${ca}" data-name="${escapeHtml(name)}" title="Supprimer ${escapeHtml(name)}">×</button></span>`).join("")}</div>`
             : '<p class="kpi-sub" style="margin:0 0 .45rem">Aucune APSA</p>';
           return `<td>${list}<button type="button" class="btn btn-sm btn-ghost btn-level-ca-add-apsa no-print" data-level="${level}" data-ca="${ca}">+ Ajouter une APSA</button></td>`;
         }).join("");
@@ -4441,7 +4658,7 @@
         const periodIds = new Set(periods.map((p) => p.id));
         const slots = schedulesForClass(cl.id).slice().sort((a, b) => a.dayIndex - b.dayIndex || a.startTime.localeCompare(b.startTime));
         const cells = allPeriods.map((period) => {
-          if (!periodIds.has(period.id)) return `<td><p class="kpi-sub" style="margin:0">Non concernée</p></td>`;
+          if (!periodIds.has(period.id)) return `<td data-label="${escapeHtml(period.name)}"><p class="kpi-sub" style="margin:0">Non concernée</p></td>`;
           const dayChoices = slots.length
             ? slots.map((s, slotIdx) => {
                 const current = appData.activities.find((a) =>
@@ -4467,13 +4684,13 @@
                 </div>`;
               }).join("")
             : '<span class="kpi-sub">Aucun créneau</span>';
-          return `<td>
+          return `<td data-label="${escapeHtml(period.name)}">
             <div class="level-program-cell" data-classid="${cl.id}" data-periodid="${period.id}">
               <div class="level-program-days">${dayChoices}</div>
             </div>
           </td>`;
         }).join("");
-        return `<tr style="--level-c:${levelColor(level)}"><td><strong>${escapeHtml(cl.name)}</strong></td>${cells}</tr>`;
+        return `<tr style="--level-c:${levelColor(level)}"><td class="level-program-class-cell" data-label="Classe"><strong>${escapeHtml(cl.name)}</strong><span>Niveau ${escapeHtml(level)}</span></td>${cells}</tr>`;
       }).join("");
       return `<div class="card level-program-card" style="--level-c:var(--accent)">
         <div class="level-program-head">
@@ -4877,6 +5094,7 @@
           <div class="flex-row" style="margin-top:.75rem">
             <button type="button" class="btn btn-primary" id="btn-export">Export JSON</button>
             <label class="btn btn-ghost" style="border:1px solid var(--border);cursor:pointer">Import JSON<input type="file" id="inp-import" accept="application/json" class="hidden" /></label>
+            <button type="button" class="btn btn-ghost" id="btn-seed-demo" style="border:1px solid var(--border)">Charger un jeu de test EPS</button>
             <button type="button" class="btn btn-danger" id="btn-reset">Reset données</button>
           </div>
         </div>`
@@ -6051,6 +6269,27 @@
           });
         });
       });
+      main.querySelectorAll(".level-ca-pill__remove").forEach((btn) => {
+        btn.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const level = btn.getAttribute("data-level");
+          const ca = btn.getAttribute("data-ca");
+          const name = btn.getAttribute("data-name");
+          if (!level || !ca || !name) return;
+          if (!confirm(`Supprimer l'APSA "${name}" du niveau ${level} (${ca}) ?`)) return;
+          if (appData.levelApsaByCA && appData.levelApsaByCA[level] && Array.isArray(appData.levelApsaByCA[level][ca])) {
+            appData.levelApsaByCA[level][ca] = appData.levelApsaByCA[level][ca].filter((item) => item !== name);
+          }
+          if (appData.levelApsaNames && Array.isArray(appData.levelApsaNames[level])) {
+            const stillUsed = appData.levelApsaByCA && appData.levelApsaByCA[level]
+              ? Object.values(appData.levelApsaByCA[level]).flat().includes(name)
+              : false;
+            if (!stillUsed) appData.levelApsaNames[level] = appData.levelApsaNames[level].filter((item) => item !== name);
+          }
+          saveData();
+          render();
+        });
+      });
       main.querySelectorAll(".level-program-apsa").forEach((select) => {
         select.addEventListener("change", () => {
           const card = select.closest(".level-program-card");
@@ -6078,8 +6317,21 @@
           body.querySelector("#f-program-apsa").value = apsaSelect.value;
           body.querySelector("#f-program-venue").value = venueSelect.value;
           openModal("Programmer le créneau", body, () => {
-            apsaSelect.value = body.querySelector("#f-program-apsa").value;
-            venueSelect.value = body.querySelector("#f-program-venue").value;
+            const nextApsa = body.querySelector("#f-program-apsa").value;
+            const nextVenue = body.querySelector("#f-program-venue").value;
+            apsaSelect.value = nextApsa;
+            venueSelect.value = nextVenue;
+            const cell = slotRow.closest(".level-program-cell");
+            const cl = cell ? getClassById(cell.getAttribute("data-classid")) : null;
+            if (cl && Number(cl.apsaPerPeriod) === 1) {
+              cell.querySelectorAll(".level-program-slot").forEach((row) => {
+                if (row === slotRow) return;
+                const rowApsa = row.querySelector(".level-program-apsa");
+                const rowVenue = row.querySelector(".level-program-venue");
+                if (rowApsa && !rowApsa.value) rowApsa.value = nextApsa;
+                if (rowVenue && !rowVenue.value) rowVenue.value = nextVenue;
+              });
+            }
             applyLevelProgramming(button.closest(".level-program-card"));
           });
         });
@@ -6107,6 +6359,7 @@
               <div class="form-group"><label>Couleur</label><input type="color" id="f-color" value="#6366f1" /></div>
               <div class="form-group"><label>Effectif</label><input type="number" id="f-en-manual" value="25" min="0" /></div>
               <div class="form-group"><label>Niveau</label><select id="f-level">${levelOptionsHtml("6e")}</select></div>
+              <div class="form-group"><label>Nombre d'APSA par période</label><select id="f-apsa-per-period"><option value="1">1 APSA</option><option value="2" selected>2 APSA</option></select></div>
             </div>
             <p class="kpi-sub" style="margin-top:.45rem">L'effectif manuel est utilisé tant qu'aucune liste d'élèves n'est ajoutée.</p>
           </section>
@@ -6146,6 +6399,15 @@
           wireClassSlotRows();
         });
         wireClassSlotRows();
+        let levelEditedManually = false;
+        const nameInput = body.querySelector("#f-name");
+        const levelSelect = body.querySelector("#f-level");
+        levelSelect.addEventListener("change", () => { levelEditedManually = true; });
+        nameInput.addEventListener("input", () => {
+          if (levelEditedManually) return;
+          const inferred = inferClassLevel(nameInput.value);
+          if (inferred) levelSelect.value = inferred;
+        });
         const studentsList = [];
         const renderStudentsList = () => {
           const container = body.querySelector("#f-students-list");
@@ -6199,6 +6461,7 @@
             enrollment: studentsList.length ? studentsList.length : (+body.querySelector("#f-en-manual").value || 0),
             students: studentsList.slice(),
             level: body.querySelector("#f-level").value,
+            apsaPerPeriod: +body.querySelector("#f-apsa-per-period").value || 2,
             cycleYears: body.querySelector("#f-level").value === "6e" ? 3 : 4,
           });
           body.querySelectorAll(".class-create-slot").forEach((row) => {
@@ -6250,6 +6513,7 @@
                 <div class="form-group"><label>Couleur</label><input type="color" id="f-color" value="${cl.color}" /></div>
                 <div class="form-group"><label>Effectif</label><input type="number" id="f-en-manual" value="${classEnrollment(cl)}" min="0" /></div>
                 <div class="form-group"><label>Niveau</label><select id="f-level">${levelOptionsHtml(classLevel(cl))}</select></div>
+                <div class="form-group"><label>Nombre d'APSA par période</label><select id="f-apsa-per-period"><option value="1" ${Number(cl.apsaPerPeriod) === 1 ? "selected" : ""}>1 APSA</option><option value="2" ${Number(cl.apsaPerPeriod) !== 1 ? "selected" : ""}>2 APSA</option></select></div>
               </div>
               <p class="kpi-sub" style="margin-top:.45rem">L'effectif manuel est utilisé tant qu'aucune liste d'élèves n'est ajoutée.</p>
             </section>
@@ -6335,6 +6599,7 @@
             cl.name = body.querySelector("#f-name").value.trim() || cl.name;
             cl.color = body.querySelector("#f-color").value;
             cl.level = body.querySelector("#f-level").value;
+            cl.apsaPerPeriod = +body.querySelector("#f-apsa-per-period").value || 2;
             cl.cycleYears = cl.level === "6e" ? 3 : 4;
             cl.students = studentsList.slice();
             cl.enrollment = cl.students.length ? cl.students.length : (+body.querySelector("#f-en-manual").value || 0);
@@ -6608,6 +6873,11 @@
       });
       main.querySelector("#btn-reset")?.addEventListener("click", resetAll);
       main.querySelector("#btn-reset-all")?.addEventListener("click", resetAll);
+      main.querySelector("#btn-seed-demo")?.addEventListener("click", () => {
+        if (!confirm("Charger un jeu de test complet ? Les données actuelles seront remplacées.")) return;
+        seedDemo();
+        render();
+      });
       main.querySelector("#btn-save-settings")?.addEventListener("click", () => {
         appData.settings.schoolYearStart = main.querySelector("#set-start").value;
         appData.settings.schoolYearEnd = main.querySelector("#set-end").value;
