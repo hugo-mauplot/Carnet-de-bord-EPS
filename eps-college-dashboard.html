@@ -704,6 +704,268 @@
       color: var(--text-muted);
       line-height: 1.35;
     }
+    .level-program-card {
+      border-left: 5px solid var(--level-c, var(--accent));
+      background: linear-gradient(135deg, color-mix(in srgb, var(--level-c, var(--accent)) 14%, transparent), var(--surface) 55%);
+    }
+    .level-program-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+    }
+    .level-program-head h3 { margin: 0; }
+    .level-program-add {
+      display: flex;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin: 0.7rem 0;
+    }
+    .level-program-add input {
+      min-width: min(100%, 12rem);
+      flex: 1;
+      padding: 0.45rem 0.6rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .level-ca-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      margin-top: 0.75rem;
+    }
+    .level-ca-table {
+      width: 100%;
+      min-width: 680px;
+      table-layout: fixed;
+      font-size: 0.78rem;
+    }
+    .level-ca-table th,
+    .level-ca-table td {
+      vertical-align: top;
+      min-width: 0;
+      text-align: center;
+      background: color-mix(in srgb, var(--level-c, var(--accent)) 9%, var(--surface));
+    }
+    .level-ca-table th {
+      vertical-align: middle;
+      background: color-mix(in srgb, var(--level-c, var(--accent)) 20%, var(--surface));
+      color: var(--text);
+    }
+    .level-ca-table th:first-child,
+    .level-ca-table td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      width: 4.25rem;
+      min-width: 4.25rem;
+      max-width: 4.25rem;
+      background: color-mix(in srgb, var(--level-c, var(--accent)) 24%, var(--surface));
+      text-align: center;
+      color: var(--level-c, var(--text));
+      overflow-wrap: anywhere;
+    }
+    .level-ca-table th:first-child,
+    .level-program-table th:first-child {
+      white-space: nowrap;
+    }
+    .level-ca-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      margin-bottom: 0.5rem;
+    }
+    .level-ca-pill {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 0.18rem 0.48rem;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--level-c, var(--accent)) 18%, transparent);
+      color: var(--level-c, var(--accent));
+      font-weight: 800;
+      font-size: 0.72rem;
+      line-height: 1.25;
+    }
+    .level-program-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+    }
+    .level-program-table {
+      width: 100%;
+      min-width: 760px;
+      table-layout: fixed;
+      font-size: 0.78rem;
+    }
+    .level-program-table th,
+    .level-program-table td {
+      vertical-align: top;
+      min-width: 0;
+      text-align: center;
+      background: color-mix(in srgb, var(--level-c, var(--accent)) 9%, var(--surface));
+    }
+    .level-program-table th {
+      vertical-align: middle;
+      background: color-mix(in srgb, var(--level-c, var(--accent)) 22%, var(--surface));
+      color: var(--text);
+    }
+    .level-program-table th:first-child,
+    .level-program-table td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      width: 5rem;
+      min-width: 5rem;
+      max-width: 5rem;
+      background: color-mix(in srgb, var(--level-c, var(--accent)) 26%, var(--surface));
+      text-align: center;
+      color: var(--level-c, var(--text));
+      overflow-wrap: anywhere;
+    }
+    .level-program-cell {
+      display: grid;
+      gap: 0.35rem;
+    }
+    .level-program-cell select {
+      width: 100%;
+      padding: 0.35rem 0.45rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--level-c, var(--accent)) 7%, var(--bg-elevated));
+      font-size: 0.74rem;
+    }
+    .level-program-days {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      padding: 0.35rem 0.45rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: color-mix(in srgb, var(--level-c, var(--accent)) 11%, var(--bg-elevated));
+    }
+    .level-program-slot {
+      display: grid;
+      gap: 0.25rem;
+      font-size: 0.72rem;
+      line-height: 1.25;
+      padding: 0.25rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .level-program-slot:last-child {
+      border-bottom: none;
+    }
+    .level-program-slot-name {
+      color: var(--text-muted);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .level-program-hidden-select {
+      display: none;
+    }
+    .level-program-slot-open {
+      width: 100%;
+      border: 1px solid color-mix(in srgb, var(--level-c, var(--accent)) 22%, var(--border));
+      border-radius: 10px;
+      padding: 0.45rem 0.55rem;
+      background: color-mix(in srgb, var(--level-c, var(--accent)) 8%, var(--surface));
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+    }
+    .level-program-slot-open:hover {
+      border-color: color-mix(in srgb, var(--level-c, var(--accent)) 48%, var(--border));
+      background: color-mix(in srgb, var(--level-c, var(--accent)) 13%, var(--surface));
+    }
+    .level-program-slot-summary {
+      display: block;
+      margin-top: 0.18rem;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      line-height: 1.25;
+    }
+    .level-program-slot-summary strong {
+      color: var(--text);
+    }
+    .advanced-class-select-card {
+      border-left: 5px solid var(--color-violet);
+      background: linear-gradient(135deg, rgba(165, 180, 252, 0.14), var(--surface) 55%);
+    }
+    .class-create-form {
+      display: grid;
+      gap: 0.9rem;
+    }
+    .class-create-section {
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 0.85rem;
+      background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+    }
+    .class-create-section__title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.7rem;
+    }
+    .class-create-section__title strong {
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+    .class-create-section__title span {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .class-create-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(5.5rem, 0.45fr) minmax(5.5rem, 0.55fr) minmax(0, 0.8fr);
+      gap: 0.65rem;
+      align-items: end;
+    }
+    .class-create-slots {
+      display: grid;
+      gap: 0.5rem;
+    }
+    .class-create-slot {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(4.8rem, 0.62fr) minmax(4.8rem, 0.62fr) minmax(0, 1fr) auto;
+      gap: 0.45rem;
+      align-items: end;
+      padding: 0.55rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg-elevated);
+    }
+    .class-create-slot .form-group,
+    .class-create-grid .form-group {
+      margin: 0;
+    }
+    .class-create-slot label,
+    .class-create-grid label {
+      font-size: 0.64rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .class-create-slot input,
+    .class-create-slot select,
+    .class-create-grid input,
+    .class-create-grid select {
+      padding: 0.48rem 0.55rem;
+      font-size: 0.8rem;
+    }
+    .btn-remove-class-slot {
+      padding: 0.45rem 0.55rem;
+      min-width: 2.35rem;
+    }
     .card-header {
       display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
       margin-bottom: 0.85rem;
@@ -2034,6 +2296,148 @@
         min-width: 0;
         max-width: 100%;
       }
+      .level-program-card {
+        padding: 0.65rem 0.55rem;
+      }
+      .level-program-head {
+        margin-bottom: 0.5rem;
+      }
+      .level-program-head h3 {
+        font-size: 0.95rem;
+      }
+      .level-ca-table-wrap,
+      .level-program-table-wrap {
+        overflow-x: hidden;
+      }
+      .level-ca-table,
+      .level-program-table {
+        width: 100%;
+        min-width: 0;
+        table-layout: fixed;
+        font-size: 0.52rem;
+      }
+      .level-ca-table th,
+      .level-ca-table td,
+      .level-program-table th,
+      .level-program-table td {
+        padding: 0.28rem 0.2rem;
+        min-width: 0;
+        text-align: center;
+        vertical-align: middle;
+        line-height: 1.15;
+      }
+      .level-ca-table th:first-child,
+      .level-ca-table td:first-child,
+      .level-program-table th:first-child,
+      .level-program-table td:first-child {
+        position: static;
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      .level-ca-table th:first-child,
+      .level-ca-table td:first-child {
+        width: 3.6rem;
+        max-width: 3.6rem;
+      }
+      .level-program-table th:first-child,
+      .level-program-table td:first-child {
+        width: 4rem;
+        max-width: 4rem;
+      }
+      .level-ca-table th:first-child,
+      .level-program-table th:first-child {
+        white-space: nowrap;
+      }
+      .level-ca-pill {
+        font-size: 0.56rem;
+        padding: 0.12rem 0.3rem;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        white-space: normal;
+      }
+      .level-ca-list {
+        gap: 0.18rem;
+        margin-bottom: 0.25rem;
+      }
+      .btn-level-ca-add-apsa {
+        padding: 0.22rem 0.3rem;
+        font-size: 0.55rem;
+        line-height: 1.15;
+      }
+      .level-program-days {
+        padding: 0.22rem;
+        gap: 0.2rem;
+      }
+      .level-program-slot {
+        grid-template-columns: 1fr;
+        gap: 0.16rem;
+        padding: 0.22rem 0;
+      }
+      .level-program-slot-name {
+        font-size: 0.56rem;
+        white-space: normal;
+      }
+      .level-program-cell select,
+      .level-program-apsa {
+        padding: 0.28rem 0.22rem;
+        font-size: 0.56rem;
+        border-radius: 7px;
+      }
+      .level-program-slot-open {
+        padding: 0.35rem 0.38rem;
+      }
+      .level-program-slot-summary {
+        font-size: 0.52rem;
+      }
+      .class-create-form {
+        gap: 0.65rem;
+      }
+      .class-create-section {
+        padding: 0.65rem;
+        border-radius: 14px;
+      }
+      .class-create-section__title {
+        margin-bottom: 0.55rem;
+        align-items: flex-start;
+      }
+      .class-create-section__title strong {
+        font-size: 0.9rem;
+      }
+      .class-create-section__title span {
+        font-size: 0.66rem;
+        text-align: right;
+      }
+      .class-create-grid {
+        grid-template-columns: minmax(0, 1.1fr) 2.6rem 3.5rem 3rem;
+        gap: 0.35rem;
+      }
+      .class-create-slot {
+        grid-template-columns: minmax(0, 1fr) 3.25rem 3.25rem minmax(0, 0.95fr) 2rem;
+        gap: 0.28rem;
+        padding: 0.38rem;
+        border-radius: 12px;
+      }
+      .class-create-slot label,
+      .class-create-grid label {
+        font-size: 0.5rem;
+        line-height: 1.1;
+      }
+      .class-create-slot input,
+      .class-create-slot select,
+      .class-create-grid input,
+      .class-create-grid select {
+        min-height: 2rem;
+        padding: 0.35rem 0.25rem;
+        font-size: 0.62rem;
+        border-radius: 9px;
+      }
+      .btn-remove-class-slot {
+        min-width: 2rem;
+        width: 2rem;
+        height: 2rem;
+        padding: 0;
+        font-size: 0.7rem;
+      }
     }
 
     @media print {
@@ -2169,6 +2573,7 @@
       classes: [],
       schedules: [],
       activities: [],
+      levelApsaNames: {},
       holidays: [],
       cancellations: [],
       sessions: [],
@@ -2184,6 +2589,7 @@
     const navHistory = [];
     let calendarMode = "month";
     let calendarCursor = new Date();
+    let advancedApsaClassId = "";
 
     /* -------------------------------------------------------------------------- */
     /* UTILITAIRES                                                                */
@@ -2568,6 +2974,17 @@
       appData.activities.forEach((a) => {
         if (!Array.isArray(a.dayIndices)) a.dayIndices = [];
       });
+      if (!appData.levelApsaNames || typeof appData.levelApsaNames !== "object") appData.levelApsaNames = {};
+      CLASS_LEVELS.forEach((level) => {
+        if (!Array.isArray(appData.levelApsaNames[level])) appData.levelApsaNames[level] = [];
+      });
+      if (!appData.levelApsaByCA || typeof appData.levelApsaByCA !== "object") appData.levelApsaByCA = {};
+      CLASS_LEVELS.forEach((level) => {
+        if (!appData.levelApsaByCA[level] || typeof appData.levelApsaByCA[level] !== "object") appData.levelApsaByCA[level] = {};
+        ["CA1", "CA2", "CA3", "CA4"].forEach((ca) => {
+          if (!Array.isArray(appData.levelApsaByCA[level][ca])) appData.levelApsaByCA[level][ca] = [];
+        });
+      });
       if (!Array.isArray(appData.exemptions)) appData.exemptions = [];
       appData.exemptions.forEach((ex) => {
         if (ex.sansCertificat === undefined) ex.sansCertificat = false;
@@ -2577,7 +2994,11 @@
       if (!Array.isArray(appData.venues)) appData.venues = [];
       if (appData.progEtabPdf === undefined) appData.progEtabPdf = null;
       if (!Array.isArray(appData.forgottenGear)) appData.forgottenGear = [];
-      appData.classes.forEach((cl) => { if (!Array.isArray(cl.students)) cl.students = []; });
+      appData.classes.forEach((cl) => {
+        if (!Array.isArray(cl.students)) cl.students = [];
+        if (!cl.level) cl.level = inferClassLevel(cl.name) || (Number(cl.cycleYears) === 3 ? "6e" : "5e");
+        cl.enrollment = cl.students.length ? cl.students.length : Math.max(0, Number(cl.enrollment) || 0);
+      });
       appData.sessions.forEach((s) => { if (!s.attendance) s.attendance = {}; });
       if (!Array.isArray(appData.todoList)) appData.todoList = [];
       if (!appData.settings.academy) appData.settings.academy = "";
@@ -2784,7 +3205,7 @@
                   date: dateStr,
                   startTime: slot.startTime,
                   endTime: slot.endTime,
-                  venue: slot.venue,
+                  venue: act ? act.venue || "" : "",
                   comment: (prevS && prevS.comment) || "",
                 };
                 if (prevS) {
@@ -2965,7 +3386,6 @@
       classes: "Mes classes",
       orgEPS: "Organisation EPS",
       orgPeriodes: "Périodes",
-      orgCreneaux: "Créneaux des classes",
       orgApsa: "APSA & séquences",
       orgLieux: "Lieux de pratique",
       orgProg: "Programmation",
@@ -3131,6 +3551,40 @@
       const p = String(iso).split("-");
       if (p.length !== 3) return iso;
       return `${p[2]}/${p[1]}/${p[0]}`;
+    }
+
+    const CLASS_LEVELS = ["6e", "5e", "4e", "3e"];
+    const LEVEL_COLORS = {
+      "6e": "#8ba4ff",
+      "5e": "#2dd4bf",
+      "4e": "#fcd34d",
+      "3e": "#fb7185",
+    };
+
+    function levelColor(level) {
+      return LEVEL_COLORS[level] || "#8ba4ff";
+    }
+
+    function inferClassLevel(name) {
+      const s = String(name || "").toLowerCase().replace(/\s/g, "");
+      if (/^6(e|ème|eme)?/.test(s)) return "6e";
+      if (/^5(e|ème|eme)?/.test(s)) return "5e";
+      if (/^4(e|ème|eme)?/.test(s)) return "4e";
+      if (/^3(e|ème|eme)?/.test(s)) return "3e";
+      return "";
+    }
+
+    function classLevel(cl) {
+      return cl && (cl.level || inferClassLevel(cl.name) || (Number(cl.cycleYears) === 3 ? "6e" : "5e"));
+    }
+
+    function classEnrollment(cl) {
+      const students = Array.isArray(cl && cl.students) ? cl.students : [];
+      return students.length ? students.length : Math.max(0, Number(cl && cl.enrollment) || 0);
+    }
+
+    function levelOptionsHtml(selected) {
+      return CLASS_LEVELS.map((lvl) => `<option value="${lvl}" ${selected === lvl ? "selected" : ""}>${lvl}</option>`).join("");
     }
 
     function cycleLabel(n) {
@@ -3809,7 +4263,7 @@
               return `<article class="class-card nav-to-class" data-view="${getClassViewId(cl.id)}" style="--cc:${cl.color};position:relative;cursor:pointer">
                 <button type="button" class="btn btn-sm btn-edit-class" data-id="${cl.id}" style="position:absolute;top:.6rem;right:.6rem;background:none;border:none;cursor:pointer;font-size:1.15rem;padding:0;line-height:1" title="Modifier la classe">⚙️</button>
                 <h4>${escapeHtml(cl.name)}</h4>
-                <p class="meta">${cycleLabel(cl.cycleYears)} — Effectif ${cl.enrollment}</p>
+                <p class="meta">Niveau ${escapeHtml(classLevel(cl))} — Effectif ${classEnrollment(cl)}</p>
                 <p class="meta">APSA (période du jour) : ${escapeHtml(curLabel)}</p>
                 <div class="progress"><span style="width:${st.pct}%"></span></div>
                 <p class="meta" style="margin-top:.5rem">${st.done} effectuées · ${st.remaining} restantes · ${st.cancelled} annulées</p>
@@ -3833,18 +4287,11 @@
     }
 
     function viewPeriodsBody() {
-      const classCheckboxes = (selectedIds) => appData.classes.map((c) =>
-        `<label style="display:inline-flex;align-items:center;gap:.3rem;margin-right:.75rem;font-size:.85rem;cursor:pointer">
-          <input type="checkbox" class="period-class-cb" value="${c.id}" ${selectedIds.includes(c.id) ? "checked" : ""} />
-          <span class="legend-dot" style="background:${c.color}"></span>${escapeHtml(c.name)}
-        </label>`
-      ).join("");
-
       const rows = appData.periods
         .slice()
         .sort((a, b) => a.startDate.localeCompare(b.startDate))
         .map((p) => {
-          const clNames = (p.classIds || []).map((id) => { const c = getClassById(id); return c ? c.name : "?"; }).join(", ");
+          const levelNames = periodLevels(p).join(", ");
           const today = fmtISODate(new Date());
           const isCurrent = today >= p.startDate && today <= p.endDate;
           const badge = isCurrent
@@ -3854,7 +4301,7 @@
             <td><strong>${escapeHtml(p.name)}</strong></td>
             <td>${fmtDateFr(p.startDate)}</td>
             <td>${fmtDateFr(p.endDate)}</td>
-            <td>${escapeHtml(clNames) || "<em>Aucune</em>"}</td>
+            <td>${escapeHtml(levelNames) || "<em>Aucun</em>"}</td>
             <td>${badge}</td>
             <td class="no-print">
               <button type="button" class="btn btn-sm btn-ghost btn-edit-period" data-id="${p.id}">Modifier</button>
@@ -3866,8 +4313,8 @@
 
       return `<div class="card">
         <div class="card-header"><h3>Périodes</h3><button type="button" class="btn btn-sm btn-primary" id="btn-add-period">+ Période</button></div>
-        <p class="kpi-sub" style="margin-bottom:.75rem">Définissez les périodes de l'année scolaire et les classes concernées par chacune.</p>
-        <div class="table-wrap"><table><thead><tr><th>Nom</th><th>Début</th><th>Fin</th><th>Classes</th><th>Statut</th><th class="no-print">Actions</th></tr></thead><tbody>
+        <p class="kpi-sub" style="margin-bottom:.75rem">Définissez les périodes de l'année scolaire et les niveaux de classes concernés par chacune.</p>
+        <div class="table-wrap"><table><thead><tr><th>Nom</th><th>Début</th><th>Fin</th><th>Niveaux</th><th>Statut</th><th class="no-print">Actions</th></tr></thead><tbody>
         ${rows || '<tr><td colspan="6">Aucune période créée.</td></tr>'}
         </tbody></table></div>
       </div>`;
@@ -3875,7 +4322,7 @@
 
     function viewScheduleBody() {
       return (
-        `<div class="card"><p class="kpi-sub">Créneaux hebdomadaires : jour, horaires, lieu, alternance <strong>semaine A / B</strong> (depuis le début d'année scolaire : semaines paires = A, impaires = B). La génération des séances exclut vacances et jours fériés bloquants.</p>
+        `<div class="card"><p class="kpi-sub">Créneaux hebdomadaires : jour, horaires, alternance <strong>semaine A / B</strong> (depuis le début d'année scolaire : semaines paires = A, impaires = B). La génération des séances exclut vacances et jours fériés bloquants.</p>
         <div class="form-group"><label>Filtrer classe</label>
           <select id="sched-class-filter"><option value="">— Toutes —</option>${appData.classes.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("")}</select>
         </div></div>
@@ -3885,14 +4332,14 @@
             return `<div class="card class-sched-block" data-class="${cl.id}">
               <div class="card-header"><h3><span class="legend-dot" style="background:${cl.color}"></span> ${escapeHtml(cl.name)}</h3>
                 <button type="button" class="btn btn-sm btn-primary btn-add-slot" data-class="${cl.id}">+ Créneau</button></div>
-              <div class="table-wrap"><table><thead><tr><th>Jour</th><th>Début</th><th>Fin</th><th>Installation</th><th>Semaine</th><th></th></tr></thead><tbody>
+              <div class="table-wrap"><table><thead><tr><th>Jour</th><th>Début</th><th>Fin</th><th>Semaine</th><th></th></tr></thead><tbody>
               ${slots
                 .map(
                   (s) =>
-                    `<tr><td>${DOW[s.dayIndex]}</td><td>${s.startTime}</td><td>${s.endTime}</td><td>${escapeHtml(s.venue)}</td><td>${weekParityLabel(s)}</td>
+                    `<tr><td>${DOW[s.dayIndex]}</td><td>${s.startTime}</td><td>${s.endTime}</td><td>${weekParityLabel(s)}</td>
                     <td><button type="button" class="btn btn-sm btn-danger btn-del-slot" data-id="${s.id}">Suppr.</button></td></tr>`
                 )
-                .join("") || `<tr><td colspan="6">Aucun créneau — ajoutez au moins un créneau hebdomadaire.</td></tr>`}
+                .join("") || `<tr><td colspan="5">Aucun créneau — ajoutez au moins un créneau hebdomadaire.</td></tr>`}
               </tbody></table></div>
             </div>`;
           })
@@ -3905,13 +4352,147 @@
     }
 
     function periodsForClass(classId) {
-      return (appData.periods || []).filter((p) => (p.classIds || []).includes(classId))
+      const cl = getClassById(classId);
+      const level = classLevel(cl);
+      return (appData.periods || []).filter((p) =>
+        (Array.isArray(p.levels) && p.levels.length && p.levels.includes(level)) ||
+        (p.classIds || []).includes(classId)
+      )
         .slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
     }
 
+    function periodLevels(period) {
+      if (Array.isArray(period.levels) && period.levels.length) {
+        return CLASS_LEVELS.filter((level) => period.levels.includes(level));
+      }
+      const levels = new Set((period.classIds || [])
+        .map((id) => getClassById(id))
+        .filter(Boolean)
+        .map((cl) => classLevel(cl)));
+      return CLASS_LEVELS.filter((level) => levels.has(level));
+    }
+
+    function levelActivityNames(level) {
+      const byCA = appData.levelApsaByCA && appData.levelApsaByCA[level]
+        ? Object.values(appData.levelApsaByCA[level]).flat()
+        : [];
+      return [...new Set(byCA)]
+        .sort((a, b) => a.localeCompare(b, "fr"));
+    }
+
+    function caForLevelApsa(level, apsaName) {
+      const table = appData.levelApsaByCA && appData.levelApsaByCA[level];
+      if (!table) return "";
+      for (const ca of ["CA1", "CA2", "CA3", "CA4"]) {
+        if ((table[ca] || []).includes(apsaName)) return ca;
+      }
+      return "";
+    }
+
+    function viewLevelApsaCatalogBody() {
+      const caCols = ["CA1", "CA2", "CA3", "CA4"];
+      const rows = CLASS_LEVELS.map((level) => {
+        const cells = caCols.map((ca) => {
+          const names = (appData.levelApsaByCA && appData.levelApsaByCA[level] && appData.levelApsaByCA[level][ca]) || [];
+          const list = names.length
+            ? `<div class="level-ca-list">${names.map((name) => `<span class="level-ca-pill">${escapeHtml(name)}</span>`).join("")}</div>`
+            : '<p class="kpi-sub" style="margin:0 0 .45rem">Aucune APSA</p>';
+          return `<td>${list}<button type="button" class="btn btn-sm btn-ghost btn-level-ca-add-apsa no-print" data-level="${level}" data-ca="${ca}">+ Ajouter une APSA</button></td>`;
+        }).join("");
+        return `<tr style="--level-c:${levelColor(level)}"><td><strong>${level}</strong></td>${cells}</tr>`;
+      }).join("");
+      return `<div class="card level-program-card" style="--level-c:var(--accent)">
+        <div class="level-program-head">
+          <div>
+            <h3>APSA programmées dans l'établissement</h3>
+            <p class="kpi-sub">Renseignez ici les activités disponibles pour chaque niveau et champ d'apprentissage. Elles alimentent ensuite les menus de programmation.</p>
+          </div>
+        </div>
+        <div class="level-ca-table-wrap">
+          <table class="level-ca-table"><thead><tr><th>Niveau</th>${caCols.map((ca) => `<th>${ca}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table>
+        </div>
+      </div>`;
+    }
+
+    function viewLevelProgrammingBody() {
+      const colors = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316"];
+      const classes = appData.classes.slice().sort((a, b) => {
+        const levelDiff = CLASS_LEVELS.indexOf(classLevel(a)) - CLASS_LEVELS.indexOf(classLevel(b));
+        return levelDiff || a.name.localeCompare(b.name, "fr");
+      });
+      if (!classes.length) return '<div class="card"><p class="kpi-sub">Ajoutez d’abord des classes pour créer la programmation.</p></div>';
+      const allPeriods = [...new Map(classes.flatMap((cl) => periodsForClass(cl.id)).map((p) => [p.id, p])).values()]
+        .sort((a, b) => a.startDate.localeCompare(b.startDate));
+      if (!allPeriods.length) {
+        return `<div class="card level-program-card" style="--level-c:var(--accent)">
+          <div class="level-program-head">
+            <div><h3>Programmation de mes classes</h3><p class="kpi-sub">Créez d'abord les périodes associées aux classes.</p></div>
+          </div>
+        </div>`;
+      }
+      const headers = allPeriods.map((p) => `<th>${escapeHtml(p.name)}<br><span class="kpi-sub">${fmtDateFr(p.startDate)} → ${fmtDateFr(p.endDate)}</span></th>`).join("");
+      const rows = classes.map((cl) => {
+        const level = classLevel(cl);
+        const apsaNames = levelActivityNames(level);
+        const venueOptions = [`<option value="">— Installation —</option>`].concat((appData.venues || []).map((venue) =>
+          `<option value="${escapeHtml(venue.name)}">${escapeHtml(venue.name)}</option>`
+        )).join("");
+        const periods = periodsForClass(cl.id);
+        const periodIds = new Set(periods.map((p) => p.id));
+        const slots = schedulesForClass(cl.id).slice().sort((a, b) => a.dayIndex - b.dayIndex || a.startTime.localeCompare(b.startTime));
+        const cells = allPeriods.map((period) => {
+          if (!periodIds.has(period.id)) return `<td><p class="kpi-sub" style="margin:0">Non concernée</p></td>`;
+          const dayChoices = slots.length
+            ? slots.map((s, slotIdx) => {
+                const current = appData.activities.find((a) =>
+                  a.classId === cl.id &&
+                  a.periodId === period.id &&
+                  Array.isArray(a.dayIndices) &&
+                  a.dayIndices.includes(s.dayIndex)
+                );
+                const apsaOptions = [`<option value="">— APSA —</option>`].concat(apsaNames.map((name) =>
+                  `<option value="${escapeHtml(name)}" ${current && current.name === name ? "selected" : ""}>${escapeHtml(name)}</option>`
+                )).join("");
+                const currentVenue = current ? current.venue || "" : "";
+                const currentVenueOptions = venueOptions.replace(`value="${escapeHtml(currentVenue)}"`, `value="${escapeHtml(currentVenue)}" selected`);
+                const apsaLabel = current ? current.name : "APSA à choisir";
+                const venueLabel = currentVenue || "Installation à choisir";
+                return `<div class="level-program-slot">
+                  <button type="button" class="level-program-slot-open">
+                    <span class="level-program-slot-name">${DOW[s.dayIndex]} · ${s.startTime}</span>
+                    <span class="level-program-slot-summary"><strong>${escapeHtml(apsaLabel)}</strong><br>${escapeHtml(venueLabel)}</span>
+                  </button>
+                  <select class="level-program-apsa level-program-hidden-select" data-day="${s.dayIndex}" data-color="${colors[slotIdx % colors.length]}">${apsaOptions}</select>
+                  <select class="level-program-venue level-program-hidden-select">${currentVenueOptions}</select>
+                </div>`;
+              }).join("")
+            : '<span class="kpi-sub">Aucun créneau</span>';
+          return `<td>
+            <div class="level-program-cell" data-classid="${cl.id}" data-periodid="${period.id}">
+              <div class="level-program-days">${dayChoices}</div>
+            </div>
+          </td>`;
+        }).join("");
+        return `<tr style="--level-c:${levelColor(level)}"><td><strong>${escapeHtml(cl.name)}</strong></td>${cells}</tr>`;
+      }).join("");
+      return `<div class="card level-program-card" style="--level-c:var(--accent)">
+        <div class="level-program-head">
+          <div><h3>Programmation de mes classes</h3><p class="kpi-sub">Toutes les classes sont regroupées dans un seul tableau. Chaque ligne garde la couleur de son niveau et chaque choix d'APSA est enregistré automatiquement.</p></div>
+        </div>
+        <div class="level-program-table-wrap">
+          <table class="level-program-table"><thead><tr><th>Classe</th>${headers}</tr></thead><tbody>${rows}</tbody></table>
+        </div>
+      </div>`;
+    }
+
     function viewActivitiesBody() {
-      return appData.classes
-        .map((cl) => {
+      if (advancedApsaClassId && !appData.classes.some((cl) => cl.id === advancedApsaClassId)) advancedApsaClassId = "";
+      const selectedAdvancedClass = appData.classes.find((cl) => cl.id === advancedApsaClassId);
+      const classOptions = `<option value="">— Choisir une classe —</option>${appData.classes
+        .map((cl) => `<option value="${cl.id}" ${cl.id === advancedApsaClassId ? "selected" : ""}>${escapeHtml(cl.name)} · ${escapeHtml(classLevel(cl))}</option>`)
+        .join("")}`;
+      const advanced = selectedAdvancedClass
+        ? [selectedAdvancedClass].map((cl) => {
           const clPeriods = periodsForClass(cl.id);
           const acts = activitiesForClass(cl.id).filter((a) => matchesSearch(a.name) || matchesSearch(cl.name));
 
@@ -3966,11 +4547,86 @@
             ${noPeriods}${periodBlocks}${orphanBlock}
           </div>`;
         })
-        .join("");
+        .join("")
+        : '<div class="card"><p class="kpi-sub">Sélectionnez une classe pour afficher ses réglages APSA avancés.</p></div>';
+      return `${viewLevelApsaCatalogBody()}
+      <div class="card" style="border-left:5px solid var(--color-teal)">
+        <h3>Programmation annuelle de mes classes</h3>
+        <p class="kpi-sub">Les APSA sont communes à un niveau. Pour chaque classe, affectez l'APSA à une période et à un jour de cours : l'enregistrement est automatique dès qu'une case est renseignée.</p>
+      </div>
+      ${viewLevelProgrammingBody()}
+      <div class="card advanced-class-select-card">
+        <h3>Réglages avancés par classe</h3>
+        <p class="kpi-sub" style="margin-bottom:.65rem">Ces réglages restent disponibles pour ajuster finement une classe ou une APSA particulière.</p>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Classe à afficher</label>
+          <select id="advanced-apsa-class-select">${classOptions}</select>
+        </div>
+      </div>
+      ${advanced}`;
     }
 
     function viewActivities() {
-      return renderTopbar("APSA & cycles", "") + viewActivitiesBody();
+      return renderTopbar("APSA & programmation", "") + viewActivitiesBody();
+    }
+
+    function applyLevelProgramming(card) {
+      if (!card) return;
+      const colors = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316"];
+      const tableClassIds = new Set([...card.querySelectorAll(".level-program-cell")].map((cell) => cell.getAttribute("data-classid")).filter(Boolean));
+      appData.activities = appData.activities.filter((activity) => !(activity.quickProgram && tableClassIds.has(activity.classId)));
+      const planned = new Map();
+      card.querySelectorAll(".level-program-cell").forEach((cell) => {
+        const classId = cell.getAttribute("data-classid");
+        const periodId = cell.getAttribute("data-periodid");
+        const period = (appData.periods || []).find((p) => p.id === periodId);
+        const cl = getClassById(classId);
+        const level = classLevel(cl);
+        if (!period || !cl) return;
+        cell.querySelectorAll(".level-program-slot").forEach((slotRow) => {
+          const select = slotRow.querySelector(".level-program-apsa");
+          const venueSelect = slotRow.querySelector(".level-program-venue");
+          const dayIndex = Number(select ? select.getAttribute("data-day") : "");
+          const apsaName = select ? select.value : "";
+          const venueName = venueSelect ? venueSelect.value : "";
+          if (!apsaName || !Number.isInteger(dayIndex)) return;
+          const key = `${classId}|${periodId}|${apsaName}`;
+          if (!planned.has(key)) {
+            planned.set(key, {
+              classId,
+              periodId,
+              name: apsaName,
+              field: caForLevelApsa(level, apsaName),
+              color: select.getAttribute("data-color") || colors[planned.size % colors.length],
+              startDate: period.startDate,
+              endDate: period.endDate,
+              venue: venueName,
+              objectives: "",
+              competencies: "",
+              plannedSessions: 0,
+              dayIndices: [],
+              quickProgram: true,
+              level,
+            });
+          }
+          const item = planned.get(key);
+          if (!item.dayIndices.includes(dayIndex)) item.dayIndices.push(dayIndex);
+          if (!item.venue && venueName) item.venue = venueName;
+        });
+      });
+      planned.forEach((payload) => {
+        payload.dayIndices.sort((a, b) => a - b);
+        const existing = appData.activities.find((activity) =>
+          activity.classId === payload.classId &&
+          activity.periodId === payload.periodId &&
+          activity.name === payload.name
+        );
+        if (existing) Object.assign(existing, payload);
+        else appData.activities.push({ id: uid(), ...payload });
+      });
+      regenerateSessions();
+      saveData();
+      render();
     }
 
     function viewProgEtabBody() {
@@ -4541,7 +5197,7 @@
         renderTopbar(`${cl.name} — Séances`, "") +
         `<div class="card class-overview-card">
           <h3 style="margin-bottom:.5rem"><span class="legend-dot" style="background:${cl.color}"></span> ${escapeHtml(cl.name)}</h3>
-          <p class="kpi-sub">Effectif ${cl.enrollment} · ${cycleLabel(cl.cycleYears)} · <strong>${st.total}</strong> séances sur l'année (${st.done} effectuées, ${st.remaining} restantes, ${st.cancelled} annulées)</p>
+          <p class="kpi-sub">Effectif ${classEnrollment(cl)} · Niveau ${escapeHtml(classLevel(cl))} · <strong>${st.total}</strong> séances sur l'année (${st.done} effectuées, ${st.remaining} restantes, ${st.cancelled} annulées)</p>
           <p class="kpi-sub"><strong>Emploi du temps :</strong> ${escapeHtml(weekdaysForClass(classId) || "—")}</p>
           <div class="kpi-sub"><strong>Programmation des APSA :</strong><div class="class-apSA-list">${pactStr}</div></div>
           <p class="kpi-sub"><strong>Prochaine séance :</strong> ${next ? `${fmtDateFr(next.date)} ${next.startTime}` : "—"} · <strong>Dernière effectuée :</strong> ${lastDone ? `${fmtDateFr(lastDone.date)} ${lastDone.startTime}` : "—"}</p>
@@ -4598,8 +5254,7 @@
             <ol class="tutorial-steps">
               <li><strong>Année scolaire</strong> — dates de début et fin. ${goto("tools:backup", "Réglages → Sauvegarde")}</li>
               <li><strong>Mes classes</strong> — créez chaque classe (nom, cycle, effectif, couleur) puis <strong>⚙️ → Élèves</strong> pour la liste des prénoms (indispensable pour l'appel et les listes déroulantes). ${goto("tools:classes", "Réglages → Mes classes")}</li>
-              <li><strong>Périodes</strong> — P1, P2, P3… avec dates et classes concernées. ${goto("tools:orgPeriodes", "Réglages → Périodes")}</li>
-              <li><strong>Créneaux des classes</strong> — emploi du temps hebdomadaire (jour, horaire, lieu par défaut). ${goto("tools:orgCreneaux", "Réglages → Créneaux")}</li>
+              <li><strong>Périodes</strong> — P1, P2, P3… avec dates et niveaux concernés. ${goto("tools:orgPeriodes", "Réglages → Périodes")}</li>
               <li><strong>APSA & séquences</strong> — activités par classe, période, jours de cours, dates de début/fin. ${goto("tools:orgApsa", "Réglages → APSA")}</li>
               <li><strong>Lieux de pratique</strong> — gymnase, stade, piscine… réutilisables dans les créneaux. ${goto("tools:orgLieux", "Réglages → Lieux")}</li>
               <li><strong>Calendrier scolaire</strong> — vacances, fériés, journées banalisées ; bouton <em>Appliquer le calendrier officiel</em> selon votre zone. ${goto("tools:calendriers", "Réglages → Calendriers")}</li>
@@ -4711,7 +5366,7 @@
     }
 
     function viewTools() {
-      if (toolsPanel === "schedule") toolsPanel = "orgCreneaux";
+      if (toolsPanel === "schedule" || toolsPanel === "orgCreneaux") toolsPanel = "classes";
       if (toolsPanel === "activities") toolsPanel = "orgApsa";
       if (toolsPanel === "venues") toolsPanel = "orgLieux";
       if (toolsPanel === "progEtab") toolsPanel = "orgProg";
@@ -4719,7 +5374,7 @@
 
       const TOOLS_CARDS = [
         { id: "classes",      icon: "📋", label: "Mes classes",      sub: appData.classes.length + " classe(s)" },
-        { id: "orgEPS",       icon: "🏫", label: "Organisation de l'EPS dans l'établissement", sub: "EDT, APSA, lieux, programmation" },
+        { id: "orgEPS",       icon: "🏫", label: "Organisation de l'EPS dans l'établissement", sub: "Périodes, APSA, lieux, programmation" },
         { id: "calendriers",  icon: "📆", label: "Calendriers",      sub: "Calendrier scolaire & visuel" },
         { id: "backup",       icon: "💾", label: "Sauvegarde",       sub: "Export, import, reset" },
       ];
@@ -4754,7 +5409,6 @@
           panelTitle = "🏫 Organisation de l'EPS dans l'établissement";
           const ORG_CARDS = [
             { id: "orgPeriodes",  icon: "📅", label: "Périodes",                          sub: "Définir les périodes de l'année" },
-            { id: "orgCreneaux",  icon: "🕐", label: "Créneaux des classes",              sub: "Emploi du temps hebdomadaire" },
             { id: "orgApsa",      icon: "🏃", label: "APSA & séquences",                  sub: "Activités par classe et période" },
             { id: "orgLieux",     icon: "📍", label: "Lieux de pratique",                  sub: "Gymnase, stade, piscine…" },
             { id: "orgProg",      icon: "📋", label: "Programmation de l'établissement",   sub: "Document PDF de référence" },
@@ -4771,10 +5425,6 @@
         case "orgPeriodes":
           panelTitle = "📅 Périodes";
           panel = viewPeriodsBody();
-          break;
-        case "orgCreneaux":
-          panelTitle = "🕐 Créneaux des classes";
-          panel = viewScheduleBody();
           break;
         case "orgApsa":
           panelTitle = "🏃 APSA & séquences";
@@ -4944,6 +5594,10 @@
           classSelectedPeriod[classId] = val === "__all__" ? null : val;
           render();
         }
+      });
+      main.querySelector("#advanced-apsa-class-select")?.addEventListener("change", (e) => {
+        advancedApsaClassId = e.target.value || "";
+        render();
       });
       main.querySelectorAll(".btn-activity-participation").forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -5289,27 +5943,34 @@
         });
       });
       main.querySelector("#btn-add-period")?.addEventListener("click", () => {
-        const classCheckboxes = appData.classes.map((c) =>
+        const levelCheckboxes = CLASS_LEVELS.map((level) =>
           `<label style="display:inline-flex;align-items:center;gap:.3rem;margin-right:.75rem;font-size:.85rem;cursor:pointer">
-            <input type="checkbox" class="period-class-cb" value="${c.id}" />
-            <span class="legend-dot" style="background:${c.color}"></span>${escapeHtml(c.name)}
+            <input type="checkbox" class="period-level-cb" value="${level}" />
+            <span class="legend-dot" style="background:${levelColor(level)}"></span>${escapeHtml(level)}
           </label>`
         ).join("");
+        const lastPeriod = (appData.periods || [])
+          .filter((p) => p.endDate)
+          .slice()
+          .sort((a, b) => b.endDate.localeCompare(a.endDate))[0];
+        const defaultStart = lastPeriod ? fmtISODate(addDays(parseISODate(lastPeriod.endDate), 1)) : "";
         const body = el(`<div>
           <div class="form-group"><label>Nom de la période</label><input id="f-per-name" placeholder="Période 1" /></div>
           <div class="form-row">
-            <div class="form-group"><label>Date de début</label><input type="date" id="f-per-start" /></div>
+            <div class="form-group"><label>Date de début</label><input type="date" id="f-per-start" value="${defaultStart}" /></div>
             <div class="form-group"><label>Date de fin</label><input type="date" id="f-per-end" /></div>
           </div>
-          <div class="form-group"><label>Classes concernées</label><div id="f-per-classes" style="display:flex;flex-wrap:wrap;gap:.25rem .5rem;margin-top:.35rem">${classCheckboxes}</div></div>
+          <div class="form-group"><label>Niveaux concernés</label><div id="f-per-levels" style="display:flex;flex-wrap:wrap;gap:.25rem .5rem;margin-top:.35rem">${levelCheckboxes}</div></div>
         </div>`);
         openModal("Nouvelle période", body, () => {
           const name = body.querySelector("#f-per-name").value.trim();
           const startDate = body.querySelector("#f-per-start").value;
           const endDate = body.querySelector("#f-per-end").value;
           if (!name || !startDate || !endDate) return;
-          const classIds = [...body.querySelectorAll(".period-class-cb:checked")].map((cb) => cb.value);
-          appData.periods.push({ id: uid(), name, startDate, endDate, classIds });
+          const levels = [...body.querySelectorAll(".period-level-cb:checked")].map((cb) => cb.value);
+          const classIds = appData.classes.filter((cl) => levels.includes(classLevel(cl))).map((cl) => cl.id);
+          appData.periods.push({ id: uid(), name, startDate, endDate, levels, classIds });
+          regenerateSessions();
           saveData();
           render();
         });
@@ -5319,10 +5980,11 @@
           const pid = b.getAttribute("data-id");
           const p = appData.periods.find((x) => x.id === pid);
           if (!p) return;
-          const classCheckboxes = appData.classes.map((c) =>
+          const selectedLevels = periodLevels(p);
+          const levelCheckboxes = CLASS_LEVELS.map((level) =>
             `<label style="display:inline-flex;align-items:center;gap:.3rem;margin-right:.75rem;font-size:.85rem;cursor:pointer">
-              <input type="checkbox" class="period-class-cb" value="${c.id}" ${(p.classIds || []).includes(c.id) ? "checked" : ""} />
-              <span class="legend-dot" style="background:${c.color}"></span>${escapeHtml(c.name)}
+              <input type="checkbox" class="period-level-cb" value="${level}" ${selectedLevels.includes(level) ? "checked" : ""} />
+              <span class="legend-dot" style="background:${levelColor(level)}"></span>${escapeHtml(level)}
             </label>`
           ).join("");
           const body = el(`<div>
@@ -5331,7 +5993,7 @@
               <div class="form-group"><label>Date de début</label><input type="date" id="f-per-start" value="${p.startDate}" /></div>
               <div class="form-group"><label>Date de fin</label><input type="date" id="f-per-end" value="${p.endDate}" /></div>
             </div>
-            <div class="form-group"><label>Classes concernées</label><div id="f-per-classes" style="display:flex;flex-wrap:wrap;gap:.25rem .5rem;margin-top:.35rem">${classCheckboxes}</div></div>
+            <div class="form-group"><label>Niveaux concernés</label><div id="f-per-levels" style="display:flex;flex-wrap:wrap;gap:.25rem .5rem;margin-top:.35rem">${levelCheckboxes}</div></div>
           </div>`);
           openModal("Modifier la période", body, () => {
             const name = body.querySelector("#f-per-name").value.trim();
@@ -5341,7 +6003,9 @@
             p.name = name;
             p.startDate = startDate;
             p.endDate = endDate;
-            p.classIds = [...body.querySelectorAll(".period-class-cb:checked")].map((cb) => cb.value);
+            p.levels = [...body.querySelectorAll(".period-level-cb:checked")].map((cb) => cb.value);
+            p.classIds = appData.classes.filter((cl) => p.levels.includes(classLevel(cl))).map((cl) => cl.id);
+            regenerateSessions();
             saveData();
             render();
           });
@@ -5352,29 +6016,205 @@
           const pid = b.getAttribute("data-id");
           if (confirm("Supprimer cette période ?")) {
             appData.periods = appData.periods.filter((x) => x.id !== pid);
+            regenerateSessions();
             saveData();
             render();
           }
         });
       });
+      main.querySelectorAll(".btn-level-ca-add-apsa").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const level = btn.getAttribute("data-level");
+          const ca = btn.getAttribute("data-ca");
+          if (!level || !ca) return;
+          const body = el(`<div>
+            <div class="form-group"><label>Nom de l'APSA</label><input id="f-level-apsa-name" placeholder="Badminton" /></div>
+          </div>`);
+          openModal(`Ajouter une APSA · ${level} · ${ca}`, body, () => {
+          const name = body.querySelector("#f-level-apsa-name").value.trim();
+          if (!name) return;
+          if (!appData.levelApsaNames || typeof appData.levelApsaNames !== "object") appData.levelApsaNames = {};
+          if (!Array.isArray(appData.levelApsaNames[level])) appData.levelApsaNames[level] = [];
+          if (!appData.levelApsaByCA || typeof appData.levelApsaByCA !== "object") appData.levelApsaByCA = {};
+          if (!appData.levelApsaByCA[level]) appData.levelApsaByCA[level] = {};
+          if (!Array.isArray(appData.levelApsaByCA[level][ca])) appData.levelApsaByCA[level][ca] = [];
+          if (!appData.levelApsaNames[level].some((x) => x.toLowerCase() === name.toLowerCase())) {
+            appData.levelApsaNames[level].push(name);
+            appData.levelApsaNames[level].sort((a, b) => a.localeCompare(b, "fr"));
+          }
+          if (!appData.levelApsaByCA[level][ca].some((x) => x.toLowerCase() === name.toLowerCase())) {
+            appData.levelApsaByCA[level][ca].push(name);
+            appData.levelApsaByCA[level][ca].sort((a, b) => a.localeCompare(b, "fr"));
+          }
+          saveData();
+          render();
+          });
+        });
+      });
+      main.querySelectorAll(".level-program-apsa").forEach((select) => {
+        select.addEventListener("change", () => {
+          const card = select.closest(".level-program-card");
+          applyLevelProgramming(card);
+        });
+      });
+      main.querySelectorAll(".level-program-venue").forEach((select) => {
+        select.addEventListener("change", () => {
+          const card = select.closest(".level-program-card");
+          applyLevelProgramming(card);
+        });
+      });
+      main.querySelectorAll(".level-program-slot-open").forEach((button) => {
+        button.addEventListener("click", () => {
+          const slotRow = button.closest(".level-program-slot");
+          const apsaSelect = slotRow ? slotRow.querySelector(".level-program-apsa") : null;
+          const venueSelect = slotRow ? slotRow.querySelector(".level-program-venue") : null;
+          if (!slotRow || !apsaSelect || !venueSelect) return;
+          const slotName = slotRow.querySelector(".level-program-slot-name")?.textContent || "Créneau";
+          const body = el(`<div>
+            <div class="form-group"><label>Créneau</label><div class="kpi-sub" style="padding:.55rem .65rem;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-elevated)">${escapeHtml(slotName)}</div></div>
+            <div class="form-group"><label>APSA</label><select id="f-program-apsa">${apsaSelect.innerHTML}</select></div>
+            <div class="form-group"><label>Installation sportive</label><select id="f-program-venue">${venueSelect.innerHTML}</select></div>
+          </div>`);
+          body.querySelector("#f-program-apsa").value = apsaSelect.value;
+          body.querySelector("#f-program-venue").value = venueSelect.value;
+          openModal("Programmer le créneau", body, () => {
+            apsaSelect.value = body.querySelector("#f-program-apsa").value;
+            venueSelect.value = body.querySelector("#f-program-venue").value;
+            applyLevelProgramming(button.closest(".level-program-card"));
+          });
+        });
+      });
       main.querySelector("#btn-add-class")?.addEventListener("click", () => {
-        const body = el(`<div>
-          <div class="form-group"><label>Nom de classe</label><input id="f-name" placeholder="6e1" /></div>
-          <div class="form-row">
-            <div class="form-group"><label>Couleur</label><input type="color" id="f-color" value="#6366f1" /></div>
-            <div class="form-group"><label>Effectif</label><input type="number" id="f-en" value="25" min="1" /></div>
-          </div>
-          <div class="form-group"><label>Cycle</label><select id="f-cy"><option value="3">Cycle 3</option><option value="4">Cycle 4</option></select></div>
+        const slotRowHtml = () => `<div class="class-create-slot">
+          <div class="form-group"><label>Jour</label><select class="f-class-slot-day">${DOW.map((d, i) => `<option value="${i}">${d}</option>`).join("")}</select></div>
+          <div class="form-group"><label>Début</label><input type="time" class="f-class-slot-start" value="10:00" /></div>
+          <div class="form-group"><label>Fin</label><input type="time" class="f-class-slot-end" value="12:00" /></div>
+          <div class="form-group"><label>Alternance</label><select class="f-class-slot-week">
+              <option value="all">Toutes les semaines</option>
+              <option value="A">Semaine A</option>
+              <option value="B">Semaine B</option>
+          </select></div>
+          <button type="button" class="btn btn-sm btn-danger btn-remove-class-slot" title="Supprimer ce créneau">×</button>
+        </div>`;
+        const body = el(`<div class="class-create-form">
+          <section class="class-create-section">
+            <div class="class-create-section__title">
+              <strong>Identité de la classe</strong>
+              <span>Configuration principale</span>
+            </div>
+            <div class="class-create-grid">
+              <div class="form-group"><label>Nom</label><input id="f-name" placeholder="6e1" /></div>
+              <div class="form-group"><label>Couleur</label><input type="color" id="f-color" value="#6366f1" /></div>
+              <div class="form-group"><label>Effectif</label><input type="number" id="f-en-manual" value="25" min="0" /></div>
+              <div class="form-group"><label>Niveau</label><select id="f-level">${levelOptionsHtml("6e")}</select></div>
+            </div>
+            <p class="kpi-sub" style="margin-top:.45rem">L'effectif manuel est utilisé tant qu'aucune liste d'élèves n'est ajoutée.</p>
+          </section>
+          <section class="class-create-section">
+            <div class="class-create-section__title">
+              <strong>Liste des élèves</strong>
+              <span>Manuel ou CSV</span>
+            </div>
+            <div style="display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap">
+              <div class="form-group" style="flex:1;min-width:10rem"><label>Ajouter un élève</label><input id="f-add-student" placeholder="Prénom" /></div>
+              <button type="button" class="btn btn-sm btn-primary" id="btn-add-student-manual" style="margin-bottom:.35rem">+ Ajouter</button>
+            </div>
+            <div class="form-group" style="margin-top:.5rem"><label>Ou importer un fichier CSV</label><input type="file" accept=".csv,text/csv,text/comma-separated-values,application/csv,application/vnd.ms-excel" id="f-csv-import" /></div>
+            <div id="f-students-list" style="margin-top:.5rem;max-height:200px;overflow-y:auto"></div>
+          </section>
+          <section class="class-create-section">
+            <div class="class-create-section__title">
+              <strong>Créneaux hebdomadaires</strong>
+              <span>Une ligne par créneau</span>
+            </div>
+            <p class="kpi-sub" style="margin:-.25rem 0 .6rem">L'installation sera définie ensuite selon l'APSA et la période.</p>
+            <div id="f-class-slots" class="class-create-slots">${slotRowHtml()}</div>
+            <button type="button" class="btn btn-sm btn-ghost" id="btn-add-class-slot">+ Ajouter un créneau</button>
+          </section>
         </div>`);
+        const wireClassSlotRows = () => {
+          body.querySelectorAll(".btn-remove-class-slot").forEach((btn) => {
+            btn.onclick = () => {
+              const rows = body.querySelectorAll(".class-create-slot");
+              if (rows.length <= 1) return;
+              btn.closest(".class-create-slot")?.remove();
+            };
+          });
+        };
+        body.querySelector("#btn-add-class-slot").addEventListener("click", () => {
+          body.querySelector("#f-class-slots").insertAdjacentHTML("beforeend", slotRowHtml());
+          wireClassSlotRows();
+        });
+        wireClassSlotRows();
+        const studentsList = [];
+        const renderStudentsList = () => {
+          const container = body.querySelector("#f-students-list");
+          if (!studentsList.length) { container.innerHTML = '<p class="kpi-sub">Aucun élève importé.</p>'; return; }
+          container.innerHTML = studentsList.map((name, i) =>
+            `<div style="display:flex;align-items:center;justify-content:space-between;padding:.25rem 0;border-bottom:1px solid var(--border)">
+              <span style="font-size:.85rem">${escapeHtml(name)}</span>
+              <button type="button" class="btn btn-sm btn-danger btn-rm-student" data-idx="${i}" style="padding:.1rem .35rem;font-size:.7rem">✕</button>
+            </div>`
+          ).join("");
+          container.querySelectorAll(".btn-rm-student").forEach((btn) => {
+            btn.addEventListener("click", () => { studentsList.splice(parseInt(btn.getAttribute("data-idx"), 10), 1); renderStudentsList(); });
+          });
+        };
+        renderStudentsList();
+        body.querySelector("#btn-add-student-manual").addEventListener("click", () => {
+          const inp = body.querySelector("#f-add-student");
+          const name = inp.value.trim();
+          if (!name) return;
+          studentsList.push(name);
+          inp.value = "";
+          renderStudentsList();
+        });
+        body.querySelector("#f-csv-import").addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            const text = String(reader.result || "").replace(/^\uFEFF/, "");
+            const skipHeaders = ["prénom","prenom","nom","name","élève","eleve","firstname","lastname","étudiant"];
+            const lines = text.split(/\r?\n/)
+              .map((l) => l.split(/[;,\t]/)[0].replace(/^["']|["']$/g, "").trim())
+              .filter(Boolean)
+              .filter((l) => !skipHeaders.includes(l.toLowerCase()));
+            if (lines.length) {
+              studentsList.length = 0;
+              lines.forEach((l) => studentsList.push(l));
+              renderStudentsList();
+            }
+          };
+          reader.readAsText(file);
+        });
         openModal("Nouvelle classe", body, () => {
           const name = body.querySelector("#f-name").value.trim();
           if (!name) return;
+          const classId = uid();
           appData.classes.push({
-            id: uid(),
+            id: classId,
             name,
             color: body.querySelector("#f-color").value,
-            enrollment: +body.querySelector("#f-en").value || 25,
-            cycleYears: +body.querySelector("#f-cy").value,
+            enrollment: studentsList.length ? studentsList.length : (+body.querySelector("#f-en-manual").value || 0),
+            students: studentsList.slice(),
+            level: body.querySelector("#f-level").value,
+            cycleYears: body.querySelector("#f-level").value === "6e" ? 3 : 4,
+          });
+          body.querySelectorAll(".class-create-slot").forEach((row) => {
+            const startTime = row.querySelector(".f-class-slot-start").value;
+            const endTime = row.querySelector(".f-class-slot-end").value;
+            if (!startTime || !endTime) return;
+            appData.schedules.push({
+              id: uid(),
+              classId,
+              dayIndex: +row.querySelector(".f-class-slot-day").value,
+              startTime,
+              endTime,
+              venue: "",
+              frequency: 1,
+              weekParity: row.querySelector(".f-class-slot-week").value || "all",
+            });
           });
           regenerateSessions();
           saveData();
@@ -5387,22 +6227,68 @@
           const cl = getClassById(id);
           if (!cl) return;
           if (!Array.isArray(cl.students)) cl.students = [];
-          const body = el(`<div>
-            <div class="form-group"><label>Nom</label><input id="f-name" value="${escapeHtml(cl.name)}" /></div>
-            <div class="form-row">
-              <div class="form-group"><label>Couleur</label><input type="color" id="f-color" value="${cl.color}" /></div>
-              <div class="form-group"><label>Effectif</label><input type="number" id="f-en" value="${cl.enrollment}" /></div>
-            </div>
-            <div class="form-group"><label>Cycle</label><select id="f-cy"><option value="3" ${cl.cycleYears === 3 ? "selected" : ""}>Cycle 3</option><option value="4" ${cl.cycleYears === 4 ? "selected" : ""}>Cycle 4</option></select></div>
-            <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
-            <p style="font-weight:700;margin-bottom:.5rem">Liste des élèves</p>
-            <div style="display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap">
-              <div class="form-group" style="flex:1;min-width:10rem"><label>Ajouter un élève</label><input id="f-add-student" placeholder="Prénom" /></div>
-              <button type="button" class="btn btn-sm btn-primary" id="btn-add-student-manual" style="margin-bottom:.35rem">+ Ajouter</button>
-            </div>
-            <div class="form-group" style="margin-top:.5rem"><label>Ou importer un fichier CSV</label><input type="file" accept=".csv,text/csv,text/comma-separated-values,application/csv,application/vnd.ms-excel" id="f-csv-import" /></div>
-            <div id="f-students-list" style="margin-top:.5rem;max-height:200px;overflow-y:auto"></div>
+          const slotRowHtml = (slot = {}) => `<div class="class-create-slot">
+            <div class="form-group"><label>Jour</label><select class="f-class-slot-day">${DOW.map((d, i) => `<option value="${i}" ${Number(slot.dayIndex) === i ? "selected" : ""}>${d}</option>`).join("")}</select></div>
+            <div class="form-group"><label>Début</label><input type="time" class="f-class-slot-start" value="${escapeHtml(slot.startTime || "10:00")}" /></div>
+            <div class="form-group"><label>Fin</label><input type="time" class="f-class-slot-end" value="${escapeHtml(slot.endTime || "12:00")}" /></div>
+            <div class="form-group"><label>Alternance</label><select class="f-class-slot-week">
+              <option value="all" ${(slot.weekParity || "all") === "all" ? "selected" : ""}>Toutes les semaines</option>
+              <option value="A" ${slot.weekParity === "A" ? "selected" : ""}>Semaine A</option>
+              <option value="B" ${slot.weekParity === "B" ? "selected" : ""}>Semaine B</option>
+            </select></div>
+            <button type="button" class="btn btn-sm btn-danger btn-remove-class-slot" title="Supprimer ce créneau">×</button>
+          </div>`;
+          const existingSlots = schedulesForClass(cl.id).slice().sort((a, b) => a.dayIndex - b.dayIndex || a.startTime.localeCompare(b.startTime));
+          const body = el(`<div class="class-create-form">
+            <section class="class-create-section">
+              <div class="class-create-section__title">
+                <strong>Identité de la classe</strong>
+                <span>Configuration principale</span>
+              </div>
+              <div class="class-create-grid">
+                <div class="form-group"><label>Nom</label><input id="f-name" value="${escapeHtml(cl.name)}" /></div>
+                <div class="form-group"><label>Couleur</label><input type="color" id="f-color" value="${cl.color}" /></div>
+                <div class="form-group"><label>Effectif</label><input type="number" id="f-en-manual" value="${classEnrollment(cl)}" min="0" /></div>
+                <div class="form-group"><label>Niveau</label><select id="f-level">${levelOptionsHtml(classLevel(cl))}</select></div>
+              </div>
+              <p class="kpi-sub" style="margin-top:.45rem">L'effectif manuel est utilisé tant qu'aucune liste d'élèves n'est ajoutée.</p>
+            </section>
+            <section class="class-create-section">
+              <div class="class-create-section__title">
+                <strong>Liste des élèves</strong>
+                <span>Manuel ou CSV</span>
+              </div>
+              <div style="display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap">
+                <div class="form-group" style="flex:1;min-width:10rem"><label>Ajouter un élève</label><input id="f-add-student" placeholder="Prénom" /></div>
+                <button type="button" class="btn btn-sm btn-primary" id="btn-add-student-manual" style="margin-bottom:.35rem">+ Ajouter</button>
+              </div>
+              <div class="form-group" style="margin-top:.5rem"><label>Ou importer un fichier CSV</label><input type="file" accept=".csv,text/csv,text/comma-separated-values,application/csv,application/vnd.ms-excel" id="f-csv-import" /></div>
+              <div id="f-students-list" style="margin-top:.5rem;max-height:200px;overflow-y:auto"></div>
+            </section>
+            <section class="class-create-section">
+              <div class="class-create-section__title">
+                <strong>Créneaux hebdomadaires</strong>
+                <span>Une ligne par créneau</span>
+              </div>
+              <p class="kpi-sub" style="margin:-.25rem 0 .6rem">L'installation sera définie ensuite selon l'APSA et la période.</p>
+              <div id="f-class-slots" class="class-create-slots">${(existingSlots.length ? existingSlots : [{}]).map((slot) => slotRowHtml(slot)).join("")}</div>
+              <button type="button" class="btn btn-sm btn-ghost" id="btn-add-class-slot">+ Ajouter un créneau</button>
+            </section>
           </div>`);
+          const wireClassSlotRows = () => {
+            body.querySelectorAll(".btn-remove-class-slot").forEach((btn) => {
+              btn.onclick = () => {
+                const rows = body.querySelectorAll(".class-create-slot");
+                if (rows.length <= 1) return;
+                btn.closest(".class-create-slot")?.remove();
+              };
+            });
+          };
+          body.querySelector("#btn-add-class-slot").addEventListener("click", () => {
+            body.querySelector("#f-class-slots").insertAdjacentHTML("beforeend", slotRowHtml());
+            wireClassSlotRows();
+          });
+          wireClassSlotRows();
           const studentsList = cl.students.slice();
           const renderStudentsList = () => {
             const container = body.querySelector("#f-students-list");
@@ -5448,9 +6334,27 @@
           openModal("Modifier classe", body, () => {
             cl.name = body.querySelector("#f-name").value.trim() || cl.name;
             cl.color = body.querySelector("#f-color").value;
-            cl.enrollment = +body.querySelector("#f-en").value || cl.enrollment;
-            cl.cycleYears = +body.querySelector("#f-cy").value;
+            cl.level = body.querySelector("#f-level").value;
+            cl.cycleYears = cl.level === "6e" ? 3 : 4;
             cl.students = studentsList.slice();
+            cl.enrollment = cl.students.length ? cl.students.length : (+body.querySelector("#f-en-manual").value || 0);
+            appData.schedules = appData.schedules.filter((slot) => slot.classId !== cl.id);
+            body.querySelectorAll(".class-create-slot").forEach((row) => {
+              const startTime = row.querySelector(".f-class-slot-start").value;
+              const endTime = row.querySelector(".f-class-slot-end").value;
+              if (!startTime || !endTime) return;
+              appData.schedules.push({
+                id: uid(),
+                classId: cl.id,
+                dayIndex: +row.querySelector(".f-class-slot-day").value,
+                startTime,
+                endTime,
+                venue: "",
+                frequency: 1,
+                weekParity: row.querySelector(".f-class-slot-week").value || "all",
+              });
+            });
+            regenerateSessions();
             saveData();
             render();
           });
@@ -5501,7 +6405,6 @@
             <div class="form-group"><label>Jour</label><select id="f-day">${DOW.map((d, i) => `<option value="${i}">${d}</option>`).join("")}</select></div>
             <div class="form-row"><div class="form-group"><label>Début</label><input type="time" id="f-st" value="10:00" /></div>
             <div class="form-group"><label>Fin</label><input type="time" id="f-en" value="12:00" /></div></div>
-            <div class="form-group"><label>Installation</label><input id="f-ve" placeholder="Gymnase" /></div>
             <div class="form-group"><label>Alternance</label><select id="f-wp">
               <option value="all">Toutes les semaines</option>
               <option value="A">Semaine A uniquement</option>
@@ -5515,7 +6418,7 @@
               dayIndex: +body.querySelector("#f-day").value,
               startTime: body.querySelector("#f-st").value,
               endTime: body.querySelector("#f-en").value,
-              venue: body.querySelector("#f-ve").value || "Salle",
+              venue: "",
               frequency: 1,
               weekParity: body.querySelector("#f-wp").value || "all",
             });
@@ -6070,8 +6973,10 @@
     }
 
     function init() {
-      if (!loadData()) seedDemo();
-      else {
+      if (!loadData()) {
+        migrateDataModel();
+        saveData();
+      } else {
         if (!appData.settings) appData.settings = { schoolYearStart: "2025-09-01", schoolYearEnd: "2026-07-05", zone: "C" };
         regenerateSessions();
       }
