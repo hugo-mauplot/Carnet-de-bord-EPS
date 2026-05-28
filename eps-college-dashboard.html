@@ -163,23 +163,41 @@
       width: 100%;
     }
     .dash-date-nav {
-      display: flex;
+      display: grid;
+      grid-template-columns: 2.35rem 1fr 2.35rem;
       align-items: center;
-      justify-content: space-between;
-      gap: 0.4rem;
+      gap: 0.35rem;
       width: 100%;
       margin-bottom: 0.35rem;
       padding: 0 0.1rem;
       box-sizing: border-box;
     }
-    .dash-date-nav__main {
-      flex: 1;
+    .dash-date-nav__side {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .dash-date-nav__side--left {
+      justify-content: flex-start;
+    }
+    .dash-date-nav__side--right {
+      justify-content: flex-end;
+    }
+    .dash-date-nav__center {
       min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+    }
+    .dash-date-nav__date-row {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 0.35rem;
-      flex-wrap: nowrap;
+      width: 100%;
+      min-width: 0;
     }
     .dash-date-nav__arrow {
       flex-shrink: 0;
@@ -193,24 +211,37 @@
       border-radius: var(--radius-sm);
     }
     .dash-date-label {
-      flex: 0 1 auto;
+      flex: 1 1 auto;
       min-width: 0;
-      font-size: clamp(0.95rem, 3.8vw, 1.65rem);
-      font-weight: 800;
+      width: auto;
       margin: 0;
+      font-size: clamp(1rem, 4vw, 1.65rem);
+      font-weight: 800;
       letter-spacing: -0.02em;
       color: var(--text);
       text-align: center;
-      line-height: 1.2;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      line-height: 1.25;
+      white-space: normal;
     }
     .dash-date-nav__today {
       flex-shrink: 0;
       font-size: 0.78rem;
       padding: 0.28rem 0.55rem;
       white-space: nowrap;
+    }
+    .dash-date-nav__side .btn-help,
+    .dash-date-nav__side .btn-reminder-icon {
+      width: 2.1rem;
+      height: 2.1rem;
+      min-width: 36px;
+      min-height: 36px;
+    }
+    .dash-date-nav__side .btn-help svg {
+      width: 15px;
+      height: 15px;
+    }
+    .dash-date-nav__side .btn-reminder-icon {
+      font-size: 0.95rem;
     }
     .dash-weather {
       display: flex;
@@ -236,11 +267,18 @@
       font-weight: 700;
     }
     [data-theme="light"] .dash-weather-line .weather-temp { color: #0284c7; }
-    .dash-date-nav-tools {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.28rem;
-      flex-shrink: 0;
+    @media (min-width: 481px) {
+      .dash-date-nav__center {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        column-gap: 0.5rem;
+        row-gap: 0.3rem;
+      }
+      .dash-date-nav__date-row {
+        width: auto;
+        flex: 0 1 auto;
+      }
     }
     .dash-reminders-zone {
       display: flex;
@@ -1066,11 +1104,14 @@
         padding-top: max(0.85rem, calc(0.85rem + env(safe-area-inset-top, 0px)));
       }
       .dash-date-nav {
+        grid-template-columns: 2.25rem 1fr 2.25rem;
         gap: 0.3rem;
-        padding: 0.35rem 0.15rem;
+        padding: 0.4rem 0.15rem;
       }
-      .dash-date-nav__main {
-        gap: 0.25rem;
+      .dash-date-label {
+        font-size: 1.06rem;
+        line-height: 1.3;
+        padding: 0 0.15rem;
       }
       .dash-date-nav__arrow {
         width: 1.85rem;
@@ -1079,40 +1120,17 @@
         min-height: 36px;
         font-size: 0.9rem;
       }
-      .dash-date-nav-tools .btn-help,
-      .dash-date-nav-tools .btn-calendar-icon,
-      .dash-date-nav-tools .btn-reminder-icon,
-      .dash-date-nav-tools .btn-regen-icon {
+      .dash-date-nav__side .btn-help,
+      .dash-date-nav__side .btn-reminder-icon {
         width: 2rem;
         height: 2rem;
-        min-width: 36px;
-        min-height: 36px;
-      }
-      .dash-date-nav-tools .btn-help {
-        width: 2rem;
-        height: 2rem;
-      }
-      .dash-date-nav-tools .btn-help svg {
-        width: 14px;
-        height: 14px;
-      }
-      .dash-date-nav-tools .btn-calendar-icon,
-      .dash-date-nav-tools .btn-reminder-icon {
-        font-size: 0.88rem;
-      }
-      .dash-date-nav-tools .btn-regen-icon {
-        font-size: 1.05rem;
-      }
-      .dash-date-label {
-        font-size: 0.92rem;
-        max-width: 11.5rem;
       }
       .dash-date-nav__today {
-        font-size: 0.68rem;
-        padding: 0.22rem 0.42rem;
+        font-size: 0.72rem;
+        padding: 0.24rem 0.5rem;
       }
       .dash-date-nav--today {
-        padding: 0.35rem 0.5rem;
+        padding: 0.4rem 0.55rem;
       }
       .dash-reminder-banner {
         font-size: 0.76rem;
@@ -8120,13 +8138,10 @@
           </article>`;
         })
         .join("");
-      const dashDateCompact =
-        typeof window !== "undefined" &&
-        window.matchMedia("(max-width: 480px) and (orientation: portrait)").matches;
       const dateLong = dashboardDate.toLocaleDateString("fr-FR", {
-        weekday: dashDateCompact ? "short" : "long",
+        weekday: "long",
         day: "numeric",
-        month: dashDateCompact ? "short" : "long",
+        month: "long",
         year: "numeric",
       });
       const dateCapitalized = dateLong.charAt(0).toUpperCase() + dateLong.slice(1);
@@ -8135,17 +8150,18 @@
       return `
         ${appStorageIsMemory ? `<div class="card" style="margin-bottom:1rem;padding:.75rem 1rem;background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.35);font-size:.85rem;line-height:1.45"><strong>Mode fichier (AirDrop / Fichiers)</strong> — Safari ne peut pas enregistrer en local sur cette page. Vos saisies restent tant que l’onglet est ouvert ; pensez à <strong>Réglages → Sauvegarde → Export JSON</strong> pour garder une copie.</div>` : ""}
         <div class="dash-date-nav${isToday ? " dash-date-nav--today" : ""}">
-          <div class="dash-date-nav__main">
-            <button type="button" class="btn btn-sm btn-ghost dash-date-nav__arrow" id="dash-prev-day" aria-label="Jour précédent">◀</button>
-            <p class="dash-date-label${isToday ? " dash-date-label--today" : ""}" id="dash-date-pick" role="button" tabindex="0" aria-label="Choisir une date" style="cursor:pointer">${escapeHtml(dateCapitalized)}</p>
-            <button type="button" class="btn btn-sm btn-ghost dash-date-nav__arrow" id="dash-next-day" aria-label="Jour suivant">▶</button>
+          <div class="dash-date-nav__side dash-date-nav__side--left no-print">${helpButtonHtml()}</div>
+          <div class="dash-date-nav__center">
+            <div class="dash-date-nav__date-row">
+              <button type="button" class="btn btn-sm btn-ghost dash-date-nav__arrow" id="dash-prev-day" aria-label="Jour précédent">◀</button>
+              <p class="dash-date-label${isToday ? " dash-date-label--today" : ""}" id="dash-date-pick" role="button" tabindex="0" aria-label="Choisir une date" style="cursor:pointer">${escapeHtml(dateCapitalized)}</p>
+              <button type="button" class="btn btn-sm btn-ghost dash-date-nav__arrow" id="dash-next-day" aria-label="Jour suivant">▶</button>
+            </div>
             ${isToday ? "" : `<button type="button" class="btn btn-sm btn-ghost dash-date-nav__today" id="dash-today">Aujourd'hui</button>`}
           </div>
-          <span class="dash-date-nav-tools no-print">
+          <div class="dash-date-nav__side dash-date-nav__side--right no-print">
             <button type="button" class="btn-reminder-icon" id="btn-dash-reminder" title="Créer un rappel" aria-label="Créer un rappel">🔔</button>
-            ${helpButtonHtml()}
-            <button type="button" class="btn-regen-icon" id="btn-regen" title="Régénérer les séances" aria-label="Régénérer les séances">↻</button>
-          </span>
+          </div>
         </div>
         <div class="dash-weather dash-weather--compact no-print" id="weather-kpi" aria-live="polite">
           <span class="dash-weather-line" id="weather-line">🌤️ Roissy-en-Brie · … · Chargement…</span>
@@ -9500,7 +9516,7 @@
       const sectionsHtml =
         sections.length > 0
           ? sections.join("")
-          : `<div class="card"><p class="kpi-sub">${activePeriod ? "Aucune séance sur cette période." : "Aucune séance générée — renseignez l'emploi du temps et les APSA dans Réglages, puis « Régénérer les séances »."}</p></div>`;
+          : `<div class="card"><p class="kpi-sub">${activePeriod ? "Aucune séance sur cette période." : "Aucune séance générée — renseignez l'emploi du temps et les APSA dans Réglages (les séances se créent automatiquement à l'enregistrement)."}</p></div>`;
 
       return (
         renderTopbar(`${cl.name} — Séances`, "") +
@@ -9527,148 +9543,71 @@
         `<button type="button" class="tutorial-goto no-print" data-tuto-goto="${target}">${escapeHtml(label)} →</button>`;
       return `<div class="tutorial-guide">
         <div class="tutorial-hero">
-          <h2>Guide d'utilisation — Studio EPS Collège</h2>
-          <p class="kpi-sub" style="margin:0;line-height:1.55">Ce guide suit l'ordre logique d'une année scolaire : configuration une fois, puis usage quotidien depuis l'<strong>Accueil</strong> et les <strong>Classes</strong>. Les données sont enregistrées dans votre navigateur — pensez aux exports JSON.</p>
-          <nav class="tutorial-toc no-print" aria-label="Sommaire">
-            <a href="#tuto-principe">Principe</a>
-            <a href="#tuto-config">Configuration</a>
-            <a href="#tuto-quotidien">Quotidien</a>
-            <a href="#tuto-classe">Page classe</a>
-            <a href="#tuto-dispense">Dispenses</a>
-            <a href="#tuto-oublis">Oublis</a>
-            <a href="#tuto-cal">Calendrier</a>
-            <a href="#tuto-part">Participation</a>
-            <a href="#tuto-save">Sauvegarde</a>
-            <a href="#tuto-iphone">iPhone</a>
-          </nav>
+          <h2>Guide rapide</h2>
+          <p class="kpi-sub" style="margin:0;line-height:1.55">Tout est enregistré automatiquement. Exportez une copie JSON de temps en temps pour ne rien perdre.</p>
         </div>
 
         <details class="tutorial-section" id="tuto-principe" open>
-          <summary>1 · Principe de l'application</summary>
+          <summary>Les 3 écrans à retenir</summary>
           <div class="tutorial-section__body">
-            <p><strong>Studio EPS</strong> centralise votre suivi pédagogique : séances générées automatiquement à partir de l'emploi du temps, appels, résumés, PDF de séance, dispenses médicales, oublis de matériel, annulations et programmation de l'établissement.</p>
             <ul>
-              <li><strong>Accueil</strong> — vue du jour : cours, KPI, tâches, aperçu des 3 prochaines semaines.</li>
-              <li><strong>Classes</strong> — fiches par classe : toutes les séances, dispenses, oublis, participation par APSA.</li>
-              <li><strong>Réglages</strong> — configuration (classes, périodes, EDT, APSA, calendrier, sauvegarde) et ce guide.</li>
+              <li><strong>Accueil ⌂</strong> — votre journée : date, cours, rappels, association sportive.</li>
+              <li><strong>Classes 📚</strong> — suivi d'une classe (séances, dispenses, oublis).</li>
+              <li><strong>Réglages ⚙</strong> — configuration (une fois par an). ${goto("tools:home", "Ouvrir Réglages")}</li>
             </ul>
-            <p>Sur ordinateur, le menu latéral permet d'ouvrir directement une classe. Sur iPhone, utilisez la barre du bas.</p>
+            <p>iPhone : barre du bas · Ordinateur : menu à gauche.</p>
           </div>
         </details>
 
         <details class="tutorial-section" id="tuto-config">
-          <summary>2 · Configuration initiale (à faire une fois par année)</summary>
+          <summary>Première configuration (début d'année)</summary>
           <div class="tutorial-section__body">
-            <p>Suivez cet ordre : chaque étape alimente la suivante. Après toute modification structurelle, cliquez sur <strong>↻ Régénérer les séances</strong> (en haut de l'Accueil).</p>
+            <p>Dans l'ordre ci-dessous. Les séances se créent <strong>toutes seules</strong> à chaque enregistrement.</p>
             <ol class="tutorial-steps">
-              <li><strong>Année scolaire</strong> — dates de début et fin. ${goto("tools:backup", "Réglages → Sauvegarde")}</li>
-              <li><strong>Mes classes</strong> — créez chaque classe (nom, cycle, effectif, couleur) puis <strong>⚙️ → Élèves</strong> pour la liste des prénoms (indispensable pour l'appel et les listes déroulantes). ${goto("tools:classes", "Réglages → Mes classes")}</li>
-              <li><strong>Périodes</strong> — P1, P2, P3… avec dates et niveaux concernés. ${goto("tools:orgPeriodes", "Réglages → Périodes")}</li>
-              <li><strong>APSA & séquences</strong> — activités par classe, période, jours de cours, dates de début/fin. ${goto("tools:orgApsa", "Réglages → APSA")}</li>
-              <li><strong>Lieux de pratique</strong> — gymnase, stade, piscine… réutilisables dans les créneaux. ${goto("tools:orgLieux", "Réglages → Lieux")}</li>
-              <li><strong>Calendrier scolaire</strong> — vacances, fériés, journées banalisées ; bouton <em>Appliquer le calendrier officiel</em> selon votre zone. ${goto("tools:calendriers", "Réglages → Calendriers")}</li>
-              <li><strong>Régénérer les séances</strong> — bouton ↻ sur l'Accueil pour créer/mettre à jour toutes les séances de l'année. ${goto("dashboard", "Aller à l'Accueil")}</li>
-              <li><strong>Programmation EPS</strong> — déposez le PDF de l'établissement ; il sera consultable depuis l'Accueil. ${goto("tools:orgProg", "Réglages → Programmation")}</li>
+              <li><strong>Année scolaire</strong> — dates début / fin. ${goto("tools:backup", "Sauvegarde")}</li>
+              <li><strong>Classes + élèves</strong> — chaque classe, puis ⚙️ pour les prénoms. ${goto("tools:classes", "Mes classes")}</li>
+              <li><strong>Périodes</strong> — P1, P2, P3… ${goto("tools:orgPeriodes", "Périodes")}</li>
+              <li><strong>Emploi du temps</strong> — créneaux par classe. ${goto("tools:classes", "Mes classes")}</li>
+              <li><strong>APSA</strong> — activités et jours. ${goto("tools:orgApsa", "APSA")}</li>
+              <li><strong>Calendrier</strong> — vacances / fériés. ${goto("tools:calendriers", "Calendriers")}</li>
             </ol>
-            <div class="tutorial-tip"><strong>Astuce :</strong> sans périodes ni APSA sur la période du jour, l'Accueil affichera « Aucune APSA sur la période du jour » dans les cartes de séquences.</div>
           </div>
         </details>
 
         <details class="tutorial-section" id="tuto-quotidien">
-          <summary>3 · Routine quotidienne (Accueil)</summary>
+          <summary>Chaque jour sur l'Accueil</summary>
           <div class="tutorial-section__body">
-            <p>Ouvrez l'application le matin sur <strong>Accueil</strong> (⌂). ${goto("dashboard", "Accueil")}</p>
+            <p>${goto("dashboard", "Accueil")}</p>
             <ul>
-              <li><strong>Navigation par date</strong> — flèches ◀ ▶ pour préparer un autre jour ; bouton <em>Aujourd'hui</em> si vous avez navigué.</li>
-              <li><strong>4 indicateurs</strong> — séances du jour, élèves dispensés ayant cours, programmation EPS (Consulter), oublis de matériel répétés (seuil réglable via ⚙️ sur la carte).</li>
-              <li><strong>Cours du jour</strong> — liste cliquable : chaque ligne ouvre la fiche séance (résumé, appel, dispense, oubli, PDF). Badges : 📝 résumé, 📄 PDF, <em>3P 1A</em> = appel (Présents / Retards / Absents).</li>
-              <li><strong>Modifications EDT à venir</strong> — annulations et cours ajoutés sur les 3 prochaines semaines.</li>
-              <li><strong>À faire</strong> — liste de tâches personnelles (cocher / supprimer).</li>
-              <li><strong>Séquences en cours</strong> — avancement par classe et par APSA ; touchez une carte pour ouvrir la page classe.</li>
+              <li><strong>?</strong> à gauche — ce guide · <strong>🔔</strong> à droite — rappel.</li>
+              <li><strong>Date</strong> — touchez-la pour choisir un jour ; ◀ ▶ pour hier / demain.</li>
+              <li><strong>Cours du jour</strong> — touchez un cours : appel, résumé, dispense, oubli, PDF.</li>
+              <li>📝 résumé · 📄 PDF · <em>3P 1A</em> = 3 présents, 1 retard, 1 absent.</li>
             </ul>
           </div>
         </details>
 
         <details class="tutorial-section" id="tuto-classe">
-          <summary>4 · Page classe — séances, appel, résumé</summary>
+          <summary>Page classe & association sportive</summary>
           <div class="tutorial-section__body">
-            <p>Accédez via <strong>Classes</strong> ou une carte sur l'Accueil. ${goto("classes", "Onglet Classes")}</p>
+            <p>${goto("classes", "Classes")} · ${goto("tools:association", "Association sportive")}</p>
             <ul>
-              <li><strong>Sélecteur de période</strong> — filtre les tableaux par P1, P2… ou « Toutes les périodes ».</li>
-              <li><strong>Tableau des séances</strong> — une section par APSA : date, horaire, lieu, statut. Cliquez une ligne pour le <strong>résumé de séance</strong> : texte libre, <strong>appel</strong> (Présent / Retard / Absent, ou « Tous présents »), <strong>PDF de séance</strong> (joindre / plein écran).</li>
-              <li><strong>Annuler une séance</strong> — bouton sur les séances à venir ; choisissez le motif (pluie, gymnase, sortie…).</li>
-              <li><strong>+ Ajouter un cours</strong> — cours ponctuel hors EDT (remplacement, séance rattrapée) ; apparaît dans « Cours ajoutés — sans APSA ».</li>
+              <li>Cliquez une séance pour l'appel et le résumé.</li>
+              <li><strong>Annuler</strong> une séance à venir (pluie, gymnase…).</li>
+              <li>Dispenses et oublis : tableaux en haut de la page classe.</li>
             </ul>
-            <p>Le rappel <em>« Absents au cours précédent (même APSA) »</em> s'affiche dans les modales de séance pour ne pas oublier les élèves absents la dernière fois.</p>
-          </div>
-        </details>
-
-        <details class="tutorial-section" id="tuto-dispense">
-          <summary>5 · Dispenses médicales</summary>
-          <div class="tutorial-section__body">
-            <p><strong>Avec certificat</strong> — date du certificat + durée en jours ou date de fin ; la dispense couvre toute la plage sur les séances de la classe.</p>
-            <p><strong>Sans certificat</strong> — deux cas :</p>
-            <ul>
-              <li>Depuis <strong>Cours du jour</strong> (Accueil) : case cochée par défaut → dispense <strong>pour ce cours uniquement</strong> (un créneau précis).</li>
-              <li>Depuis la <strong>page classe → + Ajouter une dispense</strong> : case « journée uniquement » → tous les cours EPS de cet élève ce jour-là.</li>
-            </ul>
-            <p>Les dispensés actifs apparaissent discrètement en haut de la fiche séance (Accueil). Le KPI « Élèves dispensés » liste ceux qui ont cours le jour affiché.</p>
-            <p>Tableau <strong>Dispenses</strong> sur la page classe : statut En cours / Terminée, modifier ou supprimer.</p>
-          </div>
-        </details>
-
-        <details class="tutorial-section" id="tuto-oublis">
-          <summary>6 · Oublis de matériel</summary>
-          <div class="tutorial-section__body">
-            <p>Signalez un oubli (gourde, tenue, baskets) depuis la fiche <strong>Cours du jour</strong> ou <strong>page classe → + Ajouter un oubli</strong>.</p>
-            <p>Sur l'Accueil, la carte <strong>Oublis répétés</strong> alerte lorsqu'un élève dépasse le seuil (par défaut 3) sur la période en cours — réglable via ⚙️ sur la carte. Cliquez un nom pour ouvrir la classe concernée.</p>
-          </div>
-        </details>
-
-        <details class="tutorial-section" id="tuto-cal">
-          <summary>7 · Calendrier, annulations, statuts</summary>
-          <div class="tutorial-section__body">
-            <ul>
-              <li><strong>Calendrier scolaire</strong> — vacances et événements ; les séances concernées passent en statut adapté (vacances, férié, banalisé…). ${goto("tools:calendriers", "Calendriers")}</li>
-              <li><strong>Calendrier visuel</strong> — vue mois / semaine des séances colorées par statut.</li>
-              <li><strong>Annulation manuelle</strong> — depuis le tableau de séances d'une classe (motif + commentaire) ou depuis l'écran dédié dans Calendriers.</li>
-            </ul>
-            <p>Les séances <strong>effectuées</strong> (date passée, non annulées) alimentent les statistiques et la participation.</p>
-          </div>
-        </details>
-
-        <details class="tutorial-section" id="tuto-part">
-          <summary>8 · Participation des élèves (par APSA)</summary>
-          <div class="tutorial-section__body">
-            <p>Sur la page classe, bouton <strong>Participation des élèves aux séances</strong> sous chaque APSA.</p>
-            <p>Comptabilise les séances <strong>effectuées</strong> : comptées si présent ou en retard à l'appel ; exclues si absent ou dispensé. Si participation incomplète, le détail indique <em>Dispensé le …</em> et <em>Absent le …</em> avec les dates.</p>
           </div>
         </details>
 
         <details class="tutorial-section" id="tuto-save">
-          <summary>9 · Sauvegarde et transfert</summary>
+          <summary>Sauvegarder & iPhone</summary>
           <div class="tutorial-section__body">
-            <p>Les données vivent dans le <strong>navigateur</strong> pour l'adresse exacte du fichier (Safari, Chrome, serveur local, aperçu Cursor… sont des emplacements différents).</p>
+            <p>${goto("tools:backup", "Réglages → Sauvegarde")}</p>
             <ul>
-              <li><strong>Export JSON</strong> — copie de sauvegarde à conserver (cloud, clé USB, mail).</li>
-              <li><strong>Import JSON</strong> — restaurer sur un autre appareil ou navigateur.</li>
-              <li><strong>Reset</strong> — efface tout (à utiliser avec précaution).</li>
+              <li><strong>Export JSON</strong> — copie à garder (mail, iCloud…).</li>
+              <li><strong>Import JSON</strong> — restaure sur un autre appareil.</li>
             </ul>
-            ${goto("tools:backup", "Réglages → Sauvegarde")}
-            <div class="tutorial-tip"><strong>Mode fichier (iPhone / AirDrop) :</strong> si un bandeau jaune s'affiche sur l'Accueil, exportez régulièrement : les données peuvent disparaître à la fermeture de l'onglet.</div>
-          </div>
-        </details>
-
-        <details class="tutorial-section" id="tuto-iphone">
-          <summary>10 · Utilisation sur iPhone</summary>
-          <div class="tutorial-section__body">
-            <ol>
-              <li>Ajoutez la page à l'<strong>écran d'accueil</strong> (Safari → Partager → Sur l'écran d'accueil) pour un accès en une touche.</li>
-              <li>Travaillez en <strong>portrait</strong> : l'Accueil est optimisé (grille 2×2, cours du jour en priorité).</li>
-              <li>Chaque matin : Accueil → <strong>Cours du jour</strong> → appel + dispenses/oublis du créneau.</li>
-              <li>Export JSON hebdomadaire si vous ouvrez le fichier depuis Fichiers sans serveur local.</li>
-            </ol>
-            <p>Thème clair/sombre : menu ☰ (barre latérale) sur iPad ou ordinateur ; bouton en bas du menu latéral.</p>
+            <div class="tutorial-tip"><strong>iPhone :</strong> bandeau jaune = exportez souvent. Ajoutez l'app à l'écran d'accueil (Safari → Partager).</div>
           </div>
         </details>
       </div>`;
@@ -10000,10 +9939,6 @@
           else if (t === "classes") navigateTo("classes");
           else if (t && t.startsWith("tools:")) openToolsPanel(t.slice(6));
         });
-      });
-      main.querySelector("#btn-regen")?.addEventListener("click", () => {
-        regenerateSessions();
-        render();
       });
       main.querySelector("#btn-dash-calendar-card")?.addEventListener("click", () => {
         navigateTo("calendar:visual");
