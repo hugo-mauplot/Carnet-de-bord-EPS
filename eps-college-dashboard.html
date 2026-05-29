@@ -2135,10 +2135,62 @@
       background: var(--surface);
     }
     .table-fullscreen-view .as-admin-table,
-    .table-fullscreen-view .as-planning-table {
+    .table-fullscreen-view .as-planning-table,
+    .table-fullscreen-view .table--doc-fullscreen {
       width: max-content;
       min-width: 100%;
       font-size: 0.72rem;
+      border-collapse: collapse;
+    }
+    .table-fullscreen-view .table--doc-fullscreen {
+      display: table;
+    }
+    .table-fullscreen-view .table--doc-fullscreen thead {
+      display: table-header-group;
+    }
+    .table-fullscreen-view .table--doc-fullscreen tbody {
+      display: table-row-group;
+    }
+    .table-fullscreen-view .table--doc-fullscreen tr {
+      display: table-row;
+      margin: 0;
+      padding: 0;
+      border: none;
+      box-shadow: none;
+      background: transparent;
+    }
+    .table-fullscreen-view .table--doc-fullscreen th,
+    .table-fullscreen-view .table--doc-fullscreen td {
+      display: table-cell;
+      padding: 0.45rem 0.55rem;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    .table-fullscreen-view .table--doc-fullscreen td::before {
+      content: none;
+    }
+    .table-fullscreen-view .table--doc-fullscreen .session-interrupt-row td {
+      white-space: normal;
+    }
+    .table-fullscreen-note {
+      margin: 0 0 0.35rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+      flex-shrink: 0;
+    }
+    .table-wrap--tap-fullscreen {
+      cursor: pointer;
+      position: relative;
+    }
+    .table-wrap-hint--fullscreen {
+      display: none;
+      margin: 0.35rem 0 0;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-align: center;
+      line-height: 1.35;
     }
     .as-admin-table-wrap--tap-fullscreen,
     .as-planning-table-wrap--tap-fullscreen {
@@ -3566,8 +3618,12 @@
         white-space: normal;
       }
       .as-admin-table-hint,
-      .as-planning-table-hint {
+      .as-planning-table-hint,
+      .table-wrap-hint--fullscreen {
         display: block;
+      }
+      .table-wrap--tap-fullscreen {
+        cursor: pointer;
       }
       .as-admin-table-wrap,
       .as-planning-table-wrap {
@@ -4230,10 +4286,59 @@
   <div class="modal-backdrop" id="modal-root"></div>
 
   <script>
-    window.onerror = function(msg, src, line, col, err) {
+  (function () {
+    /** Ouverture via Fichiers / AirDrop (file://) — pas le lien Safari en ligne. */
+    window.__EPS_FILE_PROTOCOL =
+      location.protocol === "file:" || location.protocol === "applewebdata:" || location.origin === "null";
+    /** URL en ligne (à adapter si le dépôt GitHub change). */
+    window.__EPS_WEB_APP_URL = "https://mauplot.github.io/Test/eps-college-dashboard.html";
+
+    function showBootError(err, extra) {
       var m = document.getElementById("main");
-      if (m) m.innerHTML = "<div style='padding:2rem;color:red;font-size:1rem;word-break:break-all'><h2>Erreur JS</h2><p><b>" + msg + "</b></p><p>Ligne " + line + ", col " + col + "</p><pre style='white-space:pre-wrap'>" + (err && err.stack ? err.stack : "") + "</pre></div>";
+      if (!m) return;
+      var msg = err && err.message ? err.message : String(err || "Erreur inconnue");
+      var stack = err && err.stack ? err.stack : "";
+      var hint = extra || "";
+      if (msg === "Script error." && !stack) {
+        hint =
+          "Safari masque parfois le détail. Essayez : recharger la page, quitter le mode navigation privée, ou vider le cache du site.";
+      }
+      m.innerHTML =
+        "<div style='padding:1.25rem;color:#fecaca;font-size:.95rem;word-break:break-word;max-width:100%'>" +
+        "<h2 style='color:#f87171;margin:0 0 .75rem'>Erreur au chargement</h2>" +
+        "<p style='margin:0 0 .5rem'><b>" + msg + "</b></p>" +
+        (hint ? "<p style='margin:0 0 .75rem;color:#94a3b8;font-size:.85rem'>" + hint + "</p>" : "") +
+        (stack ? "<pre style='white-space:pre-wrap;font-size:.75rem;opacity:.9;margin:0'>" + stack + "</pre>" : "") +
+        "</div>";
+    }
+
+    /** iOS : la feuille « Partager » déclenche souvent un faux « Script error. » (ligne 0) — à ignorer. */
+    function isShareSheetNoise(msg, line, col, err) {
+      if (msg !== "Script error.") return false;
+      if (err && err.stack) return false;
+      return !line && !col;
+    }
+
+    window.onerror = function (msg, src, line, col, err) {
+      if (isShareSheetNoise(msg, line, col, err)) return true;
+      showBootError(err || { message: msg }, src ? "Source : " + src + " (" + line + ":" + col + ")" : "");
+      return true;
     };
+    window.addEventListener("unhandledrejection", function (e) {
+      var reason = e.reason;
+      if (reason && reason.message === "Script error.") return;
+      showBootError(reason, "Promesse rejetée");
+    });
+    window.isIOSBrowser = function () {
+      return (
+        /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+      );
+    };
+    window.isFileProtocol = function () {
+      return !!window.__EPS_FILE_PROTOCOL;
+    };
+  })();
   </script>
   <script>
     /**
@@ -4271,6 +4376,11 @@
     let appStorageIsMemory = false;
     function lsWorks() {
       if (lsUsable !== null) return lsUsable;
+      if (typeof isFileProtocol === "function" && isFileProtocol()) {
+        lsUsable = false;
+        appStorageIsMemory = true;
+        return false;
+      }
       try {
         if (typeof localStorage === "undefined" || !localStorage) {
           lsUsable = false;
@@ -4366,14 +4476,25 @@
     /* UTILITAIRES                                                                */
     /* -------------------------------------------------------------------------- */
 
+    function isFileProtocol() {
+      return typeof window.isFileProtocol === "function" && window.isFileProtocol();
+    }
+
     function uid() {
       try { if (crypto && crypto.randomUUID) return crypto.randomUUID(); } catch(e) {}
       return "id-" + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
     }
 
     function parseISODate(s) {
-      const [y, m, d] = s.split("-").map(Number);
-      return new Date(y, m - 1, d);
+      const raw = String(s || "").trim();
+      if (!raw) return new Date(NaN);
+      const parts = raw.split("-").map(Number);
+      if (parts.length < 3 || parts.some((n) => !Number.isFinite(n))) return new Date(NaN);
+      return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+
+    function isValidDate(d) {
+      return d instanceof Date && !isNaN(d.getTime());
     }
 
     function fmtISODate(d) {
@@ -6028,8 +6149,12 @@
     function regenerateSessions(opts) {
       opts = opts || {};
       migrateDataModel();
-      const start = parseISODate(appData.settings.schoolYearStart);
-      const end = parseISODate(appData.settings.schoolYearEnd);
+      if (!appData.settings || typeof appData.settings !== "object") {
+        appData.settings = { schoolYearStart: "2025-09-01", schoolYearEnd: "2026-07-05", zone: "C" };
+      }
+      const start = parseISODate(coerceISODateString(appData.settings.schoolYearStart));
+      const end = parseISODate(coerceISODateString(appData.settings.schoolYearEnd));
+      if (!isValidDate(start) || !isValidDate(end) || start > end) return;
       const oldCanc = appData.cancellations.slice();
       /** Ancienne séance par créneau (pour conserver appel, résumé, PDF après régénération). */
       const oldSessionByKey = new Map();
@@ -7167,6 +7292,7 @@
       refresh();
       const closeFullscreen = () => {
         calendarViewRefresh = null;
+        calendarDocFsDismissed = true;
         closeModal();
         render();
       };
@@ -7186,7 +7312,7 @@
           if (e.target.closest(".btn-cal-event-detail")) return;
           if (e.target.closest(".cal-cell--day, .cal-week-day--pick")) return;
           if (e.target.closest(".cal-nav-toolbar")) return;
-          if (!window.matchMedia("(max-width: 480px)").matches) return;
+          if (!prefersDocFullscreen()) return;
           e.preventDefault();
           e.stopPropagation();
           openFullscreenCalendar();
@@ -7371,41 +7497,21 @@
       };
     }
 
-    function openLandscapeTable(tableWrap) {
-      const root = document.getElementById("modal-root");
-      const table = tableWrap && tableWrap.querySelector("table");
-      if (!root || !table) return;
-      root.innerHTML = "";
-      root.classList.add("open");
-      const isAdminTable = tableWrap.classList.contains("as-admin-table-wrap");
-      const title = tableWrap.getAttribute("data-table-title") || "Tableau des séances";
-      const clone = table.cloneNode(true);
-      const landscapeNote = isAdminTable
-        ? "Tournez l'iPhone en paysage. Cases et textes modifiables comme sur le tableau principal."
-        : "Tournez l'iPhone en paysage pour consulter le tableau en entier.";
-      const wrap = el(`<div class="modal table-landscape-modal">
-        <div class="modal-header">
-          <button type="button" class="modal-close" aria-label="Fermer">×</button>
-          <h3 class="modal-title"></h3>
-        </div>
-        <p class="table-landscape-note">${escapeHtml(landscapeNote)}</p>
-        <div class="table-landscape-view"></div>
-      </div>`);
-      wrap.querySelector(".modal-title").textContent = title;
-      const landscapeView = wrap.querySelector(".table-landscape-view");
-      landscapeView.appendChild(clone);
-      if (isAdminTable) {
-        clone.classList.add("as-admin-table--landscape");
-        wireAssociationAdminCellEvents(landscapeView);
-        wireAssociationAdminDeleteStudentButtons(landscapeView);
-      }
-      clone.querySelectorAll(".btn-cancel-session, .btn-del-extra-session").forEach((button) => {
+    function wireFullscreenSessionTableClone(clone, landscapeView) {
+      clone.classList.add("table--doc-fullscreen");
+      clone.querySelectorAll(".btn-cancel-session, .btn-del-extra-session, .btn-remove-canc-row").forEach((button) => {
         button.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
           const sid = button.getAttribute("data-session-id");
-          const selector = button.classList.contains("btn-cancel-session") ? ".btn-cancel-session" : ".btn-del-extra-session";
-          const original = [...document.querySelectorAll(selector)].find((item) => item.getAttribute("data-session-id") === sid);
+          const cancId = button.getAttribute("data-canc-id");
+          let selector = ".btn-del-extra-session";
+          if (button.classList.contains("btn-cancel-session")) selector = ".btn-cancel-session";
+          if (button.classList.contains("btn-remove-canc-row")) selector = `.btn-remove-canc-row[data-canc-id="${cancId}"]`;
+          const original = [...document.querySelectorAll(selector)].find((item) => {
+            if (cancId) return item.getAttribute("data-canc-id") === cancId;
+            return item.getAttribute("data-session-id") === sid;
+          });
           closeModal();
           setTimeout(() => original?.click(), 0);
         });
@@ -7420,10 +7526,72 @@
           setTimeout(() => openSessionSummaryModal(s), 0);
         });
       });
-      wrap.querySelector(".modal-close").onclick = closeModal;
+    }
+
+    function openFullscreenGenericTable(tableWrap) {
+      const root = document.getElementById("modal-root");
+      const table = tableWrap && tableWrap.querySelector("table");
+      if (!root || !table) return;
+      root.innerHTML = "";
+      root.classList.add("open", "modal-backdrop--calendar-fullscreen");
+      const title = tableWrap.getAttribute("data-table-title") || "Tableau";
+      const clone = table.cloneNode(true);
+      const wrap = el(`<div class="modal table-fullscreen-modal">
+        <div class="modal-header">
+          <button type="button" class="modal-close" aria-label="Fermer">×</button>
+          <h3 class="modal-title">${escapeHtml(title)}</h3>
+        </div>
+        <p class="table-fullscreen-note no-print">Document plein écran · pincez pour zoomer · faites défiler</p>
+        <div class="table-fullscreen-view"></div>
+      </div>`);
+      const view = wrap.querySelector(".table-fullscreen-view");
+      view.appendChild(clone);
+      clone.classList.add("table--doc-fullscreen");
+      const closeFullscreen = () => {
+        closeModal();
+        render();
+      };
+      wrap.querySelector(".modal-close").onclick = closeFullscreen;
       root.appendChild(wrap);
       root.onclick = (e) => {
-        if (e.target === root) closeModal();
+        if (e.target === root) closeFullscreen();
+      };
+    }
+
+    function openLandscapeTable(tableWrap) {
+      const root = document.getElementById("modal-root");
+      const table = tableWrap && tableWrap.querySelector("table");
+      if (!root || !table) return;
+      root.innerHTML = "";
+      root.classList.add("open", "modal-backdrop--calendar-fullscreen");
+      const isAdminTable = tableWrap.classList.contains("as-admin-table-wrap");
+      const title = tableWrap.getAttribute("data-table-title") || "Tableau des séances";
+      const clone = table.cloneNode(true);
+      const wrap = el(`<div class="modal table-fullscreen-modal">
+        <div class="modal-header">
+          <button type="button" class="modal-close" aria-label="Fermer">×</button>
+          <h3 class="modal-title">${escapeHtml(title)}</h3>
+        </div>
+        <p class="table-fullscreen-note no-print">Document plein écran · touchez une ligne pour le résumé · boutons d'action actifs</p>
+        <div class="table-fullscreen-view"></div>
+      </div>`);
+      const landscapeView = wrap.querySelector(".table-fullscreen-view");
+      landscapeView.appendChild(clone);
+      if (isAdminTable) {
+        clone.classList.add("as-admin-table--landscape", "table--doc-fullscreen");
+        wireAssociationAdminCellEvents(landscapeView);
+        wireAssociationAdminDeleteStudentButtons(landscapeView);
+      } else {
+        wireFullscreenSessionTableClone(clone, landscapeView);
+      }
+      const closeFullscreen = () => {
+        closeModal();
+        render();
+      };
+      wrap.querySelector(".modal-close").onclick = closeFullscreen;
+      root.appendChild(wrap);
+      root.onclick = (e) => {
+        if (e.target === root) closeFullscreen();
       };
     }
 
@@ -7442,6 +7610,14 @@
     function prefersNativePdfViewer() {
       return isIOSDevice();
     }
+
+    /** iPhone / mobile : tableaux et calendrier en plein écran type document. */
+    function prefersDocFullscreen() {
+      if (isIOSDevice()) return true;
+      return window.matchMedia("(max-width: 768px)").matches;
+    }
+
+    let calendarDocFsDismissed = false;
 
     function dataUrlToBlobUrl(dataUrl) {
       const comma = dataUrl.indexOf(",");
@@ -9806,7 +9982,7 @@
       const isToday = fmtISODate(dashboardDate) === fmtISODate(new Date());
       const hasProgPdf = hasProgEtabPdf();
       return `
-        ${appStorageIsMemory ? `<div class="card" style="margin-bottom:1rem;padding:.75rem 1rem;background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.35);font-size:.85rem;line-height:1.45"><strong>Mode fichier (AirDrop / Fichiers)</strong> — Safari ne peut pas enregistrer en local sur cette page. Vos saisies restent tant que l’onglet est ouvert ; pensez à <strong>Réglages → Sauvegarde → Export JSON</strong> pour garder une copie.</div>` : ""}
+        ${appStorageIsMemory ? `<div class="card" style="margin-bottom:1rem;padding:.75rem 1rem;background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.35);font-size:.85rem;line-height:1.45">${isFileProtocol() ? `<strong>Fichier local (Partager → Fichiers / AirDrop)</strong> — Sur iPhone, ouvrez l’app via <strong>Safari</strong> et le lien en ligne plutôt qu’en ouvrant le fichier HTML enregistré.${window.__EPS_WEB_APP_URL ? ` <a href="${escapeHtml(window.__EPS_WEB_APP_URL)}" style="font-weight:700">Ouvrir la version en ligne</a>` : ""}<br><br>` : `<strong>Mode fichier (AirDrop / Fichiers)</strong> — `}Safari ne peut pas enregistrer vos données sur cette page. Exportez régulièrement via <strong>Réglages → Sauvegarde → Export JSON</strong>.</div>` : ""}
         <div class="dash-date-nav${isToday ? " dash-date-nav--today" : ""}">
           <div class="dash-date-nav__side dash-date-nav__side--left no-print">${helpButtonHtml()}</div>
           <div class="dash-date-nav__center">
@@ -11074,7 +11250,7 @@
       const calHint = `<p class="cal-scroll-hint no-print">Touchez une case pour ajouter un événement ou un rappel · un événement pour le détail · pincez pour zoomer</p>`;
       const calTapHint = inFullscreen
         ? ""
-        : `<p class="cal-tap-fullscreen-hint no-print">Touchez le calendrier pour l'afficher en plein écran</p>`;
+        : `<p class="cal-tap-fullscreen-hint no-print">Touchez le calendrier pour l'ouvrir en plein écran (comme un document PDF)</p>`;
       const termLegend = renderCalSchoolTermLegendHtml();
       const monthBlock =
         calendarMode === "month"
@@ -11489,7 +11665,7 @@
           <div class="table-wrap session-table-wrap" data-table-title="${escapeHtml(a.name)} — ${escapeHtml(cl.name)}"><table><thead><tr><th>Date</th><th>Jour</th><th>Horaire</th><th>Lieu</th><th>APSA</th><th>Statut</th><th>Motif / info</th><th class="no-print">Action</th></tr></thead><tbody>
           ${renderSessionRowsHtml(subs)}
           </tbody></table></div>
-          <p class="session-table-hint no-print">Touchez le tableau pour l'ouvrir en vue paysage.</p>
+          <p class="session-table-hint table-wrap-hint--fullscreen no-print">Touchez le tableau pour l'ouvrir en plein écran (comme un document).</p>
         </div>`);
       });
       {
@@ -11502,7 +11678,7 @@
             <div class="table-wrap session-table-wrap" data-table-title="Cours ajoutés — ${escapeHtml(cl.name)}"><table><thead><tr><th>Date</th><th>Jour</th><th>Horaire</th><th>Lieu</th><th>APSA</th><th>Statut</th><th>Motif / info</th><th class="no-print">Action</th></tr></thead><tbody>
             ${renderSessionRowsHtml(orphan)}
             </tbody></table></div>
-            <p class="session-table-hint no-print">Touchez le tableau pour l'ouvrir en vue paysage.</p>
+            <p class="session-table-hint table-wrap-hint--fullscreen no-print">Touchez le tableau pour l'ouvrir en plein écran (comme un document).</p>
           </div>`);
         }
       }
@@ -11829,19 +12005,19 @@
     }
 
     function wireEvents(main) {
-      const wireLandscapeTableWrap = (wrap) => {
+      const wireDocFullscreenTableWrap = (wrap) => {
         if (wrap.dataset.fullscreenTableWired) return;
         wrap.dataset.fullscreenTableWired = "1";
         wrap.addEventListener(
           "click",
           (e) => {
+            if (!prefersDocFullscreen()) return;
             if (wrap.classList.contains("as-admin-table-wrap")) {
               if (e.target.closest(".btn-as-admin-del-student")) return;
               if (e.target.closest(".btn-as-admin-del-col")) return;
               if (e.target.closest(".as-admin-check")) return;
               if (e.target.closest(".as-admin-cell-text")) return;
               if (e.target.closest(".as-admin-cell-input")) return;
-              if (!window.matchMedia("(max-width: 480px)").matches) return;
               e.preventDefault();
               e.stopPropagation();
               openFullscreenAdminTable(wrap);
@@ -11850,43 +12026,39 @@
             if (wrap.classList.contains("as-planning-table-wrap")) {
               if (e.target.closest(".btn-as-dash-cancel, .btn-as-dash-uncancel")) return;
               if (e.target.closest(".dash-as-session-row")) return;
-              if (!window.matchMedia("(max-width: 480px)").matches) return;
               e.preventDefault();
               e.stopPropagation();
               openFullscreenAssociationPlanningTable(wrap);
               return;
             }
             if (wrap.classList.contains("session-table-wrap")) {
+              if (e.target.closest(".btn-cancel-session, .btn-del-extra-session, .btn-remove-canc-row")) return;
+              if (e.target.closest(".btn-session-summary")) return;
               if (
-                e.target.closest(".btn-session-summary") ||
-                e.target.closest(".btn-cancel-session, .btn-del-extra-session, .btn-remove-canc-row")
+                e.target.closest("thead") ||
+                e.target.closest(".session-table-hint") ||
+                e.target.closest(".table-wrap-hint--fullscreen") ||
+                !e.target.closest("tbody tr")
               ) {
-                return;
+                e.preventDefault();
+                e.stopPropagation();
+                openLandscapeTable(wrap);
               }
-              if (!window.matchMedia("(max-width: 480px) and (orientation: portrait)").matches) return;
-              e.preventDefault();
-              e.stopPropagation();
-              openLandscapeTable(wrap);
               return;
             }
-            if (e.target.closest(".btn-as-admin-del-student")) return;
-            if (e.target.closest("button") && !e.target.closest(".as-admin-check")) return;
-            if (
-              e.target.closest(".as-admin-check") ||
-              e.target.closest(".as-admin-cell-text") ||
-              e.target.closest(".as-admin-cell-input")
-            ) {
-              return;
-            }
-            if (!window.matchMedia("(max-width: 480px) and (orientation: portrait)").matches) return;
+            if (e.target.closest("button, a, input, select, textarea, label")) return;
             e.preventDefault();
             e.stopPropagation();
-            openLandscapeTable(wrap);
+            openFullscreenGenericTable(wrap);
           },
           true
         );
       };
-      main.querySelectorAll(".session-table-wrap, .as-admin-table-wrap, .as-planning-table-wrap").forEach(wireLandscapeTableWrap);
+      main
+        .querySelectorAll(
+          ".table-wrap--tap-fullscreen, .session-table-wrap, .as-admin-table-wrap, .as-planning-table-wrap"
+        )
+        .forEach(wireDocFullscreenTableWrap);
       main.querySelectorAll("[data-tuto-goto]").forEach((btn) => {
         btn.addEventListener("click", () => {
           const t = btn.getAttribute("data-tuto-goto");
@@ -13702,6 +13874,9 @@
         }
         toolsPanel = nextPanel;
       }
+      if (view !== "calendar:visual") {
+        calendarDocFsDismissed = false;
+      }
       render();
       scrollPageToStart();
     }
@@ -13729,7 +13904,31 @@
       return "main";
     }
 
+    function prepareDocFullscreenTables(root) {
+      root.querySelectorAll(".table-wrap").forEach((wrap) => {
+        if (wrap.closest(".table-fullscreen-view") || wrap.closest(".table-landscape-view")) return;
+        if (!wrap.querySelector("table")) return;
+        wrap.classList.add("table-wrap--tap-fullscreen");
+        if (!wrap.dataset.tableTitle) {
+          const card = wrap.closest(".card, .cal-panel, section, details");
+          const heading = card?.querySelector("h3, h4, .cal-panel__title, summary");
+          if (heading) {
+            wrap.dataset.tableTitle = String(heading.textContent || "")
+              .replace(/^[\s🏫📅🗓⚽📚🔔]+/u, "")
+              .trim();
+          }
+        }
+        if (!wrap.querySelector(".table-wrap-hint--fullscreen") && !wrap.querySelector(".session-table-hint")) {
+          const hint = document.createElement("p");
+          hint.className = "table-wrap-hint--fullscreen no-print";
+          hint.textContent = "Touchez le tableau pour l'ouvrir en plein écran (comme un document).";
+          wrap.appendChild(hint);
+        }
+      });
+    }
+
     function enhanceMobileTables(root) {
+      prepareDocFullscreenTables(root);
       root.querySelectorAll(".table-wrap table").forEach((table) => {
         if (
           table.closest(".session-table-wrap") ||
@@ -13795,6 +13994,22 @@
       enhanceMobileTables(main);
       wireEvents(main);
       if (currentView === "dashboard") fetchWeather();
+      if (
+        currentView === "calendar:visual" &&
+        prefersDocFullscreen() &&
+        !calendarDocFsDismissed &&
+        !document.getElementById("modal-root")?.classList.contains("open")
+      ) {
+        requestAnimationFrame(() => {
+          if (
+            currentView === "calendar:visual" &&
+            !calendarDocFsDismissed &&
+            !document.getElementById("modal-root")?.classList.contains("open")
+          ) {
+            openFullscreenCalendar();
+          }
+        });
+      }
     }
 
     let dashAssociationFitTimer;
@@ -13864,13 +14079,15 @@
     }
 
     function init() {
-      if (!loadData()) {
+      if (!appData.settings || typeof appData.settings !== "object") {
+        appData.settings = { schoolYearStart: "2025-09-01", schoolYearEnd: "2026-07-05", zone: "C" };
+      }
+      const hadStoredData = loadData();
+      if (!hadStoredData) {
         migrateDataModel();
         saveData();
       } else {
-        if (!appData.settings) appData.settings = { schoolYearStart: "2025-09-01", schoolYearEnd: "2026-07-05", zone: "C" };
         migrateDataModel();
-        regenerateSessions();
       }
 
       function syncThemeColor() {
@@ -13892,24 +14109,57 @@
       else document.documentElement.removeAttribute("data-theme");
       syncThemeColor();
 
-      render();
+      const finishBoot = () => {
+        try {
+          render();
+        } catch (e) {
+          showBootError(e);
+        }
+      };
+
+      const runRegen = () => {
+        try {
+          regenerateSessions();
+        } catch (e) {
+          console.error(e);
+          showBootError(e, "Erreur lors du calcul des séances.");
+          finishBoot();
+          return;
+        }
+        finishBoot();
+      };
+
+      if (hadStoredData) {
+        const main = document.getElementById("main");
+        if (main) {
+          main.innerHTML = "<div class='app-loading' style='padding:2rem;text-align:center'>⏳ Mise à jour des séances…</div>";
+        }
+        setTimeout(runRegen, typeof isIOSBrowser === "function" && isIOSBrowser() ? 50 : 0);
+      } else {
+        finishBoot();
+      }
     }
 
     try {
-      if ("serviceWorker" in navigator && location.protocol === "https:") {
-        const swCode = `self.addEventListener("install",e=>{self.skipWaiting()});self.addEventListener("activate",e=>{e.waitUntil(clients.claim())});self.addEventListener("fetch",e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)))});`;
+      if (
+        "serviceWorker" in navigator &&
+        location.protocol === "https:" &&
+        typeof window.isIOSBrowser === "function" &&
+        !window.isIOSBrowser()
+      ) {
+        const swCode =
+          'self.addEventListener("install",function(e){self.skipWaiting()});self.addEventListener("activate",function(e){e.waitUntil(self.clients.claim())});';
         const swBlob = new Blob([swCode], { type: "application/javascript" });
         const swURL = URL.createObjectURL(swBlob);
-        navigator.serviceWorker.register(swURL).catch(() => {});
+        navigator.serviceWorker.register(swURL).catch(function () {});
       }
-    } catch(e) {}
+    } catch (swErr) {}
 
     function boot() {
       try {
         init();
       } catch (e) {
-        var m = document.getElementById("main");
-        if (m) m.innerHTML = "<div style='padding:2rem;color:red;font-size:1.2rem'><h2>Erreur au chargement</h2><pre>" + e.message + "\n" + e.stack + "</pre></div>";
+        showBootError(e);
       }
     }
     if (document.readyState === "loading") {
