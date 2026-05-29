@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="EPS Dashboard" />
   <meta name="theme-color" content="#0a0c12" />
   <title>EPS Collège — Tableau de bord pédagogique</title>
@@ -24,6 +24,10 @@
       --success: #4ade80;
       --warning: #fcd34d;
       --danger: #fb7185;
+      --app-safe-top: env(safe-area-inset-top, 0px);
+      --app-safe-right: env(safe-area-inset-right, 0px);
+      --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+      --app-safe-left: env(safe-area-inset-left, 0px);
       --color-teal: #2dd4bf;
       --color-violet: #a5b4fc;
       --color-sky: #38bdf8;
@@ -664,17 +668,44 @@
       margin: 0 0 0.45rem;
       line-height: 1.35;
     }
+    .school-terms-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      cursor: default;
+    }
+    .school-terms-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .school-terms-table th,
+    .school-terms-table td {
+      vertical-align: middle;
+    }
+    .school-terms-table th:nth-child(2),
+    .school-terms-table th:nth-child(3),
+    .school-terms-table td:nth-child(2),
+    .school-terms-table td:nth-child(3) {
+      text-align: center;
+    }
     .school-terms-table input[type="date"] {
       width: 100%;
       min-width: 0;
       max-width: 11rem;
-      padding: 0.28rem 0.35rem;
+      margin: 0 auto;
+      display: block;
+      padding: 0.35rem 0.45rem;
       font-size: 0.78rem;
-      background: transparent;
+      text-align: center;
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       color: var(--text);
       color-scheme: dark;
+      box-sizing: border-box;
+    }
+    .school-terms-table input[type="date"]::-webkit-date-and-time-value {
+      text-align: center;
     }
     [data-theme="light"] .school-terms-table input[type="date"] {
       color-scheme: light;
@@ -2115,8 +2146,10 @@
     }
     .session-table-hint,
     .as-admin-table-hint,
-    .as-planning-table-hint {
-      display: none;
+    .as-planning-table-hint,
+    .table-wrap-hint--fullscreen,
+    .cal-tap-fullscreen-hint {
+      display: none !important;
       margin: 0.4rem 0 0;
       font-size: 0.68rem;
       font-weight: 700;
@@ -2156,25 +2189,26 @@
       line-height: 1.35;
     }
     .modal-backdrop.modal-backdrop--calendar-fullscreen {
-      padding: 0;
+      padding: var(--app-safe-top) var(--app-safe-right) var(--app-safe-bottom) var(--app-safe-left);
       align-items: stretch;
       justify-content: stretch;
+      box-sizing: border-box;
+    }
+    @media (hover: none) and (pointer: coarse) {
+      .modal-backdrop.modal-backdrop--calendar-fullscreen {
+        padding-top: max(var(--app-safe-top), 4.25rem);
+        padding-bottom: max(var(--app-safe-bottom), 0.75rem);
+      }
     }
     .table-fullscreen-modal,
     .calendar-fullscreen-modal {
-      --fs-modal-pad-x: calc(0.5rem + env(safe-area-inset-right, 0px));
-      --fs-modal-pad-top: max(2.75rem, calc(0.65rem + env(safe-area-inset-top, 0px)));
-      --fs-modal-pad-bottom: max(0.5rem, calc(0.65rem + env(safe-area-inset-bottom, 0px)));
-    }
-    .table-fullscreen-modal {
-      width: 100vw;
-      max-width: 100vw;
-      height: 100dvh;
-      max-height: 100dvh;
+      width: 100%;
+      max-width: 100%;
+      height: 100%;
+      max-height: 100%;
       margin: 0;
       border-radius: 0;
-      padding: var(--fs-modal-pad-top) var(--fs-modal-pad-x) var(--fs-modal-pad-bottom);
-      padding-left: calc(0.5rem + env(safe-area-inset-left, 0px));
+      padding: 0.5rem 0.5rem 0.65rem;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -2273,21 +2307,6 @@
     .as-admin-table-wrap--tap-fullscreen,
     .as-planning-table-wrap--tap-fullscreen {
       cursor: pointer;
-    }
-    .calendar-fullscreen-modal {
-      width: 100vw;
-      max-width: 100vw;
-      height: 100dvh;
-      max-height: 100dvh;
-      margin: 0;
-      border-radius: 0;
-      padding: var(--fs-modal-pad-top) var(--fs-modal-pad-x) var(--fs-modal-pad-bottom);
-      padding-left: calc(0.5rem + env(safe-area-inset-left, 0px));
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      border: none;
-      box-sizing: border-box;
     }
     .calendar-fullscreen-note {
       margin: 0 0 0.35rem;
@@ -3663,8 +3682,12 @@
         font-size: 0.78rem;
         padding: 0.6rem 0.7rem;
       }
-      .session-table-hint {
-        display: block;
+      .session-table-hint,
+      .table-wrap-hint--fullscreen,
+      .as-admin-table-hint,
+      .as-planning-table-hint,
+      .cal-tap-fullscreen-hint {
+        display: none !important;
       }
       .session-table-wrap {
         overflow-x: auto;
@@ -3732,10 +3755,62 @@
         width: 100%;
         white-space: normal;
       }
-      .as-admin-table-hint,
-      .as-planning-table-hint,
-      .table-wrap-hint--fullscreen {
-        display: block;
+      .school-terms-table-wrap.table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface);
+        padding: 0.25rem 0.35rem;
+      }
+      .school-terms-table-wrap table,
+      .school-terms-table-wrap thead,
+      .school-terms-table-wrap tbody,
+      .school-terms-table-wrap tr,
+      .school-terms-table-wrap th,
+      .school-terms-table-wrap td {
+        display: revert;
+        width: auto;
+      }
+      .school-terms-table-wrap table.school-terms-table {
+        display: table;
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .school-terms-table-wrap thead {
+        display: table-header-group;
+      }
+      .school-terms-table-wrap tbody {
+        display: table-row-group;
+      }
+      .school-terms-table-wrap tr {
+        display: table-row;
+        margin: 0;
+        padding: 0;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        background: transparent;
+      }
+      .school-terms-table-wrap th,
+      .school-terms-table-wrap td {
+        display: table-cell;
+        padding: 0.5rem 0.4rem;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.8rem;
+        line-height: 1.3;
+      }
+      .school-terms-table-wrap td::before {
+        content: none;
+      }
+      .school-terms-table-wrap th:nth-child(2),
+      .school-terms-table-wrap th:nth-child(3),
+      .school-terms-table-wrap td:nth-child(2),
+      .school-terms-table-wrap td:nth-child(3) {
+        text-align: center;
+      }
+      .school-terms-table-wrap input[type="date"] {
+        max-width: 100%;
+        font-size: 0.76rem;
       }
       .table-wrap--tap-fullscreen {
         cursor: pointer;
@@ -3844,9 +3919,6 @@
       .cal-scroll-hint {
         display: block;
       }
-      .cal-tap-fullscreen-hint {
-        display: block;
-      }
       .main--calendar {
         display: flex;
         flex-direction: column;
@@ -3863,9 +3935,6 @@
         overflow: auto;
         max-height: min(52dvh, 460px);
         -webkit-overflow-scrolling: touch;
-      }
-      .cal-panel--visual .cal-tap-fullscreen-hint {
-        display: block;
       }
       .cal-nav-toolbar {
         flex-wrap: nowrap;
@@ -4320,10 +4389,8 @@
         display: block;
         margin-bottom: 0.15rem;
       }
-      .table-fullscreen-modal,
-      .calendar-fullscreen-modal {
-        --fs-modal-pad-top: max(3rem, calc(0.75rem + env(safe-area-inset-top, 0px)));
-        --fs-modal-pad-bottom: max(0.65rem, calc(0.75rem + env(safe-area-inset-bottom, 0px)));
+      .modal-backdrop.modal-backdrop--calendar-fullscreen {
+        padding-top: max(var(--app-safe-top), 4.5rem);
       }
       .calendar-fullscreen-modal .cal-grid {
         gap: 3px;
@@ -4397,9 +4464,43 @@
     } catch (e) {
       window.isFileProtocol = undefined;
     }
+    function epsIsBenignJsError(msg, src, line, col, err) {
+      var m = String(msg || "");
+      var ln = Number(line);
+      var cl = Number(col);
+      if (m === "Script error." && ln === 0 && cl === 0) return true;
+      if (m === "Script error." && !String(src || "").trim()) return true;
+      if (/^ResizeObserver loop/i.test(m)) return true;
+      if (!err || !err.stack) {
+        if (ln === 0 && cl === 0 && (!src || String(src).indexOf("eps-college-dashboard") < 0)) return true;
+      }
+      return false;
+    }
     window.onerror = function(msg, src, line, col, err) {
-      var m = document.getElementById("main");
-      if (m) m.innerHTML = "<div style='padding:2rem;color:red;font-size:1rem;word-break:break-all'><h2>Erreur JS</h2><p><b>" + msg + "</b></p><p>Ligne " + line + ", col " + col + "</p><pre style='white-space:pre-wrap'>" + (err && err.stack ? err.stack : "") + "</pre></div>";
+      if (epsIsBenignJsError(msg, src, line, col, err)) {
+        console.warn("[EPS] Erreur ignorée (faux positif Safari, souvent au Partager) :", msg, src || "");
+        return true;
+      }
+      var s = String(src || "");
+      if (s && s.indexOf(location.origin) !== 0 && s.indexOf("eps-college-dashboard") < 0 && Number(line) === 0) {
+        console.warn("[EPS] Erreur cross-origin ignorée :", msg, s);
+        return true;
+      }
+      console.error("[EPS] Erreur JS", msg, src, line, col, err);
+      var mainEl = document.getElementById("main");
+      if (mainEl) {
+        mainEl.innerHTML =
+          "<div style='padding:2rem;color:red;font-size:1rem;word-break:break-all'><h2>Erreur JS</h2><p><b>" +
+          String(msg) +
+          "</b></p><p>Ligne " +
+          line +
+          ", col " +
+          col +
+          "</p><pre style='white-space:pre-wrap'>" +
+          (err && err.stack ? err.stack : "") +
+          "</pre></div>";
+      }
+      return false;
     };
   </script>
   <script>
@@ -5629,7 +5730,6 @@
           <thead><tr><th>Prénom</th><th>Nom</th><th>Classe</th><th title="Catégorie (abréviation)">Cat.</th>${colHeaders || ""}</tr></thead>
           <tbody>${rows}</tbody>
         </table>
-          <p class="as-admin-table-hint">Touchez le tableau pour l'afficher en plein écran · tournez l'iPhone en paysage pour plus de lisibilité</p>
         </div>
       </div>`;
     }
@@ -7237,9 +7337,77 @@
       return t.content.firstElementChild;
     }
 
+    let fullscreenInsetListener = null;
+
+    function measureSafeAreaInset(edge) {
+      const prop =
+        edge === "bottom" ? "paddingBottom" : edge === "left" ? "paddingLeft" : edge === "right" ? "paddingRight" : "paddingTop";
+      const envName =
+        edge === "bottom"
+          ? "safe-area-inset-bottom"
+          : edge === "left"
+            ? "safe-area-inset-left"
+            : edge === "right"
+              ? "safe-area-inset-right"
+              : "safe-area-inset-top";
+      const probe = document.createElement("div");
+      probe.style.cssText = "position:fixed;visibility:hidden;pointer-events:none;padding:0;";
+      probe.style[prop] = `env(${envName}, 0px)`;
+      document.body.appendChild(probe);
+      const px = parseFloat(getComputedStyle(probe)[prop]) || 0;
+      probe.remove();
+      return px;
+    }
+
+    function syncFullscreenSafeInsets() {
+      const html = document.documentElement;
+      const touch = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+      const portrait = window.matchMedia("(orientation: portrait)").matches;
+      const measuredTop = measureSafeAreaInset("top");
+      const measuredBottom = measureSafeAreaInset("bottom");
+      const measuredLeft = measureSafeAreaInset("left");
+      const measuredRight = measureSafeAreaInset("right");
+      const vv = window.visualViewport;
+      const vvTop = vv && Number.isFinite(vv.offsetTop) ? Math.max(0, vv.offsetTop) : 0;
+      const minTop = touch ? (portrait ? 68 : 56) : 0;
+      const topPx = Math.ceil(Math.max(minTop, measuredTop + 6, vvTop + (touch ? 48 : 0)));
+      html.style.setProperty("--app-safe-top", topPx + "px");
+      html.style.setProperty("--app-safe-bottom", Math.max(touch ? 12 : 0, measuredBottom) + "px");
+      html.style.setProperty("--app-safe-left", Math.max(0, measuredLeft) + "px");
+      html.style.setProperty("--app-safe-right", Math.max(0, measuredRight) + "px");
+    }
+
+    function bindFullscreenInsetSync() {
+      unbindFullscreenInsetSync();
+      syncFullscreenSafeInsets();
+      fullscreenInsetListener = () => syncFullscreenSafeInsets();
+      window.visualViewport?.addEventListener("resize", fullscreenInsetListener);
+      window.visualViewport?.addEventListener("scroll", fullscreenInsetListener);
+      window.addEventListener("resize", fullscreenInsetListener);
+      window.addEventListener("orientationchange", fullscreenInsetListener);
+    }
+
+    function unbindFullscreenInsetSync() {
+      if (!fullscreenInsetListener) return;
+      window.visualViewport?.removeEventListener("resize", fullscreenInsetListener);
+      window.visualViewport?.removeEventListener("scroll", fullscreenInsetListener);
+      window.removeEventListener("resize", fullscreenInsetListener);
+      window.removeEventListener("orientationchange", fullscreenInsetListener);
+      fullscreenInsetListener = null;
+    }
+
+    function openFullscreenBackdrop() {
+      const root = document.getElementById("modal-root");
+      if (!root) return null;
+      bindFullscreenInsetSync();
+      root.classList.add("open", "modal-backdrop--calendar-fullscreen");
+      return root;
+    }
+
     function closeModal() {
       const root = document.getElementById("modal-root");
       if (!root) return;
+      unbindFullscreenInsetSync();
       root.classList.remove("open", "modal-backdrop--calendar-fullscreen");
       root.innerHTML = "";
       root.onclick = null;
@@ -7354,7 +7522,7 @@
       if (!root) return;
       if (root.classList.contains("open") && root.querySelector(".calendar-fullscreen-modal")) return;
       root.innerHTML = "";
-      root.classList.add("open", "modal-backdrop--calendar-fullscreen");
+      openFullscreenBackdrop();
       const wrap = el(`<div class="modal calendar-fullscreen-modal">
         <div class="modal-header">
           <button type="button" class="modal-close" aria-label="Fermer">×</button>
@@ -7505,7 +7673,7 @@
       const table = tableWrap && tableWrap.querySelector("table");
       if (!root || !table) return;
       root.innerHTML = "";
-      root.classList.add("open", "modal-backdrop--calendar-fullscreen");
+      openFullscreenBackdrop();
       const title = tableWrap.getAttribute("data-table-title") || "Planning";
       const clone = table.cloneNode(true);
       const wrap = el(`<div class="modal table-fullscreen-modal">
@@ -7513,7 +7681,6 @@
           <button type="button" class="modal-close" aria-label="Fermer">×</button>
           <h3 class="modal-title">${escapeHtml(title)}</h3>
         </div>
-        <p class="table-landscape-note no-print">Faites défiler le tableau · touchez une ligne pour l'appel · les boutons Annuler / Lever restent actifs</p>
         <div class="table-fullscreen-view"></div>
       </div>`);
       const view = wrap.querySelector(".table-fullscreen-view");
@@ -7536,7 +7703,7 @@
       const table = tableWrap && tableWrap.querySelector("table");
       if (!root || !table) return;
       root.innerHTML = "";
-      root.classList.add("open", "modal-backdrop--calendar-fullscreen");
+      openFullscreenBackdrop();
       const title = tableWrap.getAttribute("data-table-title") || "Gestion administrative";
       const clone = table.cloneNode(true);
       const wrap = el(`<div class="modal table-fullscreen-modal">
@@ -7544,7 +7711,6 @@
           <button type="button" class="modal-close" aria-label="Fermer">×</button>
           <h3 class="modal-title">${escapeHtml(title)}</h3>
         </div>
-        <p class="table-landscape-note no-print">Faites défiler le tableau · tournez l'iPhone en paysage pour une vue plus large · cases et textes modifiables</p>
         <div class="table-fullscreen-view"></div>
       </div>`);
       const view = wrap.querySelector(".table-fullscreen-view");
@@ -7613,7 +7779,7 @@
       const table = tableWrap && tableWrap.querySelector("table");
       if (!root || !table) return;
       root.innerHTML = "";
-      root.classList.add("open", "modal-backdrop--calendar-fullscreen");
+      openFullscreenBackdrop();
       const title = tableWrap.getAttribute("data-table-title") || "Tableau";
       const clone = table.cloneNode(true);
       const wrap = el(`<div class="modal table-fullscreen-modal">
@@ -7621,7 +7787,6 @@
           <button type="button" class="modal-close" aria-label="Fermer">×</button>
           <h3 class="modal-title">${escapeHtml(title)}</h3>
         </div>
-        <p class="table-fullscreen-note no-print">Document plein écran · pincez pour zoomer · faites défiler</p>
         <div class="table-fullscreen-view"></div>
       </div>`);
       const view = wrap.querySelector(".table-fullscreen-view");
@@ -7643,7 +7808,7 @@
       const table = tableWrap && tableWrap.querySelector("table");
       if (!root || !table) return;
       root.innerHTML = "";
-      root.classList.add("open", "modal-backdrop--calendar-fullscreen");
+      openFullscreenBackdrop();
       const isAdminTable = tableWrap.classList.contains("as-admin-table-wrap");
       const title = tableWrap.getAttribute("data-table-title") || "Tableau des séances";
       const clone = table.cloneNode(true);
@@ -7652,7 +7817,6 @@
           <button type="button" class="modal-close" aria-label="Fermer">×</button>
           <h3 class="modal-title">${escapeHtml(title)}</h3>
         </div>
-        <p class="table-fullscreen-note no-print">Document plein écran · touchez une ligne pour le résumé · boutons d'action actifs</p>
         <div class="table-fullscreen-view"></div>
       </div>`);
       const landscapeView = wrap.querySelector(".table-fullscreen-view");
@@ -7810,7 +7974,7 @@
           <button type="button" class="btn btn-sm btn-primary btn-open-pdf-native"${btnAttr}>Ouvrir le PDF</button>
         </div>`;
       }
-      return `<div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer"${idAttr} title="Cliquer pour afficher en plein écran">
+      return `<div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer"${idAttr} title="Ouvrir le document">
         <iframe src="${dataUrl}" style="width:100%;height:${opts.height || "70vh"};border:none;pointer-events:none" title="${escapeHtml(title)}"></iframe>
       </div>`;
     }
@@ -9747,7 +9911,6 @@
             <thead><tr><th>Date</th><th>Type</th><th>Horaire</th><th title="Catégorie (abréviation : B=benjamins, M=minimes, F=filles, G=garçons)">Cat.</th><th>Présents</th><th>Statut</th><th>Action</th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
-          <p class="as-planning-table-hint no-print">Touchez le tableau pour l'afficher en plein écran · faites défiler horizontalement · touchez une ligne pour l'appel</p>
           </div>`;
         const tabsHtml = `<div class="as-activity-tabs no-print" style="margin-bottom:.5rem">
             <button type="button" class="as-activity-tab btn-dash-as-subtab ${panelTab === "planning" ? "as-activity-tab--active" : ""}" data-activity-id="${escapeHtml(block.activityId)}" data-tab="planning">Planning</button>
@@ -9771,7 +9934,7 @@
             : "";
         const planningHint =
           panelTab === "planning"
-            ? `${slotCatsHint}<p class="kpi-sub dash-as-planning-hint" style="margin:0 0 .45rem">Touchez le tableau (hors ligne) pour le plein écran · une ligne pour l'appel.</p>`
+            ? slotCatsHint
             : "";
         const panelContent =
           panelTab === "admin" && activity
@@ -11332,9 +11495,7 @@
       })();
 
       const calHint = `<p class="cal-scroll-hint no-print">Touchez une case pour ajouter un événement ou un rappel · un événement pour le détail · pincez pour zoomer</p>`;
-      const calTapHint = inFullscreen
-        ? ""
-        : `<p class="cal-tap-fullscreen-hint no-print">Touchez le calendrier pour l'ouvrir en plein écran (comme un document)</p>`;
+      const calTapHint = "";
       const termLegend = renderCalSchoolTermLegendHtml();
       const monthBlock =
         calendarMode === "month"
@@ -11749,7 +11910,6 @@
           <div class="table-wrap session-table-wrap" data-table-title="${escapeHtml(a.name)} — ${escapeHtml(cl.name)}"><table><thead><tr><th>Date</th><th>Jour</th><th>Horaire</th><th>Lieu</th><th>APSA</th><th>Statut</th><th>Motif / info</th><th class="no-print">Action</th></tr></thead><tbody>
           ${renderSessionRowsHtml(subs)}
           </tbody></table></div>
-          <p class="session-table-hint table-wrap-hint--fullscreen no-print">Touchez le tableau pour l'ouvrir en plein écran (comme un document).</p>
         </div>`);
       });
       {
@@ -11762,7 +11922,6 @@
             <div class="table-wrap session-table-wrap" data-table-title="Cours ajoutés — ${escapeHtml(cl.name)}"><table><thead><tr><th>Date</th><th>Jour</th><th>Horaire</th><th>Lieu</th><th>APSA</th><th>Statut</th><th>Motif / info</th><th class="no-print">Action</th></tr></thead><tbody>
             ${renderSessionRowsHtml(orphan)}
             </tbody></table></div>
-            <p class="session-table-hint table-wrap-hint--fullscreen no-print">Touchez le tableau pour l'ouvrir en plein écran (comme un document).</p>
           </div>`);
         }
       }
@@ -12118,12 +12277,7 @@
             if (wrap.classList.contains("session-table-wrap")) {
               if (e.target.closest(".btn-cancel-session, .btn-del-extra-session, .btn-remove-canc-row")) return;
               if (e.target.closest(".btn-session-summary")) return;
-              if (
-                e.target.closest("thead") ||
-                e.target.closest(".session-table-hint") ||
-                e.target.closest(".table-wrap-hint--fullscreen") ||
-                !e.target.closest("tbody tr")
-              ) {
+              if (e.target.closest("thead") || !e.target.closest("tbody tr")) {
                 e.preventDefault();
                 e.stopPropagation();
                 openLandscapeTable(wrap);
@@ -13991,8 +14145,12 @@
     function prepareDocFullscreenTables(root) {
       root.querySelectorAll(".table-wrap").forEach((wrap) => {
         if (wrap.closest(".table-fullscreen-view") || wrap.closest(".table-landscape-view")) return;
+        if (wrap.classList.contains("school-terms-table-wrap")) return;
         if (!wrap.querySelector("table")) return;
-        wrap.classList.add("table-wrap--tap-fullscreen");
+        const isSession = wrap.classList.contains("session-table-wrap");
+        const isAdmin = wrap.classList.contains("as-admin-table-wrap");
+        const isPlanning = wrap.classList.contains("as-planning-table-wrap");
+        if (!isSession && !isAdmin && !isPlanning) return;
         if (!wrap.dataset.tableTitle) {
           const card = wrap.closest(".card, .cal-panel, section, details");
           const heading = card?.querySelector("h3, h4, .cal-panel__title, summary");
@@ -14001,12 +14159,6 @@
               .replace(/^[\s🏫📅🗓⚽📚🔔]+/u, "")
               .trim();
           }
-        }
-        if (!wrap.querySelector(".table-wrap-hint--fullscreen") && !wrap.querySelector(".session-table-hint")) {
-          const hint = document.createElement("p");
-          hint.className = "table-wrap-hint--fullscreen no-print";
-          hint.textContent = "Touchez le tableau pour l'ouvrir en plein écran (comme un document).";
-          wrap.appendChild(hint);
         }
       });
     }
