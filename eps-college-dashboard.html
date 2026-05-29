@@ -2012,6 +2012,59 @@
     .participation-rate-bar--low .participation-rate-pct { color: #ef4444; }
     .participation-rate-bar--mid .participation-rate-pct { color: #f59e0b; }
     .participation-rate-bar--high .participation-rate-pct { color: #22c55e; }
+    .participation-stats-line {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(5.25rem, 36%);
+      gap: 0.4rem 0.55rem;
+      align-items: center;
+    }
+    .participation-stats-name {
+      min-width: 0;
+      font-size: 0.88rem;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+    .participation-stats-count {
+      font-weight: 600;
+      font-size: 0.82rem;
+      white-space: nowrap;
+      text-align: center;
+    }
+    .participation-stats-line .participation-rate-bar {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.35rem;
+      min-width: 0;
+      width: 100%;
+      margin: 0;
+    }
+    .participation-stats-line .participation-rate-bar .progress {
+      flex: 1;
+      min-width: 1.75rem;
+      max-width: none;
+      height: 7px;
+      margin: 0;
+    }
+    .participation-stats-line .participation-rate-pct {
+      flex-shrink: 0;
+      min-width: 2.15rem;
+      text-align: right;
+      font-size: 0.72rem;
+    }
+    .participation-stats-wrap.table-wrap td.participation-stats-cell {
+      display: block;
+      padding: 0;
+      border: none;
+      grid-template-columns: unset;
+    }
+    .participation-stats-wrap.table-wrap td.participation-stats-cell::before {
+      display: none;
+    }
+    .participation-stats-wrap.table-wrap .participation-detail {
+      margin-top: 0.4rem;
+      padding-top: 0.35rem;
+      border-top: 1px solid var(--border);
+    }
     .session-exempt-notice {
       margin: 0 0 0.85rem;
       padding: 0.15rem 0 0.15rem 0.6rem;
@@ -2107,6 +2160,12 @@
       align-items: stretch;
       justify-content: stretch;
     }
+    .table-fullscreen-modal,
+    .calendar-fullscreen-modal {
+      --fs-modal-pad-x: calc(0.5rem + env(safe-area-inset-right, 0px));
+      --fs-modal-pad-top: max(2.75rem, calc(0.65rem + env(safe-area-inset-top, 0px)));
+      --fs-modal-pad-bottom: max(0.5rem, calc(0.65rem + env(safe-area-inset-bottom, 0px)));
+    }
     .table-fullscreen-modal {
       width: 100vw;
       max-width: 100vw;
@@ -2114,15 +2173,34 @@
       max-height: 100dvh;
       margin: 0;
       border-radius: 0;
-      padding: max(0.45rem, env(safe-area-inset-top, 0px)) 0.45rem max(0.45rem, env(safe-area-inset-bottom, 0px));
+      padding: var(--fs-modal-pad-top) var(--fs-modal-pad-x) var(--fs-modal-pad-bottom);
+      padding-left: calc(0.5rem + env(safe-area-inset-left, 0px));
       display: flex;
       flex-direction: column;
       overflow: hidden;
       border: none;
+      box-sizing: border-box;
     }
-    .table-fullscreen-modal .modal-header {
+    .table-fullscreen-modal .modal-header,
+    .calendar-fullscreen-modal .modal-header {
       flex-shrink: 0;
-      margin-bottom: 0.35rem;
+      margin-bottom: 0.45rem;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .table-fullscreen-modal .modal-close,
+    .calendar-fullscreen-modal .modal-close {
+      width: 2.75rem;
+      height: 2.75rem;
+      min-width: 2.75rem;
+      touch-action: manipulation;
+    }
+    .table-fullscreen-modal .modal-title,
+    .calendar-fullscreen-modal .modal-title {
+      padding-top: 0;
+      font-size: 1rem;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
     }
     .table-fullscreen-view {
       flex: 1;
@@ -2203,15 +2281,13 @@
       max-height: 100dvh;
       margin: 0;
       border-radius: 0;
-      padding: max(0.45rem, env(safe-area-inset-top, 0px)) 0.45rem max(0.45rem, env(safe-area-inset-bottom, 0px));
+      padding: var(--fs-modal-pad-top) var(--fs-modal-pad-x) var(--fs-modal-pad-bottom);
+      padding-left: calc(0.5rem + env(safe-area-inset-left, 0px));
       display: flex;
       flex-direction: column;
       overflow: hidden;
       border: none;
-    }
-    .calendar-fullscreen-modal .modal-header {
-      flex-shrink: 0;
-      margin-bottom: 0.35rem;
+      box-sizing: border-box;
     }
     .calendar-fullscreen-note {
       margin: 0 0 0.35rem;
@@ -2671,6 +2747,39 @@
       border: 1px solid var(--border); background: var(--surface);
     }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+    .form-row--center-dates {
+      justify-items: center;
+    }
+    .form-row--center-dates .form-group {
+      width: 100%;
+      max-width: 17.5rem;
+    }
+    .form-row--center-dates .form-group label {
+      text-align: center;
+    }
+    .form-row--center-dates .form-group input[type="date"] {
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      min-height: 2.75rem;
+      color-scheme: dark;
+    }
+    [data-theme="light"] .form-row--center-dates .form-group input[type="date"] {
+      color-scheme: light;
+    }
+    .form-row--center-dates .form-group input[type="date"]::-webkit-date-and-time-value {
+      text-align: center;
+    }
+    .form-row--center-dates .form-group input[type="date"]::-webkit-datetime-edit {
+      display: inline-flex;
+      justify-content: center;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .form-row--center-dates .form-group input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+      justify-content: center;
+      width: 100%;
+    }
 
     /* ========== MOBILE ========== */
     @media (max-width: 900px) {
@@ -3338,6 +3447,7 @@
     }
     @media (max-width: 900px) {
       .btn:not(.btn-sm) { min-height: 44px; }
+      .topbar-back-btn { min-height: 44px; }
       .bottom-nav-item { min-height: 52px; }
       .modal-backdrop { align-items: flex-end; padding: 0; }
       .modal {
@@ -3381,12 +3491,25 @@
         margin-bottom: 0.85rem;
         align-items: flex-start;
       }
-      .topbar h2 {
-        width: 100%;
+      .topbar > div:first-child {
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        row-gap: 0.25rem;
+      }
+      .topbar > div:first-child h2 {
+        flex: 1 1 8rem;
+        min-width: 0;
+        width: auto;
         font-size: clamp(1.22rem, 6vw, 1.45rem);
         line-height: 1.15;
         letter-spacing: -0.04em;
         overflow-wrap: anywhere;
+      }
+      .topbar-back-btn {
+        flex-shrink: 0;
+        min-height: 44px;
+        padding: 0.45rem 0.7rem;
+        touch-action: manipulation;
       }
       .topbar-actions {
         width: 100%;
@@ -3554,14 +3677,6 @@
         touch-action: manipulation;
         -webkit-tap-highlight-color: rgba(99, 102, 241, 0.15);
       }
-      .session-table-wrap::after {
-        content: "";
-        position: absolute;
-        inset: 0 0 0 auto;
-        width: 2.5rem;
-        pointer-events: none;
-        background: linear-gradient(90deg, transparent, var(--surface));
-      }
       .session-table-wrap table,
       .session-table-wrap thead,
       .session-table-wrap tbody,
@@ -3634,15 +3749,6 @@
         border: 1px solid var(--border);
         border-radius: var(--radius-sm);
         background: var(--surface);
-      }
-      .as-admin-table-wrap::after,
-      .as-planning-table-wrap::after {
-        content: "";
-        position: absolute;
-        inset: 0 0 0 auto;
-        width: 2rem;
-        pointer-events: none;
-        background: linear-gradient(90deg, transparent, var(--surface));
       }
       .as-admin-table-wrap table,
       .as-admin-table-wrap thead,
@@ -4214,8 +4320,10 @@
         display: block;
         margin-bottom: 0.15rem;
       }
+      .table-fullscreen-modal,
       .calendar-fullscreen-modal {
-        padding: max(0.35rem, env(safe-area-inset-top, 0px)) 0.35rem max(0.35rem, env(safe-area-inset-bottom, 0px));
+        --fs-modal-pad-top: max(3rem, calc(0.75rem + env(safe-area-inset-top, 0px)));
+        --fs-modal-pad-bottom: max(0.65rem, calc(0.75rem + env(safe-area-inset-bottom, 0px)));
       }
       .calendar-fullscreen-modal .cal-grid {
         gap: 3px;
@@ -4234,9 +4342,6 @@
       .calendar-fullscreen-modal .cal-week-day {
         padding: 0.32rem 0.28rem;
         font-size: 0.58rem;
-      }
-      .table-fullscreen-modal {
-        padding: max(0.35rem, env(safe-area-inset-top, 0px)) 0.35rem max(0.35rem, env(safe-area-inset-bottom, 0px));
       }
       .table-fullscreen-view .as-admin-table {
         font-size: 0.62rem;
@@ -6052,14 +6157,19 @@
             const pct = stats.totalSessions ? Math.round((r.participated / stats.totalSessions) * 100) : 0;
             const gaps = formatParticipationGaps(r);
             return `<tr>
-              <td><strong>${escapeHtml(r.name)}</strong>${gaps ? `<div class="participation-detail">${gaps}</div>` : ""}</td>
-              <td style="text-align:center;font-weight:600">${r.participated} / ${stats.totalSessions}</td>
-              <td>${participationRateBarHtml(pct)}</td>
+              <td colspan="3" class="participation-stats-cell">
+                <div class="participation-stats-line">
+                  <span class="participation-stats-name"><strong>${escapeHtml(r.name)}</strong></span>
+                  <span class="participation-stats-count">${r.participated} / ${stats.totalSessions}</span>
+                  ${participationRateBarHtml(pct)}
+                </div>
+                ${gaps ? `<div class="participation-detail">${gaps}</div>` : ""}
+              </td>
             </tr>`;
           })
           .join("");
         bodyHtml = `<p class="kpi-sub" style="margin-bottom:.75rem">${stats.totalSessions} séance(s) effectuée(s) pour <strong>${escapeHtml(act.name)}</strong>. Comptées : présence ou retard à l'appel ; exclus : absent et dispensé (dates précisées sous le nom de l'élève).</p>
-          <div class="table-wrap"><table><thead><tr><th>Élève</th><th style="text-align:center">Participation</th><th style="text-align:center">Taux</th></tr></thead><tbody>${tableRows}</tbody></table></div>`;
+          <div class="table-wrap participation-stats-wrap"><table class="participation-stats-table"><tbody>${tableRows}</tbody></table></div>`;
       }
       const body = el(`<div>${bodyHtml}</div>`);
       openModal("Participation des élèves — " + escapeHtml(act.name), body, () => {});
@@ -6445,8 +6555,31 @@
       if (navHistory.length > 50) navHistory.shift();
     }
 
+    function isToolsSubpanel() {
+      return currentView === "tools" && toolsPanel && toolsPanel !== "home";
+    }
+
+    function shouldShowNavBack() {
+      return navHistory.length > 0 || isToolsSubpanel();
+    }
+
+    function handleNavBack() {
+      if (navHistory.length) {
+        goBack();
+        return;
+      }
+      if (isToolsSubpanel()) {
+        toolsPanel = "home";
+        render();
+        scrollPageToStart();
+      }
+    }
+
     function getBackButtonLabel() {
-      if (!navHistory.length) return "◀ Retour";
+      if (!navHistory.length) {
+        if (isToolsSubpanel()) return "◀ Réglages";
+        return "◀ Retour";
+      }
       const prev = navHistory[navHistory.length - 1];
       const cur = getNavSnapshot();
       if (prev.view === "dashboard:association") return "◀ Association sportive";
@@ -7084,8 +7217,17 @@
       };
       nav.querySelector('[data-tab="settings"]').onclick = () => {
         document.getElementById("sidebar")?.classList.remove("open");
-        if (currentView === "tools") scrollPageToStart();
-        else navigateTo("tools");
+        if (currentView === "tools") {
+          if (isToolsSubpanel()) {
+            toolsPanel = "home";
+            render();
+            scrollPageToStart();
+            return;
+          }
+          scrollPageToStart();
+          return;
+        }
+        navigateTo("tools");
       };
     }
 
@@ -7919,8 +8061,8 @@
     }
 
     function renderTopbar(title, extra = "") {
-      const backBtn = navHistory.length
-        ? `<button type="button" class="btn btn-sm btn-ghost no-print" id="btn-history-back" style="gap:.25rem;margin-right:.5rem">${escapeHtml(getBackButtonLabel())}</button>`
+      const backBtn = shouldShowNavBack()
+        ? `<button type="button" class="btn btn-sm btn-ghost no-print topbar-back-btn" id="btn-history-back" style="gap:.25rem;margin-right:.5rem">${escapeHtml(getBackButtonLabel())}</button>`
         : "";
       const showTitle = title && String(title).trim();
       const actions = extra ? `<div class="topbar-actions no-print">${extra}</div>` : "";
@@ -11270,7 +11412,7 @@
         </div>
         <div class="card">
           <h3>Année scolaire</h3>
-          <div class="form-row">
+          <div class="form-row form-row--center-dates">
             <div class="form-group"><label>Début</label><input type="date" id="set-start" value="${appData.settings.schoolYearStart}" /></div>
             <div class="form-group"><label>Fin</label><input type="date" id="set-end" value="${appData.settings.schoolYearEnd}" /></div>
           </div>
@@ -12439,7 +12581,7 @@
         }
       });
       main.querySelector("#btn-history-back")?.addEventListener("click", () => {
-        goBack();
+        handleNavBack();
       });
       main.querySelector("#class-period-select")?.addEventListener("change", (e) => {
         const val = e.target.value;
