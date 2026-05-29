@@ -4286,6 +4286,12 @@
   <div class="modal-backdrop" id="modal-root"></div>
 
   <script>
+    /* Ancienne build : isFileProtocol() s'appelait via window en boucle — retirer si présent */
+    try {
+      delete window.isFileProtocol;
+    } catch (e) {
+      window.isFileProtocol = undefined;
+    }
     window.onerror = function(msg, src, line, col, err) {
       var m = document.getElementById("main");
       if (m) m.innerHTML = "<div style='padding:2rem;color:red;font-size:1rem;word-break:break-all'><h2>Erreur JS</h2><p><b>" + msg + "</b></p><p>Ligne " + line + ", col " + col + "</p><pre style='white-space:pre-wrap'>" + (err && err.stack ? err.stack : "") + "</pre></div>";
@@ -7204,6 +7210,7 @@
     function openFullscreenCalendar() {
       const root = document.getElementById("modal-root");
       if (!root) return;
+      if (root.classList.contains("open") && root.querySelector(".calendar-fullscreen-modal")) return;
       root.innerHTML = "";
       root.classList.add("open", "modal-backdrop--calendar-fullscreen");
       const wrap = el(`<div class="modal calendar-fullscreen-modal">
@@ -7225,7 +7232,7 @@
         calendarViewRefresh = null;
         calendarFullscreenDismissed = true;
         closeModal();
-        render();
+        if (currentView === "calendar:visual") render();
       };
       wrap.querySelector(".modal-close").onclick = closeFullscreen;
       root.appendChild(wrap);
