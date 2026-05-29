@@ -4286,59 +4286,10 @@
   <div class="modal-backdrop" id="modal-root"></div>
 
   <script>
-  (function () {
-    /** Ouverture via Fichiers / AirDrop (file://) — pas le lien Safari en ligne. */
-    window.__EPS_FILE_PROTOCOL =
-      location.protocol === "file:" || location.protocol === "applewebdata:" || location.origin === "null";
-    /** URL en ligne (à adapter si le dépôt GitHub change). */
-    window.__EPS_WEB_APP_URL = "https://mauplot.github.io/Test/eps-college-dashboard.html";
-
-    function showBootError(err, extra) {
+    window.onerror = function(msg, src, line, col, err) {
       var m = document.getElementById("main");
-      if (!m) return;
-      var msg = err && err.message ? err.message : String(err || "Erreur inconnue");
-      var stack = err && err.stack ? err.stack : "";
-      var hint = extra || "";
-      if (msg === "Script error." && !stack) {
-        hint =
-          "Safari masque parfois le détail. Essayez : recharger la page, quitter le mode navigation privée, ou vider le cache du site.";
-      }
-      m.innerHTML =
-        "<div style='padding:1.25rem;color:#fecaca;font-size:.95rem;word-break:break-word;max-width:100%'>" +
-        "<h2 style='color:#f87171;margin:0 0 .75rem'>Erreur au chargement</h2>" +
-        "<p style='margin:0 0 .5rem'><b>" + msg + "</b></p>" +
-        (hint ? "<p style='margin:0 0 .75rem;color:#94a3b8;font-size:.85rem'>" + hint + "</p>" : "") +
-        (stack ? "<pre style='white-space:pre-wrap;font-size:.75rem;opacity:.9;margin:0'>" + stack + "</pre>" : "") +
-        "</div>";
-    }
-
-    /** iOS : la feuille « Partager » déclenche souvent un faux « Script error. » (ligne 0) — à ignorer. */
-    function isShareSheetNoise(msg, line, col, err) {
-      if (msg !== "Script error.") return false;
-      if (err && err.stack) return false;
-      return !line && !col;
-    }
-
-    window.onerror = function (msg, src, line, col, err) {
-      if (isShareSheetNoise(msg, line, col, err)) return true;
-      showBootError(err || { message: msg }, src ? "Source : " + src + " (" + line + ":" + col + ")" : "");
-      return true;
+      if (m) m.innerHTML = "<div style='padding:2rem;color:red;font-size:1rem;word-break:break-all'><h2>Erreur JS</h2><p><b>" + msg + "</b></p><p>Ligne " + line + ", col " + col + "</p><pre style='white-space:pre-wrap'>" + (err && err.stack ? err.stack : "") + "</pre></div>";
     };
-    window.addEventListener("unhandledrejection", function (e) {
-      var reason = e.reason;
-      if (reason && reason.message === "Script error.") return;
-      showBootError(reason, "Promesse rejetée");
-    });
-    window.isIOSBrowser = function () {
-      return (
-        /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
-        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
-      );
-    };
-    window.isFileProtocol = function () {
-      return !!window.__EPS_FILE_PROTOCOL;
-    };
-  })();
   </script>
   <script>
     /**
@@ -4376,11 +4327,6 @@
     let appStorageIsMemory = false;
     function lsWorks() {
       if (lsUsable !== null) return lsUsable;
-      if (typeof isFileProtocol === "function" && isFileProtocol()) {
-        lsUsable = false;
-        appStorageIsMemory = true;
-        return false;
-      }
       try {
         if (typeof localStorage === "undefined" || !localStorage) {
           lsUsable = false;
@@ -4476,25 +4422,14 @@
     /* UTILITAIRES                                                                */
     /* -------------------------------------------------------------------------- */
 
-    function isFileProtocol() {
-      return typeof window.isFileProtocol === "function" && window.isFileProtocol();
-    }
-
     function uid() {
       try { if (crypto && crypto.randomUUID) return crypto.randomUUID(); } catch(e) {}
       return "id-" + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
     }
 
     function parseISODate(s) {
-      const raw = String(s || "").trim();
-      if (!raw) return new Date(NaN);
-      const parts = raw.split("-").map(Number);
-      if (parts.length < 3 || parts.some((n) => !Number.isFinite(n))) return new Date(NaN);
-      return new Date(parts[0], parts[1] - 1, parts[2]);
-    }
-
-    function isValidDate(d) {
-      return d instanceof Date && !isNaN(d.getTime());
+      const [y, m, d] = s.split("-").map(Number);
+      return new Date(y, m - 1, d);
     }
 
     function fmtISODate(d) {
@@ -6149,12 +6084,8 @@
     function regenerateSessions(opts) {
       opts = opts || {};
       migrateDataModel();
-      if (!appData.settings || typeof appData.settings !== "object") {
-        appData.settings = { schoolYearStart: "2025-09-01", schoolYearEnd: "2026-07-05", zone: "C" };
-      }
-      const start = parseISODate(coerceISODateString(appData.settings.schoolYearStart));
-      const end = parseISODate(coerceISODateString(appData.settings.schoolYearEnd));
-      if (!isValidDate(start) || !isValidDate(end) || start > end) return;
+      const start = parseISODate(appData.settings.schoolYearStart);
+      const end = parseISODate(appData.settings.schoolYearEnd);
       const oldCanc = appData.cancellations.slice();
       /** Ancienne séance par créneau (pour conserver appel, résumé, PDF après régénération). */
       const oldSessionByKey = new Map();
@@ -7292,7 +7223,7 @@
       refresh();
       const closeFullscreen = () => {
         calendarViewRefresh = null;
-        calendarDocFsDismissed = true;
+        calendarFullscreenDismissed = true;
         closeModal();
         render();
       };
@@ -7312,7 +7243,7 @@
           if (e.target.closest(".btn-cal-event-detail")) return;
           if (e.target.closest(".cal-cell--day, .cal-week-day--pick")) return;
           if (e.target.closest(".cal-nav-toolbar")) return;
-          if (!prefersDocFullscreen()) return;
+          if (!prefersMobileDocFullscreen()) return;
           e.preventDefault();
           e.stopPropagation();
           openFullscreenCalendar();
@@ -7611,13 +7542,17 @@
       return isIOSDevice();
     }
 
-    /** iPhone / mobile : tableaux et calendrier en plein écran type document. */
-    function prefersDocFullscreen() {
+    /** iPhone / mobile : tableaux et calendriers en plein écran type document. */
+    function prefersMobileDocFullscreen() {
       if (isIOSDevice()) return true;
       return window.matchMedia("(max-width: 768px)").matches;
     }
 
-    let calendarDocFsDismissed = false;
+    function prefersMobileTableFullscreen() {
+      return prefersMobileDocFullscreen();
+    }
+
+    let calendarFullscreenDismissed = false;
 
     function dataUrlToBlobUrl(dataUrl) {
       const comma = dataUrl.indexOf(",");
@@ -9982,7 +9917,7 @@
       const isToday = fmtISODate(dashboardDate) === fmtISODate(new Date());
       const hasProgPdf = hasProgEtabPdf();
       return `
-        ${appStorageIsMemory ? `<div class="card" style="margin-bottom:1rem;padding:.75rem 1rem;background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.35);font-size:.85rem;line-height:1.45">${isFileProtocol() ? `<strong>Fichier local (Partager → Fichiers / AirDrop)</strong> — Sur iPhone, ouvrez l’app via <strong>Safari</strong> et le lien en ligne plutôt qu’en ouvrant le fichier HTML enregistré.${window.__EPS_WEB_APP_URL ? ` <a href="${escapeHtml(window.__EPS_WEB_APP_URL)}" style="font-weight:700">Ouvrir la version en ligne</a>` : ""}<br><br>` : `<strong>Mode fichier (AirDrop / Fichiers)</strong> — `}Safari ne peut pas enregistrer vos données sur cette page. Exportez régulièrement via <strong>Réglages → Sauvegarde → Export JSON</strong>.</div>` : ""}
+        ${appStorageIsMemory ? `<div class="card" style="margin-bottom:1rem;padding:.75rem 1rem;background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.35);font-size:.85rem;line-height:1.45"><strong>Mode fichier (AirDrop / Fichiers)</strong> — Safari ne peut pas enregistrer en local sur cette page. Vos saisies restent tant que l’onglet est ouvert ; pensez à <strong>Réglages → Sauvegarde → Export JSON</strong> pour garder une copie.</div>` : ""}
         <div class="dash-date-nav${isToday ? " dash-date-nav--today" : ""}">
           <div class="dash-date-nav__side dash-date-nav__side--left no-print">${helpButtonHtml()}</div>
           <div class="dash-date-nav__center">
@@ -11250,7 +11185,7 @@
       const calHint = `<p class="cal-scroll-hint no-print">Touchez une case pour ajouter un événement ou un rappel · un événement pour le détail · pincez pour zoomer</p>`;
       const calTapHint = inFullscreen
         ? ""
-        : `<p class="cal-tap-fullscreen-hint no-print">Touchez le calendrier pour l'ouvrir en plein écran (comme un document PDF)</p>`;
+        : `<p class="cal-tap-fullscreen-hint no-print">Touchez le calendrier pour l'ouvrir en plein écran (comme un document)</p>`;
       const termLegend = renderCalSchoolTermLegendHtml();
       const monthBlock =
         calendarMode === "month"
@@ -12011,7 +11946,7 @@
         wrap.addEventListener(
           "click",
           (e) => {
-            if (!prefersDocFullscreen()) return;
+            if (!prefersMobileTableFullscreen()) return;
             if (wrap.classList.contains("as-admin-table-wrap")) {
               if (e.target.closest(".btn-as-admin-del-student")) return;
               if (e.target.closest(".btn-as-admin-del-col")) return;
@@ -13875,7 +13810,7 @@
         toolsPanel = nextPanel;
       }
       if (view !== "calendar:visual") {
-        calendarDocFsDismissed = false;
+        calendarFullscreenDismissed = false;
       }
       render();
       scrollPageToStart();
@@ -13996,14 +13931,14 @@
       if (currentView === "dashboard") fetchWeather();
       if (
         currentView === "calendar:visual" &&
-        prefersDocFullscreen() &&
-        !calendarDocFsDismissed &&
+        prefersMobileDocFullscreen() &&
+        !calendarFullscreenDismissed &&
         !document.getElementById("modal-root")?.classList.contains("open")
       ) {
         requestAnimationFrame(() => {
           if (
             currentView === "calendar:visual" &&
-            !calendarDocFsDismissed &&
+            !calendarFullscreenDismissed &&
             !document.getElementById("modal-root")?.classList.contains("open")
           ) {
             openFullscreenCalendar();
@@ -14079,15 +14014,13 @@
     }
 
     function init() {
-      if (!appData.settings || typeof appData.settings !== "object") {
-        appData.settings = { schoolYearStart: "2025-09-01", schoolYearEnd: "2026-07-05", zone: "C" };
-      }
-      const hadStoredData = loadData();
-      if (!hadStoredData) {
+      if (!loadData()) {
         migrateDataModel();
         saveData();
       } else {
+        if (!appData.settings) appData.settings = { schoolYearStart: "2025-09-01", schoolYearEnd: "2026-07-05", zone: "C" };
         migrateDataModel();
+        regenerateSessions();
       }
 
       function syncThemeColor() {
@@ -14109,57 +14042,24 @@
       else document.documentElement.removeAttribute("data-theme");
       syncThemeColor();
 
-      const finishBoot = () => {
-        try {
-          render();
-        } catch (e) {
-          showBootError(e);
-        }
-      };
-
-      const runRegen = () => {
-        try {
-          regenerateSessions();
-        } catch (e) {
-          console.error(e);
-          showBootError(e, "Erreur lors du calcul des séances.");
-          finishBoot();
-          return;
-        }
-        finishBoot();
-      };
-
-      if (hadStoredData) {
-        const main = document.getElementById("main");
-        if (main) {
-          main.innerHTML = "<div class='app-loading' style='padding:2rem;text-align:center'>⏳ Mise à jour des séances…</div>";
-        }
-        setTimeout(runRegen, typeof isIOSBrowser === "function" && isIOSBrowser() ? 50 : 0);
-      } else {
-        finishBoot();
-      }
+      render();
     }
 
     try {
-      if (
-        "serviceWorker" in navigator &&
-        location.protocol === "https:" &&
-        typeof window.isIOSBrowser === "function" &&
-        !window.isIOSBrowser()
-      ) {
-        const swCode =
-          'self.addEventListener("install",function(e){self.skipWaiting()});self.addEventListener("activate",function(e){e.waitUntil(self.clients.claim())});';
+      if ("serviceWorker" in navigator && location.protocol === "https:") {
+        const swCode = `self.addEventListener("install",e=>{self.skipWaiting()});self.addEventListener("activate",e=>{e.waitUntil(clients.claim())});self.addEventListener("fetch",e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)))});`;
         const swBlob = new Blob([swCode], { type: "application/javascript" });
         const swURL = URL.createObjectURL(swBlob);
-        navigator.serviceWorker.register(swURL).catch(function () {});
+        navigator.serviceWorker.register(swURL).catch(() => {});
       }
-    } catch (swErr) {}
+    } catch(e) {}
 
     function boot() {
       try {
         init();
       } catch (e) {
-        showBootError(e);
+        var m = document.getElementById("main");
+        if (m) m.innerHTML = "<div style='padding:2rem;color:red;font-size:1.2rem'><h2>Erreur au chargement</h2><pre>" + e.message + "\n" + e.stack + "</pre></div>";
       }
     }
     if (document.readyState === "loading") {
