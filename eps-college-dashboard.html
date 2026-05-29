@@ -281,14 +281,11 @@
       }
     }
     .dash-reminders-zone {
-      display: flex;
-      flex-direction: column;
-      gap: 0.32rem;
       margin: 0 0 0.6rem;
     }
     .dash-reminder-banner {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 0.55rem;
       padding: 0.48rem 0.72rem;
       border-radius: 10px;
@@ -298,6 +295,42 @@
       font-size: 0.8rem;
       line-height: 1.35;
       color: var(--text-muted);
+    }
+    .dash-reminder-banner__list {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.28rem;
+    }
+    .dash-reminder-item {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .dash-reminder-item + .dash-reminder-item {
+      padding-top: 0.28rem;
+      border-top: 1px dashed color-mix(in srgb, #94a3b8 38%, var(--border));
+    }
+    .dash-reminder-banner__dismiss {
+      flex-shrink: 0;
+      width: 1.65rem;
+      height: 1.65rem;
+      padding: 0;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+    .dash-reminder-banner__dismiss:hover {
+      color: var(--danger);
+      border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+      background: color-mix(in srgb, var(--danger) 10%, transparent);
     }
     .dash-reminder-banner__badge {
       flex-shrink: 0;
@@ -334,7 +367,8 @@
       border-color: color-mix(in srgb, #94a3b8 45%, var(--border));
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
     }
-    .btn-school-event-reminder {
+    .btn-school-event-reminder,
+    .btn-school-term-reminder {
       width: 2rem;
       height: 2rem;
       border-radius: 50%;
@@ -347,19 +381,27 @@
       background: transparent;
       color: var(--text-muted);
       cursor: pointer;
-      transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.12s;
+      transition: color 0.2s, border-color 0.2s, background 0.2s, transform 0.12s, box-shadow 0.2s;
     }
-    .btn-school-event-reminder:hover {
+    .btn-school-event-reminder:hover,
+    .btn-school-term-reminder:hover {
       color: var(--accent);
       border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
       background: var(--accent-soft);
       transform: scale(1.05);
     }
-    .btn-school-event-reminder.is-active {
-      color: var(--accent);
+    .btn-school-event-reminder.is-active,
+    .btn-school-term-reminder.is-active {
+      color: #fff;
       border-color: var(--accent);
-      background: var(--accent-soft);
-      cursor: default;
+      background: var(--accent);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 38%, transparent);
+      cursor: pointer;
+    }
+    .btn-school-event-reminder.is-active:hover,
+    .btn-school-term-reminder.is-active:hover {
+      background: color-mix(in srgb, var(--accent) 88%, #000);
+      transform: scale(1.05);
     }
     .btn-calendar-icon,
     .btn-reminder-icon,
@@ -552,6 +594,9 @@
       margin-top: 1.25rem;
     }
     .cal-panel--visual .cal-panel__title { color: #6366f1; margin-bottom: 0.5rem; }
+    .cal-panel--visual .cal-scroll-area {
+      margin-top: 0.15rem;
+    }
     .cal-panel__events {
       margin-top: 0.35rem;
       border: 1px solid var(--border);
@@ -583,6 +628,146 @@
     }
     .cal-panel--official .cal-panel__events summary { color: #0d9488; }
     .cal-panel--school .cal-panel__events summary { color: #d97706; }
+    .as-slot-tabs {
+      gap: 0.35rem;
+    }
+    .as-slot-tabs .as-activity-tab {
+      font-size: 0.78rem;
+      padding: 0.28rem 0.55rem;
+    }
+    .as-activity-tab.btn-dash-as-slot-tab {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.1rem;
+      line-height: 1.2;
+      text-align: left;
+      max-width: min(100%, 14rem);
+    }
+    .as-slot-tab__when {
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .as-slot-tab__cats {
+      font-size: 0.66rem;
+      font-weight: 600;
+      opacity: 0.9;
+      white-space: normal;
+      line-height: 1.25;
+    }
+    .as-slot-tab__cats--all {
+      font-weight: 500;
+      opacity: 0.65;
+      font-style: italic;
+    }
+    .as-slot-categories-hint {
+      margin: 0 0 0.45rem;
+      line-height: 1.35;
+    }
+    .school-terms-table input[type="date"] {
+      width: 100%;
+      min-width: 0;
+      max-width: 11rem;
+      padding: 0.28rem 0.35rem;
+      font-size: 0.78rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      color-scheme: dark;
+    }
+    [data-theme="light"] .school-terms-table input[type="date"] {
+      color-scheme: light;
+    }
+    .cal-chip--term {
+      cursor: default;
+      font-weight: 600;
+    }
+    .cal-cell--term-start {
+      background: #16a34a !important;
+      border-color: #15803d !important;
+      color: #fff;
+    }
+    .cal-cell--term-end {
+      background: #dc2626 !important;
+      border-color: #b91c1c !important;
+      color: #fff;
+    }
+    .cal-cell--term-start.cal-cell--term-end {
+      background: linear-gradient(135deg, #16a34a 0%, #16a34a 50%, #dc2626 50%, #dc2626 100%) !important;
+      border-color: #15803d !important;
+    }
+    .cal-cell--term-start .num,
+    .cal-cell--term-end .num,
+    .cal-cell--term-start .cal-term-day-label,
+    .cal-cell--term-end .cal-term-day-label {
+      color: #fff;
+    }
+    .cal-cell--term-start .cal-chip,
+    .cal-cell--term-end .cal-chip {
+      filter: brightness(1.08);
+    }
+    .cal-cell.today.cal-cell--term-start,
+    .cal-cell.today.cal-cell--term-end {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+    .cal-term-day-label {
+      display: block;
+      font-size: 0.5rem;
+      font-weight: 700;
+      line-height: 1.15;
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cal-term-legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.65rem 1rem;
+      margin: 0.55rem 0 0;
+      padding: 0.45rem 0.55rem;
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--surface) 88%, transparent);
+      border: 1px solid var(--border);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .cal-term-legend__item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .cal-term-legend__swatch {
+      width: 0.85rem;
+      height: 0.85rem;
+      border-radius: 3px;
+      flex-shrink: 0;
+      border: 1px solid color-mix(in srgb, #000 18%, transparent);
+    }
+    .cal-term-legend__swatch--start { background: #16a34a; }
+    .cal-term-legend__swatch--end { background: #dc2626; }
+    .cal-week-day--term-start {
+      background: color-mix(in srgb, #16a34a 18%, var(--card)) !important;
+      border-left: 4px solid #16a34a;
+    }
+    .cal-week-day--term-end {
+      background: color-mix(in srgb, #dc2626 18%, var(--card)) !important;
+      border-left: 4px solid #dc2626;
+    }
+    .cal-week-day--term-both {
+      border-left: 4px solid #dc2626;
+      background: linear-gradient(90deg, color-mix(in srgb, #16a34a 22%, var(--card)) 0%, color-mix(in srgb, #dc2626 22%, var(--card)) 100%) !important;
+    }
+    @media (max-width: 480px) {
+      .school-terms-table input[type="date"] {
+        max-width: 100%;
+        font-size: 0.72rem;
+      }
+    }
+
     .add-class-toolbar {
       display: flex;
       justify-content: center;
@@ -1798,6 +1983,35 @@
     }
     .participation-detail .part-dispensed { color: #f472b6; }
     .participation-detail .part-absent { color: var(--danger); }
+    .participation-rate-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      min-width: 7rem;
+      margin: 0 auto;
+    }
+    .participation-rate-bar .progress {
+      width: 100%;
+      max-width: 9rem;
+      margin-top: 0;
+      height: 8px;
+    }
+    .participation-rate-bar .progress > span {
+      background: #94a3b8;
+      transition: width 0.35s ease;
+    }
+    .participation-rate-bar--low .progress > span { background: #ef4444; }
+    .participation-rate-bar--mid .progress > span { background: #f59e0b; }
+    .participation-rate-bar--high .progress > span { background: #22c55e; }
+    .participation-rate-pct {
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .participation-rate-bar--low .participation-rate-pct { color: #ef4444; }
+    .participation-rate-bar--mid .participation-rate-pct { color: #f59e0b; }
+    .participation-rate-bar--high .participation-rate-pct { color: #22c55e; }
     .session-exempt-notice {
       margin: 0 0 0.85rem;
       padding: 0.15rem 0 0.15rem 0.6rem;
@@ -1842,11 +2056,13 @@
     tr:hover td { background: rgba(108, 140, 255, 0.04); }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 0.35rem; vertical-align: middle; }
     .session-table-wrap,
-    .as-admin-table-wrap {
+    .as-admin-table-wrap,
+    .as-planning-table-wrap {
       position: relative;
     }
     .session-table-hint,
-    .as-admin-table-hint {
+    .as-admin-table-hint,
+    .as-planning-table-hint {
       display: none;
       margin: 0.4rem 0 0;
       font-size: 0.68rem;
@@ -1884,6 +2100,90 @@
       margin: 0 0 0.65rem;
       font-size: 0.78rem;
       color: var(--text-muted);
+      line-height: 1.35;
+    }
+    .modal-backdrop.modal-backdrop--calendar-fullscreen {
+      padding: 0;
+      align-items: stretch;
+      justify-content: stretch;
+    }
+    .table-fullscreen-modal {
+      width: 100vw;
+      max-width: 100vw;
+      height: 100dvh;
+      max-height: 100dvh;
+      margin: 0;
+      border-radius: 0;
+      padding: max(0.45rem, env(safe-area-inset-top, 0px)) 0.45rem max(0.45rem, env(safe-area-inset-bottom, 0px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: none;
+    }
+    .table-fullscreen-modal .modal-header {
+      flex-shrink: 0;
+      margin-bottom: 0.35rem;
+    }
+    .table-fullscreen-view {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y pinch-zoom;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+    }
+    .table-fullscreen-view .as-admin-table,
+    .table-fullscreen-view .as-planning-table {
+      width: max-content;
+      min-width: 100%;
+      font-size: 0.72rem;
+    }
+    .as-admin-table-wrap--tap-fullscreen,
+    .as-planning-table-wrap--tap-fullscreen {
+      cursor: pointer;
+    }
+    .calendar-fullscreen-modal {
+      width: 100vw;
+      max-width: 100vw;
+      height: 100dvh;
+      max-height: 100dvh;
+      margin: 0;
+      border-radius: 0;
+      padding: max(0.45rem, env(safe-area-inset-top, 0px)) 0.45rem max(0.45rem, env(safe-area-inset-bottom, 0px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: none;
+    }
+    .calendar-fullscreen-modal .modal-header {
+      flex-shrink: 0;
+      margin-bottom: 0.35rem;
+    }
+    .calendar-fullscreen-note {
+      margin: 0 0 0.35rem;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+      flex-shrink: 0;
+    }
+    .calendar-fullscreen-view {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y pinch-zoom;
+    }
+    .cal-scroll-area--tap-fullscreen {
+      cursor: pointer;
+    }
+    .cal-tap-fullscreen-hint {
+      display: none;
+      margin: 0 0 0.35rem;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-align: center;
       line-height: 1.35;
     }
 
@@ -2037,6 +2337,18 @@
       flex-direction: column;
     }
     .cal-cell.muted { opacity: 0.45; }
+    .cal-cell--day:not(.muted) {
+      cursor: pointer;
+    }
+    .cal-cell--day:not(.muted):hover {
+      background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+    }
+    .cal-week-day--pick {
+      cursor: pointer;
+    }
+    .cal-week-day--pick:hover {
+      background: color-mix(in srgb, var(--accent) 8%, var(--card));
+    }
     .cal-cell.today { outline: 2px solid var(--accent); }
     .cal-cell .num { font-weight: 700; font-size: 0.75rem; flex-shrink: 0; }
     .cal-cell-events {
@@ -3185,6 +3497,11 @@
         -webkit-overflow-scrolling: touch;
         cursor: zoom-in;
       }
+      .session-table-wrap .btn-session-summary {
+        cursor: pointer;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: rgba(99, 102, 241, 0.15);
+      }
       .session-table-wrap::after {
         content: "";
         position: absolute;
@@ -3248,10 +3565,12 @@
         width: 100%;
         white-space: normal;
       }
-      .as-admin-table-hint {
+      .as-admin-table-hint,
+      .as-planning-table-hint {
         display: block;
       }
-      .as-admin-table-wrap {
+      .as-admin-table-wrap,
+      .as-planning-table-wrap {
         overflow-x: auto;
         overflow-y: hidden;
         -webkit-overflow-scrolling: touch;
@@ -3260,7 +3579,8 @@
         border-radius: var(--radius-sm);
         background: var(--surface);
       }
-      .as-admin-table-wrap::after {
+      .as-admin-table-wrap::after,
+      .as-planning-table-wrap::after {
         content: "";
         position: absolute;
         inset: 0 0 0 auto;
@@ -3273,24 +3593,34 @@
       .as-admin-table-wrap tbody,
       .as-admin-table-wrap tr,
       .as-admin-table-wrap th,
-      .as-admin-table-wrap td {
+      .as-admin-table-wrap td,
+      .as-planning-table-wrap table,
+      .as-planning-table-wrap thead,
+      .as-planning-table-wrap tbody,
+      .as-planning-table-wrap tr,
+      .as-planning-table-wrap th,
+      .as-planning-table-wrap td {
         display: revert;
         width: auto;
       }
-      .as-admin-table-wrap table.as-admin-table {
+      .as-admin-table-wrap table.as-admin-table,
+      .as-planning-table-wrap table.as-planning-table {
         display: table;
         width: max-content;
         min-width: 100%;
         border-collapse: collapse;
         font-size: 0.58rem;
       }
-      .as-admin-table-wrap thead {
+      .as-admin-table-wrap thead,
+      .as-planning-table-wrap thead {
         display: table-header-group;
       }
-      .as-admin-table-wrap tbody {
+      .as-admin-table-wrap tbody,
+      .as-planning-table-wrap tbody {
         display: table-row-group;
       }
-      .as-admin-table-wrap tr {
+      .as-admin-table-wrap tr,
+      .as-planning-table-wrap tr {
         display: table-row;
         margin: 0;
         padding: 0;
@@ -3300,7 +3630,9 @@
         background: transparent;
       }
       .as-admin-table-wrap th,
-      .as-admin-table-wrap td {
+      .as-admin-table-wrap td,
+      .as-planning-table-wrap th,
+      .as-planning-table-wrap td {
         display: table-cell;
         padding: 0.26rem 0.3rem;
         border-bottom: 1px solid var(--border);
@@ -3308,7 +3640,8 @@
         line-height: 1.2;
         white-space: nowrap;
       }
-      .as-admin-table-wrap td::before {
+      .as-admin-table-wrap td::before,
+      .as-planning-table-wrap td::before {
         content: none;
       }
       .as-admin-table-wrap th.as-admin-col-head {
@@ -3347,6 +3680,29 @@
         font-size: 0.7rem;
       }
       .cal-scroll-hint {
+        display: block;
+      }
+      .cal-tap-fullscreen-hint {
+        display: block;
+      }
+      .main--calendar {
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100dvh - 5.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+      }
+      .main--calendar .topbar {
+        flex-shrink: 0;
+      }
+      .main--calendar .cal-scroll-area {
+        flex: 1 1 auto;
+        min-height: 0;
+      }
+      .cal-panel--visual .cal-scroll-area {
+        overflow: auto;
+        max-height: min(52dvh, 460px);
+        -webkit-overflow-scrolling: touch;
+      }
+      .cal-panel--visual .cal-tap-fullscreen-hint {
         display: block;
       }
       .cal-nav-toolbar {
@@ -3802,6 +4158,41 @@
         display: block;
         margin-bottom: 0.15rem;
       }
+      .calendar-fullscreen-modal {
+        padding: max(0.35rem, env(safe-area-inset-top, 0px)) 0.35rem max(0.35rem, env(safe-area-inset-bottom, 0px));
+      }
+      .calendar-fullscreen-modal .cal-grid {
+        gap: 3px;
+        font-size: 0.58rem;
+      }
+      .calendar-fullscreen-modal .cal-cell {
+        min-height: 3.15rem;
+      }
+      .calendar-fullscreen-modal .cal-chip {
+        font-size: 0.5rem;
+      }
+      .calendar-fullscreen-modal .cal-week-grid {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 0.28rem;
+      }
+      .calendar-fullscreen-modal .cal-week-day {
+        padding: 0.32rem 0.28rem;
+        font-size: 0.58rem;
+      }
+      .table-fullscreen-modal {
+        padding: max(0.35rem, env(safe-area-inset-top, 0px)) 0.35rem max(0.35rem, env(safe-area-inset-bottom, 0px));
+      }
+      .table-fullscreen-view .as-admin-table {
+        font-size: 0.62rem;
+      }
+      .table-fullscreen-view .as-admin-table th,
+      .table-fullscreen-view .as-admin-table td {
+        padding: 0.34rem 0.42rem;
+      }
+      .table-fullscreen-view .as-admin-check {
+        width: 0.95rem;
+        height: 0.95rem;
+      }
     }
 
     @media print {
@@ -3948,6 +4339,7 @@
       todoList: [],
       reminders: [],
       schoolCalendarEvents: [],
+      schoolTermSchedule: { mode: "trimestre", terms: [] },
       association: { activities: [] },
     };
 
@@ -3958,6 +4350,7 @@
     let associationCompetitionFilters = { activityId: "", sex: "", categoryAge: "" };
     let calendarEventFilter = "all";
     let calendarCursor = new Date();
+    let calendarViewRefresh = null;
     let advancedApsaClassId = "";
     let associationOpenActivityId = "";
     /** Onglet réglages AS par activité : trainings | students | competitions */
@@ -3966,6 +4359,8 @@
     let associationDashSetupActivityId = "";
     /** Sous-onglet par activité sur l'accueil AS : planning | admin */
     const dashAsActivityPanelTab = {};
+    /** Créneau sélectionné par activité (clé jour|début|fin) quand plusieurs créneaux. */
+    const dashAsActivitySlotTab = {};
 
     /* -------------------------------------------------------------------------- */
     /* UTILITAIRES                                                                */
@@ -4129,9 +4524,58 @@
       return appData.sessions.filter((s) => s.classId === classId);
     }
 
+    function periodDateOverrides(period) {
+      if (!period || !period.classDateOverrides || typeof period.classDateOverrides !== "object") return {};
+      return period.classDateOverrides;
+    }
+
+    /** Dates effectives d'une période pour une classe (fin prolongée éventuelle). */
+    function periodDatesForClass(period, classId) {
+      if (!period) return { start: "", end: "" };
+      const baseEnd = period.endDate || "";
+      const o = classId ? periodDateOverrides(period)[classId] : null;
+      const end = o && o.endDate && o.endDate > baseEnd ? o.endDate : baseEnd;
+      return { start: period.startDate || "", end };
+    }
+
+    function classesForPeriod(period) {
+      if (!period) return [];
+      return appData.classes
+        .filter((cl) => periodLevels(period).includes(classLevel(cl)))
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+    }
+
+    function activityEffectiveDates(activity) {
+      if (!activity) return { start: "", end: "" };
+      if (activity.periodId) {
+        const period = (appData.periods || []).find((p) => p.id === activity.periodId);
+        if (period) return periodDatesForClass(period, activity.classId);
+      }
+      return { start: activity.startDate || "", end: activity.endDate || "" };
+    }
+
+    function syncActivitiesDatesFromPeriod(period) {
+      if (!period || !period.id) return;
+      (appData.activities || []).forEach((a) => {
+        if (a.periodId !== period.id) return;
+        const { start, end } = periodDatesForClass(period, a.classId);
+        a.startDate = start;
+        a.endDate = end;
+      });
+    }
+
     /** APSA dont la période contient la date `dateStr` (ISO). */
     function activitiesOnDatePeriod(classId, dateStr) {
-      return activitiesForClass(classId).filter((a) => dateStr >= a.startDate && dateStr <= a.endDate);
+      return activitiesForClass(classId).filter((a) => {
+        const { start, end } = activityEffectiveDates(a);
+        return start && end && dateStr >= start && dateStr <= end;
+      });
+    }
+
+    /** Séances listées dans le tableau APSA de l'onglet classe (même activityId). */
+    function sessionsForActivityTable(classId, actId) {
+      return sessionsForClass(classId).filter((s) => s.activityId === actId);
     }
 
     function activityIdsOnPeriodToday(classId) {
@@ -4198,6 +4642,15 @@
       return startA < endB && startB < endA;
     }
 
+    /** Heure « HH:MM » pour comparaisons fiables (ex. 9:05 → 09:05). */
+    function normalizeTimeHHMM(t) {
+      const raw = String(t || "").trim();
+      if (!raw) return "";
+      const m = raw.match(/^(\d{1,2}):(\d{2})/);
+      if (!m) return raw;
+      return `${String(m[1]).padStart(2, "0")}:${m[2]}`;
+    }
+
     function holidayAppliesToSession(holiday, session) {
       if (!holiday || !session) return false;
       if (!(session.date >= holiday.startDate && session.date <= holiday.endDate)) return false;
@@ -4206,14 +4659,47 @@
       return timeRangesOverlap(session.startTime || "", session.endTime || "", holiday.startTime, holiday.endTime);
     }
 
+    function schoolEventHasTimeWindow(event) {
+      if (!event) return false;
+      return !!(normalizeTimeHHMM(event.startTime) && normalizeTimeHHMM(event.endTime));
+    }
+
+    function schoolEventIsFullDay(event) {
+      if (!event) return true;
+      const start = normalizeTimeHHMM(event.startTime || event.time || "");
+      const end = normalizeTimeHHMM(event.endTime || "");
+      return !start && !end;
+    }
+
+    function schoolEventHoursLabel(event) {
+      if (!event || schoolEventIsFullDay(event)) return "Journée";
+      if (schoolEventHasTimeWindow(event)) {
+        return `${normalizeTimeHHMM(event.startTime)}–${normalizeTimeHHMM(event.endTime)}`;
+      }
+      const start = normalizeTimeHHMM(event.startTime || event.time || "");
+      return start || "Journée";
+    }
+
     function schoolEventAppliesToSession(event, session) {
       if (!event || !session || !event.blocksSessions) return false;
       if (session.date !== event.date) return false;
-      const t = String(event.time || "").trim();
-      if (!t) return true;
-      const st = session.startTime || "00:00";
-      const en = session.endTime || "23:59";
-      return t >= st && t < en;
+      if (schoolEventIsFullDay(event)) return true;
+      const evStart = normalizeTimeHHMM(event.startTime || event.time || "");
+      const evEnd = normalizeTimeHHMM(event.endTime || "");
+      if (schoolEventHasTimeWindow(event)) {
+        return timeRangesOverlap(
+          session.startTime || "",
+          session.endTime || "",
+          evStart,
+          evEnd
+        );
+      }
+      if (evStart && !evEnd) {
+        const st = normalizeTimeHHMM(session.startTime || "00:00");
+        const en = normalizeTimeHHMM(session.endTime || "23:59");
+        return evStart >= st && evStart < en;
+      }
+      return false;
     }
 
     function blockingSchoolEventForSession(session) {
@@ -4222,14 +4708,13 @@
 
     function isBlockedBySchoolEvent(dateStr) {
       return (appData.schoolCalendarEvents || []).some(
-        (e) => e && e.date === dateStr && e.blocksSessions && !String(e.time || "").trim()
+        (e) => e && e.date === dateStr && e.blocksSessions && schoolEventIsFullDay(e)
       );
     }
 
     function isBlockedByHoliday(dateStr) {
-      // Pendant la génération, seuls les événements "journée entière" bloquent la création.
-      // Les événements horaires sont conservés puis marqués "annulés" s'ils chevauchent un cours.
-      if (isBlockedBySchoolEvent(dateStr)) return true;
+      // Pendant la génération, seuls les vacances/fériés « journée entière » empêchent la création.
+      // Les événements établissement (journée ou créneau) génèrent des séances puis computeSessionStatus → annulée.
       return appData.holidays.some((h) =>
         dateStr >= h.startDate &&
         dateStr <= h.endDate &&
@@ -4251,7 +4736,10 @@
      * En cas de chevauchement, priorité aux APSA avec jour explicite correspondant au créneau.
      */
     function pickActivityForSession(classId, dateStr, dayIndex) {
-      const inRange = activitiesForClass(classId).filter((a) => dateStr >= a.startDate && dateStr <= a.endDate);
+      const inRange = activitiesForClass(classId).filter((a) => {
+        const { start, end } = activityEffectiveDates(a);
+        return dateStr >= start && dateStr <= end;
+      });
       if (!inRange.length) return null;
       const withDay = inRange.filter((a) => Array.isArray(a.dayIndices) && a.dayIndices.length && a.dayIndices.includes(dayIndex));
       const pool = withDay.length ? withDay : inRange.filter((a) => !a.dayIndices || !a.dayIndices.length);
@@ -4287,11 +4775,11 @@
       }
       const schoolEv = blockingSchoolEventForSession(session);
       if (schoolEv) {
-        const label = schoolEventReminderText(schoolEv);
-        if (schoolEv.time) {
-          return { code: "cancelled", label: "Annulée", reason: label };
-        }
-        return { code: "holiday", label: "Événement établissement", reason: label };
+        return {
+          code: "cancelled",
+          label: "Annulée",
+          reason: schoolEventReminderText(schoolEv),
+        };
       }
       const d = parseISODate(session.date);
       const now = todayStart();
@@ -4412,6 +4900,25 @@
         .join("")}</div>`;
     }
 
+    function openSessionSummaryModal(session) {
+      if (!session) return;
+      const act = activityById(session.activityId);
+      const body = el(`<div>
+        <p class="kpi-sub" style="margin-bottom:.75rem"><strong>${fmtDateFr(session.date)}</strong> · ${session.startTime}–${session.endTime}${act ? " · " + escapeHtml(act.name) : ""}</p>
+        <div id="cp-prev-absent-reminder"></div>
+        <div class="form-group"><label>Résumé de la séance</label><textarea id="f-summary" rows="6" style="width:100%;font-size:.9rem;line-height:1.5" placeholder="Contenu de la séance, observations, points à retenir…"></textarea></div>
+      </div>`);
+      body.querySelector("#f-summary").value = session.summary || "";
+      injectPreviousAbsentReminder(body.querySelector("#cp-prev-absent-reminder"), session);
+      body.appendChild(buildAttendanceBlock(session));
+      body.appendChild(buildSessionPdfBlock(session));
+      openModal("Résumé de séance", body, () => {
+        session.summary = body.querySelector("#f-summary").value;
+        saveData();
+        render();
+      });
+    }
+
     function migrateDataModel() {
       appData.schedules.forEach((s) => {
         if (s.weekParity !== "A" && s.weekParity !== "B" && s.weekParity !== "all") s.weekParity = "all";
@@ -4436,6 +4943,10 @@
         if (ex.sessionId === undefined) ex.sessionId = null;
       });
       if (!Array.isArray(appData.periods)) appData.periods = [];
+      appData.periods.forEach((p) => {
+        if (!p.classDateOverrides || typeof p.classDateOverrides !== "object") p.classDateOverrides = {};
+      });
+      (appData.periods || []).forEach((p) => syncActivitiesDatesFromPeriod(p));
       if (!Array.isArray(appData.venues)) appData.venues = [];
       if (appData.progEtabPdf === undefined) appData.progEtabPdf = null;
       if (!Array.isArray(appData.forgottenGear)) appData.forgottenGear = [];
@@ -4456,24 +4967,34 @@
           const iso = coerceISODateString(r.date);
           if (iso) r.date = iso;
         }
+        if (r && !Number.isInteger(r.daysBefore)) r.daysBefore = 7;
+        if (r && r.daysBefore < 0) r.daysBefore = 0;
+        if (r && r.schoolTermId == null) r.schoolTermId = "";
       });
+      appData.reminders = (appData.reminders || []).filter((r) => r && !r.dismissedFromHome);
       appData.schoolCalendarEvents = appData.schoolCalendarEvents
         .map((e) => {
           if (!e || typeof e !== "object") return null;
           const date = String(e.date || "").trim();
           const title = String(e.title || "").trim();
           if (!date || !title) return null;
-          const time = String(e.time || "").trim();
+          const startTime = normalizeTimeHHMM(e.startTime || e.time || "");
+          const endTime = normalizeTimeHHMM(e.endTime || "");
           return {
             id: e.id || uid(),
             date,
-            time,
+            startTime,
+            endTime,
             title,
             kind: String(e.kind || "").trim(),
             blocksSessions: !!e.blocksSessions,
           };
         })
         .filter(Boolean);
+      if (!appData.schoolTermSchedule || typeof appData.schoolTermSchedule !== "object") {
+        appData.schoolTermSchedule = { mode: "trimestre", terms: [] };
+      }
+      normalizeSchoolTermSchedule();
       if (!appData.settings.academy) appData.settings.academy = "";
       if (!appData.association || typeof appData.association !== "object") appData.association = {};
       if (!Array.isArray(appData.association.activities)) appData.association.activities = [];
@@ -4488,6 +5009,8 @@
         a.students = a.students.map(normalizeAssociationStudent);
         if (!Array.isArray(a.adminColumns)) a.adminColumns = [];
         if (!a.adminChecks || typeof a.adminChecks !== "object") a.adminChecks = {};
+        if (!a.adminBySlot || typeof a.adminBySlot !== "object") a.adminBySlot = {};
+        migrateAssociationAdminToSlots(a);
         a.trainings.forEach((t) => {
           if (t && !t.id) t.id = uid();
         });
@@ -4533,25 +5056,156 @@
       return c;
     }
 
-    function getAssociationAdminCellValue(activity, colId, studentIdx) {
-      const col = activity.adminChecks && activity.adminChecks[colId];
+    function associationSlotKey(dayIndex, startTime, endTime) {
+      return `${dayIndex}|${startTime || ""}|${endTime || ""}`;
+    }
+
+    function associationListDistinctSlots(activity) {
+      const map = new Map();
+      (activity.trainings || []).forEach((t) => {
+        if (!t || !Number.isInteger(t.dayIndex)) return;
+        const key = associationSlotKey(t.dayIndex, t.startTime, t.endTime);
+        if (!map.has(key)) {
+          map.set(key, {
+            key,
+            dayIndex: t.dayIndex,
+            startTime: t.startTime || "",
+            endTime: t.endTime || "",
+          });
+        }
+      });
+      return [...map.values()].sort(
+        (a, b) => a.dayIndex - b.dayIndex || String(a.startTime).localeCompare(String(b.startTime))
+      );
+    }
+
+    function associationSlotScheduleLabel(slot) {
+      const day = DOW[slot.dayIndex] ? DOW[slot.dayIndex].slice(0, 3) + "." : "";
+      const time = formatAssociationRecapSlotTime(slot.startTime, slot.endTime);
+      return [day, time].filter(Boolean).join(" · ") || "Créneau";
+    }
+
+    function associationSlotCategoriesFullLabel(activity, slot) {
+      if (!activity || !slot || !Number.isInteger(slot.dayIndex)) return "Tous";
+      const configured = associationSlotConfiguredGroups(
+        activity,
+        slot.dayIndex,
+        slot.startTime,
+        slot.endTime
+      );
+      if (!configured) return "Tous";
+      return associationFormatGroupLabels(configured);
+    }
+
+    function associationSlotCategoriesLabel(activity, slot) {
+      if (!activity || !slot || !Number.isInteger(slot.dayIndex)) return "Tous";
+      const configured = associationSlotConfiguredGroups(
+        activity,
+        slot.dayIndex,
+        slot.startTime,
+        slot.endTime
+      );
+      if (!configured) return "Tous";
+      return associationFormatGroupLabelsAbbrev(configured);
+    }
+
+    function associationSlotTabLabel(slot, activity) {
+      const schedule = associationSlotScheduleLabel(slot);
+      if (!activity) return schedule;
+      const cats = associationSlotCategoriesLabel(activity, slot);
+      if (!cats || cats === "Tous") return schedule;
+      return `${schedule} — ${cats}`;
+    }
+
+    function renderAssociationSlotTabHtml(activity, activityId, slot, active) {
+      const schedule = associationSlotScheduleLabel(slot);
+      const cats = associationSlotCategoriesLabel(activity, slot);
+      const catsFull = associationSlotCategoriesFullLabel(activity, slot);
+      const catsHtml =
+        cats && cats !== "Tous"
+          ? `<span class="as-slot-tab__cats"${catsFull !== cats ? ` title="${escapeHtml(catsFull)}"` : ""}>${escapeHtml(cats)}</span>`
+          : `<span class="as-slot-tab__cats as-slot-tab__cats--all">Toutes catégories</span>`;
+      const title = cats !== "Tous" ? `${schedule} — ${catsFull}` : schedule;
+      return `<button type="button" class="as-activity-tab btn-dash-as-slot-tab${active ? " as-activity-tab--active" : ""}" data-activity-id="${escapeHtml(activityId)}" data-slot-key="${escapeHtml(slot.key)}" title="${escapeHtml(title)}">
+        <span class="as-slot-tab__when">${escapeHtml(schedule)}</span>
+        ${catsHtml}
+      </button>`;
+    }
+
+    function associationSlotCategoriesHintHtml(activity, slot) {
+      if (!activity || !slot) return "";
+      const cats = associationSlotCategoriesLabel(activity, slot);
+      const schedule = associationSlotScheduleLabel(slot);
+      const catsFull = associationSlotCategoriesFullLabel(activity, slot);
+      const catsTitle = catsFull !== cats ? ` title="${escapeHtml(catsFull)}"` : "";
+      return `<p class="kpi-sub as-slot-categories-hint"><strong>Créneau ${escapeHtml(schedule)}</strong> — Catégories : <span${catsTitle}>${escapeHtml(cats)}</span></p>`;
+    }
+
+    function ensureAssociationAdminSlotStore(activity, slotKey) {
+      if (!activity.adminBySlot || typeof activity.adminBySlot !== "object") activity.adminBySlot = {};
+      if (!activity.adminBySlot[slotKey]) {
+        activity.adminBySlot[slotKey] = { columns: [], checks: {} };
+      }
+      const store = activity.adminBySlot[slotKey];
+      if (!Array.isArray(store.columns)) store.columns = [];
+      if (!store.checks || typeof store.checks !== "object") store.checks = {};
+      return store;
+    }
+
+    function migrateAssociationAdminToSlots(activity) {
+      if (activity._adminSlotsMigrated) return;
+      const slots = associationListDistinctSlots(activity);
+      if (slots.length <= 1) {
+        activity._adminSlotsMigrated = true;
+        return;
+      }
+      const legacyCols = Array.isArray(activity.adminColumns) ? activity.adminColumns : [];
+      const legacyChecks =
+        activity.adminChecks && typeof activity.adminChecks === "object" ? activity.adminChecks : {};
+      const hasLegacy = legacyCols.length > 0 || Object.keys(legacyChecks).length > 0;
+      slots.forEach((slot, i) => {
+        const store = ensureAssociationAdminSlotStore(activity, slot.key);
+        if (hasLegacy && i === 0 && !store.columns.length) {
+          store.columns = legacyCols.map((c) => ({ id: c.id || uid(), label: c.label }));
+          store.checks = JSON.parse(JSON.stringify(legacyChecks));
+        }
+      });
+      activity._adminSlotsMigrated = true;
+    }
+
+    function getAssociationAdminStore(activity, slotKey) {
+      const slots = associationListDistinctSlots(activity);
+      if (slots.length <= 1) {
+        if (!Array.isArray(activity.adminColumns)) activity.adminColumns = [];
+        if (!activity.adminChecks || typeof activity.adminChecks !== "object") activity.adminChecks = {};
+        return { columns: activity.adminColumns, checks: activity.adminChecks, slotKey: slots[0]?.key || "" };
+      }
+      migrateAssociationAdminToSlots(activity);
+      const key = slotKey && slots.some((s) => s.key === slotKey) ? slotKey : slots[0].key;
+      const store = ensureAssociationAdminSlotStore(activity, key);
+      return { columns: store.columns, checks: store.checks, slotKey: key };
+    }
+
+    function getAssociationAdminCellValue(activity, colId, studentIdx, slotKey) {
+      const store = getAssociationAdminStore(activity, slotKey);
+      const col = store.checks[colId];
       const raw = col && col[String(studentIdx)];
       if (raw === true) return { checked: true, text: "" };
       if (typeof raw === "string" && raw.length) return { checked: false, text: raw };
       return { checked: false, text: "" };
     }
 
-    function setAssociationAdminCell(activity, colId, studentIdx, { checked, text }) {
-      if (!activity.adminChecks || typeof activity.adminChecks !== "object") activity.adminChecks = {};
-      if (!activity.adminChecks[colId]) activity.adminChecks[colId] = {};
+    function setAssociationAdminCell(activity, colId, studentIdx, { checked, text }, slotKey) {
+      const store = getAssociationAdminStore(activity, slotKey);
+      if (!store.checks[colId]) store.checks[colId] = {};
       const key = String(studentIdx);
       const t = (text || "").trim();
       if (t) {
-        activity.adminChecks[colId][key] = t;
+        store.checks[colId][key] = t;
       } else if (checked) {
-        activity.adminChecks[colId][key] = true;
+        store.checks[colId][key] = true;
       } else {
-        delete activity.adminChecks[colId][key];
+        delete store.checks[colId][key];
       }
     }
 
@@ -4561,9 +5215,10 @@
       const activityId = cell.getAttribute("data-activity-id");
       const colId = cell.getAttribute("data-col-id");
       const studentIdx = Number(cell.getAttribute("data-student-idx"));
+      const slotKey = cell.getAttribute("data-slot-key") || "";
       const activity = (appData.association.activities || []).find((x) => x.id === activityId);
       if (!activity || !colId || !Number.isInteger(studentIdx)) return null;
-      return { cell, activity, colId, studentIdx };
+      return { cell, activity, colId, studentIdx, slotKey };
     }
 
     function openAssociationAdminCellEdit(cell) {
@@ -4580,12 +5235,13 @@
       });
     }
 
-    function refreshAssociationAdminCellViews(activityId, colId, studentIdx) {
+    function refreshAssociationAdminCellViews(activityId, colId, studentIdx, slotKey) {
       const activity = (appData.association?.activities || []).find((x) => x.id === activityId);
       if (!activity) return;
-      const val = getAssociationAdminCellValue(activity, colId, studentIdx);
+      const val = getAssociationAdminCellValue(activity, colId, studentIdx, slotKey || "");
       const escAttr = (v) => String(v).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-      const sel = `.as-admin-cell[data-activity-id="${escAttr(activityId)}"][data-col-id="${escAttr(colId)}"][data-student-idx="${studentIdx}"]`;
+      const slotPart = slotKey ? `[data-slot-key="${escAttr(slotKey)}"]` : "";
+      const sel = `.as-admin-cell[data-activity-id="${escAttr(activityId)}"][data-col-id="${escAttr(colId)}"][data-student-idx="${studentIdx}"]${slotPart}`;
       document.querySelectorAll(sel).forEach((cell) => {
         const cb = cell.querySelector(".as-admin-check");
         const display = cell.querySelector(".as-admin-cell-display");
@@ -4605,10 +5261,10 @@
       });
     }
 
-    function refreshAssociationAdminAfterEdit(activityId, colId, studentIdx) {
+    function refreshAssociationAdminAfterEdit(activityId, colId, studentIdx, slotKey) {
       saveData();
       if (activityId && colId != null && studentIdx != null) {
-        refreshAssociationAdminCellViews(activityId, colId, studentIdx);
+        refreshAssociationAdminCellViews(activityId, colId, studentIdx, slotKey);
       }
       const modalOpen = document.getElementById("modal-root")?.classList.contains("open");
       if (currentView === "dashboard:association" && !modalOpen) {
@@ -4623,11 +5279,17 @@
       const cb = cell.querySelector(".as-admin-check");
       if (!input) return;
       const text = input.value.trim();
-      setAssociationAdminCell(ctx.activity, ctx.colId, ctx.studentIdx, {
-        checked: text ? false : !!(cb && cb.checked),
-        text,
-      });
-      refreshAssociationAdminAfterEdit(ctx.activity.id, ctx.colId, ctx.studentIdx);
+      setAssociationAdminCell(
+        ctx.activity,
+        ctx.colId,
+        ctx.studentIdx,
+        {
+          checked: text ? false : !!(cb && cb.checked),
+          text,
+        },
+        ctx.slotKey
+      );
+      refreshAssociationAdminAfterEdit(ctx.activity.id, ctx.colId, ctx.studentIdx, ctx.slotKey);
     }
 
     function wireAssociationAdminCellEvents(planningRoot) {
@@ -4665,11 +5327,12 @@
           if (
             wrap &&
             !cell.closest(".table-landscape-view") &&
-            window.matchMedia("(max-width: 480px) and (orientation: portrait)").matches
+            !cell.closest(".table-fullscreen-view") &&
+            window.matchMedia("(max-width: 480px)").matches
           ) {
             e.preventDefault();
             e.stopPropagation();
-            openLandscapeTable(wrap);
+            openFullscreenAdminTable(wrap);
             return;
           }
           tryOpenAdminTextEdit(cell, e);
@@ -4705,11 +5368,8 @@
         e.stopPropagation();
         const ctx = associationAdminCellContext(cb);
         if (!ctx) return;
-        setAssociationAdminCell(ctx.activity, ctx.colId, ctx.studentIdx, {
-          checked: cb.checked,
-          text: "",
-        });
-        refreshAssociationAdminAfterEdit(ctx.activity.id, ctx.colId, ctx.studentIdx);
+        setAssociationAdminCell(ctx.activity, ctx.colId, ctx.studentIdx, { checked: cb.checked, text: "" }, ctx.slotKey);
+        refreshAssociationAdminAfterEdit(ctx.activity.id, ctx.colId, ctx.studentIdx, ctx.slotKey);
       });
 
       planningRoot.addEventListener(
@@ -4728,7 +5388,7 @@
           if (e.key === "Escape" && e.target.classList.contains("as-admin-cell-input")) {
             const cell = e.target.closest(".as-admin-cell");
             const ctx = cell && associationAdminCellContext(cell);
-            if (ctx) refreshAssociationAdminAfterEdit(ctx.activity.id, ctx.colId, ctx.studentIdx);
+            if (ctx) refreshAssociationAdminAfterEdit(ctx.activity.id, ctx.colId, ctx.studentIdx, ctx.slotKey);
             else refreshAssociationDashPlanning();
           }
         },
@@ -4746,9 +5406,9 @@
       );
     }
 
-    function renderAssociationAdminCell(activity, col, studentIdx) {
-      const { checked, text } = getAssociationAdminCellValue(activity, col.id, studentIdx);
-      return `<td class="as-admin-cell" data-label="${escapeHtml(col.label)}" data-activity-id="${escapeHtml(activity.id)}" data-col-id="${escapeHtml(col.id)}" data-student-idx="${studentIdx}" title="Case : cocher · Texte : double-clic (ordinateur) ou appui long (iPhone)">
+    function renderAssociationAdminCell(activity, col, studentIdx, slotKey) {
+      const { checked, text } = getAssociationAdminCellValue(activity, col.id, studentIdx, slotKey || "");
+      return `<td class="as-admin-cell" data-label="${escapeHtml(col.label)}" data-activity-id="${escapeHtml(activity.id)}" data-col-id="${escapeHtml(col.id)}" data-student-idx="${studentIdx}" data-slot-key="${escapeHtml(slotKey || "")}" title="Case : cocher · Texte : double-clic (ordinateur) ou appui long (iPhone)">
         <div class="as-admin-cell-display">
           <input type="checkbox" class="as-admin-check" ${checked ? "checked" : ""} aria-label="${escapeHtml(col.label)}" />
           <span class="as-admin-cell-text" role="button" tabindex="0" aria-label="Saisir du texte">${text ? escapeHtml(text) : '<span class="kpi-sub" style="opacity:.35">—</span>'}</span>
@@ -4757,12 +5417,21 @@
       </td>`;
     }
 
-    function viewAssociationAdminBody(activity) {
+    function viewAssociationAdminBody(activity, slotKey) {
+      const store = getAssociationAdminStore(activity, slotKey || "");
+      const adminSlotKey = store.slotKey || slotKey || "";
       const students = (activity.students || []).map(normalizeAssociationStudent);
-      const columns = Array.isArray(activity.adminColumns) ? activity.adminColumns : [];
+      const columns = store.columns;
+      const slotObj = associationListDistinctSlots(activity).find((s) => s.key === adminSlotKey);
+      const multiSlot = associationListDistinctSlots(activity).length > 1;
+      const slotLabel = slotObj && multiSlot ? associationSlotTabLabel(slotObj, activity) : "";
+      const slotCatsHint =
+        slotObj && (multiSlot || associationSlotCategoriesLabel(activity, slotObj) !== "Tous")
+          ? associationSlotCategoriesHintHtml(activity, slotObj)
+          : "";
       const colHeaders = columns.map((col) =>
         `<th class="as-admin-col-head no-print">${escapeHtml(col.label)}
-          <button type="button" class="btn btn-sm btn-danger btn-as-admin-del-col" data-col-id="${escapeHtml(col.id)}" data-activity-id="${escapeHtml(activity.id)}" style="display:block;margin:.25rem auto 0;padding:.1rem .35rem;font-size:.65rem" title="Supprimer la colonne">✕</button>
+          <button type="button" class="btn btn-sm btn-danger btn-as-admin-del-col" data-col-id="${escapeHtml(col.id)}" data-activity-id="${escapeHtml(activity.id)}" data-slot-key="${escapeHtml(adminSlotKey)}" style="display:block;margin:.25rem auto 0;padding:.1rem .35rem;font-size:.65rem" title="Supprimer la colonne">✕</button>
         </th>`
       ).join("");
       const rows = students.length
@@ -4770,7 +5439,7 @@
             const { firstName, lastName } = splitAssociationStudentName(st.name);
             const catAbbrev = formatAssociationCategoryAbbrev(st.category);
             const catTitle = st.category ? ` title="${escapeHtml(st.category)}"` : "";
-            const checks = columns.map((col) => renderAssociationAdminCell(activity, col, idx)).join("");
+            const checks = columns.map((col) => renderAssociationAdminCell(activity, col, idx, adminSlotKey)).join("");
             return `<tr>
               <td data-label="Prénom" class="as-admin-name-cell"><button type="button" class="btn-as-admin-del-student no-print" data-activity-id="${escapeHtml(activity.id)}" data-student-idx="${idx}" aria-label="Supprimer ${escapeHtml(firstName || st.name)}">✕</button>${escapeHtml(firstName) || "—"}</td>
               <td data-label="Nom">${escapeHtml(lastName) || "—"}</td>
@@ -4780,19 +5449,21 @@
             </tr>`;
           }).join("")
               : `<tr><td colspan="${columns.length + 4}" class="kpi-sub" style="text-align:center">Aucun élève inscrit. Ajoutez-les dans Réglages → Association sportive.</td></tr>`;
+      const tableTitle = slotLabel
+        ? `Gestion administrative — ${activity.name} — ${slotLabel}`
+        : `Gestion administrative — ${activity.name}`;
       return `<div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem">
-          <p class="kpi-sub" style="margin:0">Cochez la case · double-clic sur le texte (ordinateur) · appui long ou touchez le texte (iPhone). Cat. : 1re lettre catégorie + sexe (ex. BF = benjamins filles).</p>
-          <button type="button" class="btn btn-sm btn-primary btn-as-admin-add-col" data-id="${escapeHtml(activity.id)}">+ Ajouter une colonne</button>
+        ${slotCatsHint}
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem">
+          <button type="button" class="btn btn-sm btn-primary btn-as-admin-add-col" data-id="${escapeHtml(activity.id)}" data-slot-key="${escapeHtml(adminSlotKey)}">+ Ajouter une colonne</button>
         </div>
-        <div class="table-wrap as-admin-table-wrap" data-table-title="Gestion administrative — ${escapeHtml(activity.name)}">
+        <div class="table-wrap as-admin-table-wrap as-admin-table-wrap--tap-fullscreen" data-table-title="${escapeHtml(tableTitle)}">
           <table class="as-admin-table">
           <thead><tr><th>Prénom</th><th>Nom</th><th>Classe</th><th title="Catégorie (abréviation)">Cat.</th>${colHeaders || ""}</tr></thead>
           <tbody>${rows}</tbody>
         </table>
-          <p class="as-admin-table-hint">Touchez le tableau pour l'ouvrir en paysage (tournez l'iPhone).</p>
+          <p class="as-admin-table-hint">Touchez le tableau pour l'afficher en plein écran · tournez l'iPhone en paysage pour plus de lisibilité</p>
         </div>
-        ${!columns.length ? '<p class="kpi-sub" style="margin-top:.5rem">Ajoutez une colonne (ex. « Document d\'inscription rendu ») pour commencer le suivi.</p>' : ""}
       </div>`;
     }
 
@@ -4856,6 +5527,27 @@
       if (abbrevs.length) return abbrevs.join(" ");
       const single = associationCategoryAbbrevFromPart(category);
       return single || String(category).trim();
+    }
+
+    /** Abrège un libellé détail (ex. « benjamins filles · minimes garçons » → « BF MG »). */
+    function formatAssociationDetailAbbrev(detail) {
+      const raw = String(detail || "").trim();
+      if (!raw || /^tous$/i.test(raw)) return "Tous";
+      const parts = raw.split(/[·,;|/]+/).map((p) => p.trim()).filter(Boolean);
+      if (!parts.length) {
+        const a = formatAssociationCategoryAbbrev(raw);
+        return a !== "—" ? a : raw;
+      }
+      const abbrevs = parts.map((p) => formatAssociationCategoryAbbrev(p)).filter((a) => a && a !== "—");
+      return abbrevs.length ? abbrevs.join(" ") : raw;
+    }
+
+    function associationFormatGroupLabelsAbbrev(groupSet) {
+      if (!groupSet || !groupSet.size) return "Tous";
+      const abbrevs = [...groupSet]
+        .map((g) => formatAssociationCategoryAbbrev(g))
+        .filter((a) => a && a !== "—");
+      return abbrevs.length ? abbrevs.join(" ") : "Tous";
     }
 
     function formatAssociationStudentLabel(st) {
@@ -4975,19 +5667,25 @@
     }
 
     function reindexAssociationAdminChecksAfterRemove(activity, removedIdx) {
-      if (!activity.adminChecks || typeof activity.adminChecks !== "object") return;
-      Object.keys(activity.adminChecks).forEach((colId) => {
-        const col = activity.adminChecks[colId];
-        if (!col || typeof col !== "object") return;
-        const next = {};
-        Object.keys(col).forEach((key) => {
-          const oldIdx = Number(key);
-          if (!Number.isInteger(oldIdx)) return;
-          if (oldIdx < removedIdx) next[String(oldIdx)] = col[key];
-          else if (oldIdx > removedIdx) next[String(oldIdx - 1)] = col[key];
+      const reindexChecks = (checks) => {
+        if (!checks || typeof checks !== "object") return;
+        Object.keys(checks).forEach((colId) => {
+          const col = checks[colId];
+          if (!col || typeof col !== "object") return;
+          const next = {};
+          Object.keys(col).forEach((key) => {
+            const oldIdx = Number(key);
+            if (!Number.isInteger(oldIdx)) return;
+            if (oldIdx < removedIdx) next[String(oldIdx)] = col[key];
+            else if (oldIdx > removedIdx) next[String(oldIdx - 1)] = col[key];
+          });
+          checks[colId] = next;
         });
-        activity.adminChecks[colId] = next;
-      });
+      };
+      reindexChecks(activity.adminChecks);
+      if (activity.adminBySlot && typeof activity.adminBySlot === "object") {
+        Object.values(activity.adminBySlot).forEach((store) => reindexChecks(store.checks));
+      }
     }
 
     function requestAssociationStudentPermanentDelete(activity, index, onDeleted) {
@@ -5220,6 +5918,23 @@
       return true;
     }
 
+    function participationRateTier(pct) {
+      if (pct <= 50) return "low";
+      if (pct <= 70) return "mid";
+      return "high";
+    }
+
+    function participationRateBarHtml(pct) {
+      const w = Math.min(100, Math.max(0, Math.round(pct)));
+      const tier = participationRateTier(w);
+      return `<div class="participation-rate-bar participation-rate-bar--${tier}">
+        <div class="progress" role="progressbar" aria-valuenow="${w}" aria-valuemin="0" aria-valuemax="100" aria-label="Taux de participation ${w} pour cent">
+          <span style="width:${w}%"></span>
+        </div>
+        <span class="participation-rate-pct">${w}%</span>
+      </div>`;
+    }
+
     function formatParticipationGaps(row) {
       if (row.participated >= row.total) return "";
       const fmtDatesLe = (dates) => dates.map((d) => fmtDateFr(d)).join(", le ");
@@ -5277,7 +5992,7 @@
             return `<tr>
               <td><strong>${escapeHtml(r.name)}</strong>${gaps ? `<div class="participation-detail">${gaps}</div>` : ""}</td>
               <td style="text-align:center;font-weight:600">${r.participated} / ${stats.totalSessions}</td>
-              <td style="text-align:center;color:var(--text-muted);font-size:.85rem">${pct}%</td>
+              <td>${participationRateBarHtml(pct)}</td>
             </tr>`;
           })
           .join("");
@@ -5412,10 +6127,16 @@
             date: s.date,
             dayName: DOW[dayIndexMon0(d)],
             time: s.startTime ? s.startTime + (s.endTime ? "–" + s.endTime : "") : "",
+            reason: st.reason || "",
           };
           for (const w of next3Weeks) {
             if (d >= w.start && d <= w.end) {
               if (st.code === "cancelled" && d >= refStart) {
+                const canc = cancellationForSession(s);
+                if (canc && !item.reason) {
+                  item.reason =
+                    REASON_TYPES.find((x) => x[0] === canc.reasonType)?.[1] || canc.reasonType || "";
+                }
                 w.cancelled.push(item);
               }
               if (s.extra && d >= refStart) {
@@ -5945,6 +6666,131 @@
 
     let forgottenGearThreshold = parseInt(lsGet("eps_fg_threshold"), 10) || 3;
 
+    function loadForgottenGearFilter() {
+      try {
+        const o = JSON.parse(lsGet("eps_fg_filter") || "{}");
+        if (o.scope && ["period", "term", "year"].includes(o.scope)) {
+          return {
+            scope: o.scope,
+            useCurrent: !!o.useCurrent,
+            periodId: String(o.periodId || ""),
+            termIndex: Number.isInteger(o.termIndex) && o.termIndex >= 0 ? o.termIndex : 0,
+          };
+        }
+        const legacy = o.type || "period-current";
+        if (legacy === "year") return { scope: "year", useCurrent: false, periodId: "", termIndex: 0 };
+        if (legacy === "period-fixed") {
+          return { scope: "period", useCurrent: false, periodId: String(o.periodId || ""), termIndex: 0 };
+        }
+        if (legacy === "term-fixed") {
+          return {
+            scope: "term",
+            useCurrent: false,
+            periodId: "",
+            termIndex: Number.isInteger(o.termIndex) && o.termIndex >= 0 ? o.termIndex : 0,
+          };
+        }
+        if (legacy === "term-current") return { scope: "term", useCurrent: true, periodId: "", termIndex: 0 };
+        return { scope: "period", useCurrent: true, periodId: "", termIndex: 0 };
+      } catch {
+        return { scope: "period", useCurrent: true, periodId: "", termIndex: 0 };
+      }
+    }
+
+    let forgottenGearFilter = loadForgottenGearFilter();
+
+    function saveForgottenGearFilter() {
+      lsSet("eps_fg_filter", JSON.stringify(forgottenGearFilter));
+    }
+
+    function forgottenGearFilterRangeForClass(classId, refDateStr) {
+      const f = forgottenGearFilter;
+      const ref = refDateStr || dashboardDateISO();
+      if (f.scope === "year") {
+        const start = coerceISODateString(appData.settings?.schoolYearStart);
+        const end = coerceISODateString(appData.settings?.schoolYearEnd);
+        if (!start || !end) return null;
+        return { startDate: start, endDate: end };
+      }
+      if (f.scope === "period") {
+        if (f.useCurrent) {
+          const cur = periodsForClass(classId).find((p) => {
+            const { start, end } = periodDatesForClass(p, classId);
+            return ref >= start && ref <= end;
+          });
+          return cur ? { startDate: cur.startDate, endDate: cur.endDate } : null;
+        }
+        const p = (appData.periods || []).find((x) => x.id === f.periodId);
+        if (!p) return null;
+        const applies = periodsForClass(classId).some((x) => x.id === p.id);
+        if (!applies) return null;
+        return { startDate: p.startDate, endDate: p.endDate };
+      }
+      if (f.scope === "term") {
+        const sched = getSchoolTermSchedule();
+        let term = null;
+        if (f.useCurrent) {
+          const idx = sched.terms.findIndex(
+            (t) => t.startDate && t.endDate && ref >= t.startDate && ref <= t.endDate
+          );
+          if (idx >= 0) term = sched.terms[idx];
+        } else {
+          term = sched.terms[f.termIndex] || null;
+        }
+        if (!term || !term.startDate || !term.endDate) return null;
+        return { startDate: term.startDate, endDate: term.endDate };
+      }
+      return null;
+    }
+
+    function forgottenGearFilterPeriodOptionsHtml(selectedId) {
+      const periods = (appData.periods || []).slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
+      if (!periods.length) {
+        return '<option value="">— Aucune période définie (Réglages → Périodes) —</option>';
+      }
+      return periods
+        .map((p) => {
+          const range = `${fmtDateFr(p.startDate)} – ${fmtDateFr(p.endDate)}`;
+          return `<option value="${escapeHtml(p.id)}"${p.id === selectedId ? " selected" : ""}>${escapeHtml(p.name)} (${range})</option>`;
+        })
+        .join("");
+    }
+
+    function forgottenGearFilterTermOptionsHtml(selectedIndex) {
+      const sched = getSchoolTermSchedule();
+      return sched.terms
+        .map((t, i) => {
+          const label = schoolTermLabel(sched.mode, i);
+          const range =
+            t.startDate && t.endDate
+              ? `${fmtDateFr(t.startDate)} – ${fmtDateFr(t.endDate)}`
+              : "dates non renseignées";
+          return `<option value="${i}"${i === selectedIndex ? " selected" : ""}>${escapeHtml(label)} (${range})</option>`;
+        })
+        .join("");
+    }
+
+    function wireForgottenGearFilterModal(body) {
+      const scopeSel = body.querySelector("#f-fg-filter-scope");
+      const periodOpts = body.querySelector("#f-fg-period-options");
+      const termOpts = body.querySelector("#f-fg-term-options");
+      const periodCurrent = body.querySelector("#f-fg-period-current");
+      const termCurrent = body.querySelector("#f-fg-term-current");
+      const periodPickWrap = body.querySelector("#f-fg-period-pick-wrap");
+      const termPickWrap = body.querySelector("#f-fg-term-pick-wrap");
+      const sync = () => {
+        const scope = scopeSel?.value || "period";
+        if (periodOpts) periodOpts.style.display = scope === "period" ? "" : "none";
+        if (termOpts) termOpts.style.display = scope === "term" ? "" : "none";
+        if (periodPickWrap) periodPickWrap.style.display = periodCurrent?.checked ? "none" : "";
+        if (termPickWrap) termPickWrap.style.display = termCurrent?.checked ? "none" : "";
+      };
+      scopeSel?.addEventListener("change", sync);
+      periodCurrent?.addEventListener("change", sync);
+      termCurrent?.addEventListener("change", sync);
+      sync();
+    }
+
     /** Date affichée sur le tableau de bord (par défaut aujourd'hui). */
     let dashboardDate = new Date();
     const dashAsExpandedActivityIds = new Set();
@@ -6047,7 +6893,7 @@
     }
 
     function statsPerActivity(classId, actId) {
-      const list = sessionsForClass(classId).filter((s) => s.activityId === actId);
+      const list = sessionsForActivityTable(classId, actId);
       let done = 0, cancelled = 0, remaining = 0;
       list.forEach((s) => {
         const st = computeSessionStatus(s);
@@ -6060,13 +6906,15 @@
       return { total, done, cancelled, remaining, pct };
     }
 
-    /** Date ISO de la dernière séance (toutes, pas seulement effectuées) d'une APSA. */
+    /**
+     * Accueil « Séquences en cours » : date de la dernière séance programmée
+     * (identique à la dernière ligne du tableau de l'onglet classe pour cette APSA).
+     */
     function lastSessionDateForActivity(classId, actId) {
-      const list = sessionsForClass(classId)
-        .filter((s) => s.activityId === actId)
-        .map((s) => s.date)
-        .sort();
-      return list.length ? list[list.length - 1] : null;
+      const subs = sessionsForActivityTable(classId, actId)
+        .filter((s) => computeSessionStatus(s).code !== "cancelled")
+        .sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
+      return subs.length ? subs[subs.length - 1].date : null;
     }
 
     function globalSessionCounts(refDate) {
@@ -6160,15 +7008,22 @@
         </button>`;
       nav.querySelector('[data-tab="home"]').onclick = () => {
         document.getElementById("sidebar")?.classList.remove("open");
-        navigateTo("dashboard");
+        const onHome =
+          currentView === "dashboard" ||
+          currentView === "dashboard:association" ||
+          currentView === "calendar:visual";
+        if (onHome) scrollPageToStart();
+        else navigateTo("dashboard");
       };
       nav.querySelector('[data-tab="classes"]').onclick = () => {
         document.getElementById("sidebar")?.classList.remove("open");
-        navigateTo("classes");
+        if (currentView === "classes" || currentView.startsWith("class:")) scrollPageToStart();
+        else navigateTo("classes");
       };
       nav.querySelector('[data-tab="settings"]').onclick = () => {
         document.getElementById("sidebar")?.classList.remove("open");
-        navigateTo("tools", "home");
+        if (currentView === "tools") scrollPageToStart();
+        else navigateTo("tools");
       };
     }
 
@@ -6181,9 +7036,10 @@
     function closeModal() {
       const root = document.getElementById("modal-root");
       if (!root) return;
-      root.classList.remove("open");
+      root.classList.remove("open", "modal-backdrop--calendar-fullscreen");
       root.innerHTML = "";
       root.onclick = null;
+      calendarViewRefresh = null;
     }
 
     function openModal(title, bodyNode, onConfirm, options) {
@@ -6224,6 +7080,294 @@
       root.appendChild(wrap);
       root.onclick = (e) => {
         if (e.target === root) closeModal();
+      };
+    }
+
+    function refreshCalendarView() {
+      if (typeof calendarViewRefresh === "function") {
+        calendarViewRefresh();
+        return;
+      }
+      render();
+    }
+
+    function wireCalendarEvents(root, onChange) {
+      if (!root) return;
+      const refresh = typeof onChange === "function" ? onChange : refreshCalendarView;
+      root.querySelector("#cal-prev")?.addEventListener("click", () => {
+        if (calendarMode === "month") calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() - 1, 1);
+        else calendarCursor = addDays(calendarCursor, -7);
+        refresh();
+      });
+      root.querySelector("#cal-next")?.addEventListener("click", () => {
+        if (calendarMode === "month") calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + 1, 1);
+        else calendarCursor = addDays(calendarCursor, 7);
+        refresh();
+      });
+      root.querySelector("#cal-mode")?.addEventListener("change", (e) => {
+        calendarMode = e.target.value === "year" ? "month" : e.target.value;
+        refresh();
+      });
+      root.querySelector("#cal-period-label")?.addEventListener("click", openCalendarPeriodPicker);
+      root.querySelector("#cal-show-courses")?.addEventListener("change", (e) => {
+        calendarEventFilter = e.target.checked ? "all" : "no-courses";
+        refresh();
+      });
+      root.querySelectorAll(".btn-cal-event-detail").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openCalendarEventDetailModal(
+            btn.getAttribute("data-kind"),
+            btn.getAttribute("data-id"),
+            btn.getAttribute("data-date")
+          );
+        });
+      });
+      root.querySelectorAll(".cal-grid, .cal-week-grid").forEach((grid) => {
+        grid.addEventListener("click", (e) => {
+          if (e.target.closest(".btn-cal-event-detail")) return;
+          const cell = e.target.closest(".cal-cell--day:not(.muted), .cal-week-day--pick");
+          if (!cell) return;
+          const dateStr = cell.getAttribute("data-date");
+          if (!dateStr) return;
+          e.preventDefault();
+          e.stopPropagation();
+          openCalendarDayActionModal(dateStr);
+        });
+        grid.addEventListener("keydown", (e) => {
+          if (e.key !== "Enter" && e.key !== " ") return;
+          const cell = e.target.closest(".cal-cell--day:not(.muted), .cal-week-day--pick");
+          if (!cell) return;
+          e.preventDefault();
+          openCalendarDayActionModal(cell.getAttribute("data-date"));
+        });
+      });
+    }
+
+    function openFullscreenCalendar() {
+      const root = document.getElementById("modal-root");
+      if (!root) return;
+      root.innerHTML = "";
+      root.classList.add("open", "modal-backdrop--calendar-fullscreen");
+      const wrap = el(`<div class="modal calendar-fullscreen-modal">
+        <div class="modal-header">
+          <button type="button" class="modal-close" aria-label="Fermer">×</button>
+          <h3 class="modal-title">Calendrier</h3>
+        </div>
+        <p class="calendar-fullscreen-note no-print">Faites défiler le calendrier · tournez l'iPhone en paysage pour une vue plus large · touchez une case pour ajouter · un événement pour le détail</p>
+        <div class="calendar-fullscreen-view"></div>
+      </div>`);
+      const view = wrap.querySelector(".calendar-fullscreen-view");
+      const refresh = () => {
+        view.innerHTML = renderCalendarScrollBlock({ fullscreen: true });
+        wireCalendarEvents(view, refresh);
+      };
+      calendarViewRefresh = refresh;
+      refresh();
+      const closeFullscreen = () => {
+        calendarViewRefresh = null;
+        closeModal();
+        render();
+      };
+      wrap.querySelector(".modal-close").onclick = closeFullscreen;
+      root.appendChild(wrap);
+      root.onclick = (e) => {
+        if (e.target === root) closeFullscreen();
+      };
+    }
+
+    function wireFullscreenCalendarArea(area) {
+      if (!area || area.dataset.calFullscreenWired) return;
+      area.dataset.calFullscreenWired = "1";
+      area.addEventListener(
+        "click",
+        (e) => {
+          if (e.target.closest(".btn-cal-event-detail")) return;
+          if (e.target.closest(".cal-cell--day, .cal-week-day--pick")) return;
+          if (e.target.closest(".cal-nav-toolbar")) return;
+          if (!window.matchMedia("(max-width: 480px)").matches) return;
+          e.preventDefault();
+          e.stopPropagation();
+          openFullscreenCalendar();
+        },
+        true
+      );
+    }
+
+    function openAssociationCancelModalFromBtn(btn) {
+      const activityId = btn.getAttribute("data-activity-id") || "";
+      const eventType = btn.getAttribute("data-event-type") || "";
+      const eventId = btn.getAttribute("data-event-id") || "";
+      const date = btn.getAttribute("data-date") || "";
+      const detail = btn.getAttribute("data-detail") || "";
+      const body = el(`<div>
+        <p class="kpi-sub" style="margin-bottom:.6rem"><strong>${escapeHtml(fmtDateFr(date))}</strong> · ${escapeHtml(eventType === "training" ? "Entraînement" : "Compétition")} ${detail ? "· " + escapeHtml(detail) : ""}</p>
+        <div class="form-group"><label>Portée de l'annulation</label>
+          <select id="f-as-cancel-mode">
+            <option value="all">Tous les élèves concernés</option>
+            <option value="targeted">Seulement une catégorie et/ou un sexe</option>
+          </select>
+        </div>
+        <div id="f-as-cancel-target" style="display:none">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Catégorie</label>
+              <select id="f-as-cancel-category">
+                <option value="">Toutes catégories</option>
+                <option value="minimes">Minimes</option>
+                <option value="benjamins">Benjamins</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Sexe</label>
+              <select id="f-as-cancel-sex">
+                <option value="">Tous sexes</option>
+                <option value="filles">filles</option>
+                <option value="garçons">garçons</option>
+                <option value="tous">tous</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>`);
+      body.querySelector("#f-as-cancel-mode")?.addEventListener("change", () => {
+        const targeted = body.querySelector("#f-as-cancel-mode").value === "targeted";
+        body.querySelector("#f-as-cancel-target").style.display = targeted ? "block" : "none";
+      });
+      openModal("Annuler une séance AS", body, () => {
+        const mode = body.querySelector("#f-as-cancel-mode").value;
+        const category = mode === "targeted" ? body.querySelector("#f-as-cancel-category").value : "";
+        const sex = mode === "targeted" ? body.querySelector("#f-as-cancel-sex").value : "";
+        if (mode === "targeted" && !category && !sex) return false;
+        if (!appData.association || typeof appData.association !== "object") appData.association = {};
+        if (!Array.isArray(appData.association.cancellations)) appData.association.cancellations = [];
+        appData.association.cancellations.push({
+          id: uid(),
+          activityId,
+          eventType,
+          eventId: eventId || null,
+          date,
+          mode: mode === "targeted" ? "targeted" : "all",
+          category,
+          sex,
+        });
+        saveData();
+        refreshAssociationDashPlanning();
+        return true;
+      });
+    }
+
+    function wireAssociationPlanningTableInteractions(root) {
+      if (!root || root.dataset.asPlanningTableWired) return;
+      root.dataset.asPlanningTableWired = "1";
+      root.addEventListener("click", (e) => {
+        const cancelBtn = e.target.closest(".btn-as-dash-cancel");
+        if (cancelBtn) {
+          e.stopPropagation();
+          openAssociationCancelModalFromBtn(cancelBtn);
+          return;
+        }
+        const uncancelBtn = e.target.closest(".btn-as-dash-uncancel");
+        if (uncancelBtn) {
+          e.stopPropagation();
+          const event = associationEventKeyFromBtn(uncancelBtn);
+          if (!event.date) return;
+          removeAssociationCancellationsForEvent(event);
+          saveData();
+          refreshAssociationDashPlanning();
+          return;
+        }
+        const row = e.target.closest(".dash-as-session-row");
+        if (row && !e.target.closest("button")) {
+          e.stopPropagation();
+          openAssociationAttendanceModal(associationEventFromRow(row));
+        }
+      });
+      root.addEventListener("keydown", (e) => {
+        const row = e.target.closest(".dash-as-session-row");
+        if (!row || e.target.closest("button")) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openAssociationAttendanceModal(associationEventFromRow(row));
+        }
+      });
+    }
+
+    function openFullscreenAssociationPlanningTable(tableWrap) {
+      const root = document.getElementById("modal-root");
+      const table = tableWrap && tableWrap.querySelector("table");
+      if (!root || !table) return;
+      root.innerHTML = "";
+      root.classList.add("open", "modal-backdrop--calendar-fullscreen");
+      const title = tableWrap.getAttribute("data-table-title") || "Planning";
+      const clone = table.cloneNode(true);
+      const wrap = el(`<div class="modal table-fullscreen-modal">
+        <div class="modal-header">
+          <button type="button" class="modal-close" aria-label="Fermer">×</button>
+          <h3 class="modal-title">${escapeHtml(title)}</h3>
+        </div>
+        <p class="table-landscape-note no-print">Faites défiler le tableau · touchez une ligne pour l'appel · les boutons Annuler / Lever restent actifs</p>
+        <div class="table-fullscreen-view"></div>
+      </div>`);
+      const view = wrap.querySelector(".table-fullscreen-view");
+      view.appendChild(clone);
+      clone.classList.add("as-planning-table--landscape");
+      wireAssociationPlanningTableInteractions(view);
+      const closeFullscreen = () => {
+        closeModal();
+        render();
+      };
+      wrap.querySelector(".modal-close").onclick = closeFullscreen;
+      root.appendChild(wrap);
+      root.onclick = (e) => {
+        if (e.target === root) closeFullscreen();
+      };
+    }
+
+    function openFullscreenAdminTable(tableWrap) {
+      const root = document.getElementById("modal-root");
+      const table = tableWrap && tableWrap.querySelector("table");
+      if (!root || !table) return;
+      root.innerHTML = "";
+      root.classList.add("open", "modal-backdrop--calendar-fullscreen");
+      const title = tableWrap.getAttribute("data-table-title") || "Gestion administrative";
+      const clone = table.cloneNode(true);
+      const wrap = el(`<div class="modal table-fullscreen-modal">
+        <div class="modal-header">
+          <button type="button" class="modal-close" aria-label="Fermer">×</button>
+          <h3 class="modal-title">${escapeHtml(title)}</h3>
+        </div>
+        <p class="table-landscape-note no-print">Faites défiler le tableau · tournez l'iPhone en paysage pour une vue plus large · cases et textes modifiables</p>
+        <div class="table-fullscreen-view"></div>
+      </div>`);
+      const view = wrap.querySelector(".table-fullscreen-view");
+      view.appendChild(clone);
+      clone.classList.add("as-admin-table--landscape");
+      wireAssociationAdminCellEvents(view);
+      wireAssociationAdminDeleteStudentButtons(view);
+      clone.querySelectorAll(".btn-as-admin-del-col").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const colId = button.getAttribute("data-col-id");
+          const activityId = button.getAttribute("data-activity-id");
+          const original = [...document.querySelectorAll(".btn-as-admin-del-col")].find(
+            (item) =>
+              item.getAttribute("data-col-id") === colId && item.getAttribute("data-activity-id") === activityId
+          );
+          closeModal();
+          setTimeout(() => original?.click(), 0);
+        });
+      });
+      const closeFullscreen = () => {
+        closeModal();
+        render();
+      };
+      wrap.querySelector(".modal-close").onclick = closeFullscreen;
+      root.appendChild(wrap);
+      root.onclick = (e) => {
+        if (e.target === root) closeFullscreen();
       };
     }
 
@@ -6270,9 +7414,10 @@
         row.addEventListener("click", (event) => {
           if (event.target.closest("button")) return;
           const sid = row.getAttribute("data-session-id");
-          const original = [...document.querySelectorAll(".btn-session-summary")].find((item) => item.getAttribute("data-session-id") === sid);
+          const s = appData.sessions.find((x) => x.id === sid);
+          if (!s) return;
           closeModal();
-          setTimeout(() => original?.click(), 0);
+          setTimeout(() => openSessionSummaryModal(s), 0);
         });
       });
       wrap.querySelector(".modal-close").onclick = closeModal;
@@ -6674,16 +7819,18 @@
         .filter((h) => dayISO >= h.startDate && dayISO <= h.endDate)
         .slice()
         .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""));
+      const daySchoolBlocking = (appData.schoolCalendarEvents || [])
+        .filter((e) => e && e.date === dayISO && e.blocksSessions)
+        .slice()
+        .sort((a, b) =>
+          String(a.startTime || a.time || "00:00").localeCompare(String(b.startTime || b.time || "00:00"))
+        );
       const label = isToday ? "Cours du jour" : "Cours de la journée";
-      if (!todaySessions.length && !dayEvents.length) {
+      if (!todaySessions.length && !dayEvents.length && !daySchoolBlocking.length) {
         return `<div class="dash-block dash-block--courses"><h3 class="dash-block__title">🏃 ${label}</h3><p class="kpi-sub" style="margin:0">Aucun cours prévu ce jour.</p></div>`;
       }
       const eventLines = dayEvents.map((h) => {
-        const impactedSessions = todaySessions.filter((s) => {
-          const st = computeSessionStatus(s);
-          const blockedByThisEvent = holidayAppliesToSession(h, s);
-          return blockedByThisEvent && st.code === "cancelled";
-        });
+        const impactedSessions = todaySessions.filter((s) => holidayAppliesToSession(h, s));
         const impactedText = impactedSessions.length
           ? `<div style="font-size:.78rem;line-height:1.35;color:var(--text-muted);margin-top:.2rem"><strong>Cours impactés :</strong> ${impactedSessions.map((s) => {
             const cl = getClassById(s.classId);
@@ -6699,6 +7846,23 @@
           <span class="dash-session-class">📌 ${escapeHtml(h.name || "Événement calendrier")}</span>
           <span style="font-size:.82rem;color:var(--text-muted)">${escapeHtml((h.type || "").toUpperCase())}</span>
           <span class="status-pill ${statusClass}"><span class="status-dot" style="background:${dotColor}"></span>${labelTxt}</span>
+          ${impactedText}
+        </div>`;
+      }).join("");
+      const schoolEventLines = daySchoolBlocking.map((e) => {
+        const impactedSessions = todaySessions.filter((s) => schoolEventAppliesToSession(e, s));
+        const impactedText = impactedSessions.length
+          ? `<div style="font-size:.78rem;line-height:1.35;color:var(--text-muted);margin-top:.2rem"><strong>Cours impactés :</strong> ${impactedSessions.map((s) => {
+            const cl = getClassById(s.classId);
+            return `${escapeHtml(cl ? cl.name : "—")} (${escapeHtml((s.startTime || "") + "–" + (s.endTime || ""))})`;
+          }).join(" ; ")}</div>`
+          : "";
+        const hours = schoolEventHoursLabel(e);
+        return `<div class="dash-session-row" style="--session-c:#f59e0b;opacity:.98">
+          <span class="dash-session-time">${escapeHtml(hours)}</span>
+          <span class="dash-session-class">🏫 ${escapeHtml(schoolEventReminderText(e))}</span>
+          <span style="font-size:.82rem;color:var(--text-muted)">${escapeHtml((e.kind || "ÉTABLISSEMENT").toUpperCase())}</span>
+          <span class="status-pill status-pill--cancelled"><span class="status-dot" style="background:var(--danger)"></span>Événement bloquant</span>
           ${impactedText}
         </div>`;
       }).join("");
@@ -6740,7 +7904,19 @@
           ${(() => { const att = s.attendance || {}; const keys = Object.keys(att); if (!keys.length) return ""; const p = keys.filter((k) => att[k] === "present").length; const a = keys.filter((k) => att[k] === "absent").length; const l = keys.filter((k) => att[k] === "late").length; return `<span class="att-badge" title="Appel effectué">${p}P${l ? " " + l + "R" : ""}${a ? " " + a + "A" : ""}</span>`; })()}
         </div>`;
       }).join("");
-      return `<div class="dash-block dash-block--courses"><h3 class="dash-block__title">🏃 ${label} · ${todaySessions.length} séance${todaySessions.length > 1 ? "s" : ""}</h3><div style="display:flex;flex-direction:column;gap:0">${eventLines}${lines}</div></div>`;
+      const blockingEventCount = dayEvents.filter((h) => h.blocksSessions).length + daySchoolBlocking.length;
+      const sessionCount = todaySessions.filter((s) => {
+        const st = computeSessionStatus(s);
+        if (st.code !== "cancelled") return true;
+        return !blockingHolidayForSession(s) && !blockingSchoolEventForSession(s);
+      }).length;
+      const countParts = [];
+      if (sessionCount) countParts.push(`${sessionCount} séance${sessionCount > 1 ? "s" : ""}`);
+      if (blockingEventCount) {
+        countParts.push(`${blockingEventCount} événement${blockingEventCount > 1 ? "s" : ""} bloquant${blockingEventCount > 1 ? "s" : ""}`);
+      }
+      const countLabel = countParts.length ? ` · ${countParts.join(" · ")}` : "";
+      return `<div class="dash-block dash-block--courses"><h3 class="dash-block__title">🏃 ${label}${countLabel}</h3><div style="display:flex;flex-direction:column;gap:0">${eventLines}${schoolEventLines}${lines}</div></div>`;
     }
 
     function currentWeekRangeMonSun(refDate) {
@@ -6750,12 +7926,6 @@
       const sun = addDays(mon, 6);
       return { start: fmtISODate(mon), end: fmtISODate(sun) };
     }
-
-    const REMINDER_PRESETS = [
-      "Fin du trimestre",
-      "Arrêt des notes",
-      "Conseils de classe",
-    ];
 
     function coerceISODateString(s) {
       const raw = String(s || "").trim();
@@ -6775,19 +7945,94 @@
       const text = String(raw.text || "").trim();
       const date = coerceISODateString(raw.date);
       if (!date || !text) return null;
-      return { id: raw.id || uid(), date, text };
+      const daysBefore =
+        Number.isInteger(raw.daysBefore) && raw.daysBefore >= 0 ? raw.daysBefore : 7;
+      return {
+        id: raw.id || uid(),
+        date,
+        text,
+        daysBefore,
+        schoolEventId: raw.schoolEventId ? String(raw.schoolEventId) : "",
+        holidayId: raw.holidayId ? String(raw.holidayId) : "",
+        schoolTermId: raw.schoolTermId ? String(raw.schoolTermId) : "",
+      };
     }
 
-    /** Rappel visible sur la date affichée : de J-7 (inclus) jusqu'à J (inclus), puis masqué. */
-    function isReminderVisibleOnViewDate(reminderDateISO, viewDate) {
-      const eventIso = coerceISODateString(reminderDateISO);
+    function reminderDaysBeforeOptionsHtml(selected) {
+      const opts = [
+        [0, "Le jour J uniquement"],
+        [1, "1 jour avant"],
+        [2, "2 jours avant"],
+        [3, "3 jours avant"],
+        [5, "5 jours avant"],
+        [7, "7 jours avant"],
+        [14, "14 jours avant"],
+        [30, "30 jours avant"],
+      ];
+      const sel = Number.isInteger(selected) && selected >= 0 ? selected : 7;
+      return opts
+        .map(
+          ([v, label]) =>
+            `<option value="${v}"${sel === v ? " selected" : ""}>${escapeHtml(label)}</option>`
+        )
+        .join("");
+    }
+
+    function reminderDaysBeforeFieldHtml(selected, fieldId) {
+      const id = fieldId || "f-reminder-days-before";
+      return `<div class="form-group"><label>Afficher sur l'accueil</label>
+        <select id="${id}">${reminderDaysBeforeOptionsHtml(selected)}</select>
+        <p class="kpi-sub" style="margin:.25rem 0 0">Visible du J−N au jour de l'événement (inclus), puis masqué automatiquement.</p>
+      </div>`;
+    }
+
+    function readReminderDaysBeforeFromForm(root, fieldId) {
+      const el = root && root.querySelector("#" + (fieldId || "f-reminder-days-before"));
+      const n = el ? parseInt(el.value, 10) : 7;
+      return Number.isInteger(n) && n >= 0 ? n : 7;
+    }
+
+    /** Rappel visible sur la date affichée : de J-N (inclus) jusqu'à J (inclus), puis masqué. */
+    function isReminderVisibleOnViewDate(reminder, viewDate) {
+      if (!reminder) return false;
+      const eventIso = coerceISODateString(reminder.date);
       const viewIso = fmtISODate(viewDate);
       if (!eventIso || !viewIso) return false;
       const event = parseISODate(eventIso);
       const view = parseISODate(viewIso);
       if (isNaN(event.getTime()) || isNaN(view.getTime())) return false;
-      const windowStartIso = fmtISODate(addDays(event, -7));
+      const daysBefore =
+        Number.isInteger(reminder.daysBefore) && reminder.daysBefore >= 0
+          ? reminder.daysBefore
+          : 7;
+      const windowStartIso = fmtISODate(addDays(event, -daysBefore));
       return viewIso >= windowStartIso && viewIso <= eventIso;
+    }
+
+    function removeReminderById(reminderId) {
+      if (!reminderId) return false;
+      const before = (appData.reminders || []).length;
+      appData.reminders = (appData.reminders || []).filter((x) => x && x.id !== reminderId);
+      return (appData.reminders || []).length < before;
+    }
+
+    function addReminderEntry(entry) {
+      const date = coerceISODateString(entry.date);
+      const text = String(entry.text || "").trim();
+      if (!date || !text) return null;
+      const item = normalizeReminder({
+        id: uid(),
+        date,
+        text,
+        daysBefore: entry.daysBefore,
+        schoolEventId: entry.schoolEventId || "",
+        holidayId: entry.holidayId || "",
+        schoolTermId: entry.schoolTermId || "",
+      });
+      if (!item) return null;
+      if (!Array.isArray(appData.reminders)) appData.reminders = [];
+      appData.reminders.push(item);
+      return item;
     }
 
     function activeDashboardReminders() {
@@ -6795,7 +8040,7 @@
       return (appData.reminders || [])
         .map(normalizeReminder)
         .filter(Boolean)
-        .filter((r) => isReminderVisibleOnViewDate(r.date, view))
+        .filter((r) => isReminderVisibleOnViewDate(r, view))
         .sort((a, b) => String(a.date).localeCompare(String(b.date)));
     }
 
@@ -6805,16 +8050,22 @@
       const rows = items
         .map(
           (r) =>
-            `<div class="dash-reminder-banner no-print" role="status">
-              <span class="dash-reminder-banner__badge">Rappel</span>
+            `<div class="dash-reminder-item">
               <span class="dash-reminder-banner__content">
                 <span class="dash-reminder-banner__date">${escapeHtml(fmtDateFr(r.date))}</span>
                 <span class="dash-reminder-banner__text">${escapeHtml(r.text)}</span>
               </span>
+              <button type="button" class="dash-reminder-banner__dismiss btn-reminder-dismiss-home" data-id="${escapeHtml(r.id)}" aria-label="Supprimer ce rappel" title="Supprimer ce rappel">×</button>
             </div>`
         )
         .join("");
-      return `<div class="dash-reminders-zone">${rows}</div>`;
+      const badgeLabel = items.length > 1 ? "Rappels" : "Rappel";
+      return `<div class="dash-reminders-zone">
+        <div class="dash-reminder-banner no-print" role="status">
+          <span class="dash-reminder-banner__badge">${badgeLabel}</span>
+          <div class="dash-reminder-banner__list">${rows}</div>
+        </div>
+      </div>`;
     }
 
     function renderDashboardRemindersList(container) {
@@ -6831,15 +8082,16 @@
         .map(
           (r) =>
             `<div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.35rem 0;border-bottom:1px solid var(--border)">
-              <span><strong>${escapeHtml(fmtDateFr(r.date))}</strong> — ${escapeHtml(r.text)}</span>
+              <span><strong>${escapeHtml(fmtDateFr(r.date))}</strong> — ${escapeHtml(r.text)}<br><span class="kpi-sub" style="font-size:.72rem">J−${r.daysBefore} → J</span></span>
               <button type="button" class="btn btn-sm btn-danger btn-reminder-del" data-id="${escapeHtml(r.id)}" style="padding:.1rem .4rem;font-size:.7rem;flex-shrink:0">Supprimer</button>
             </div>`
         )
         .join("");
       container.querySelectorAll(".btn-reminder-del").forEach((btn) => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
           const id = btn.getAttribute("data-id");
-          appData.reminders = (appData.reminders || []).filter((x) => x && x.id !== id);
+          removeReminderById(id);
           saveData({ skipAutoRegen: true });
           renderDashboardRemindersList(container);
         });
@@ -6860,89 +8112,423 @@
       return name || type || "Événement calendrier";
     }
 
-    function reminderExistsForSchoolEvent(event) {
+    function findReminderForSchoolEvent(event) {
+      if (!event) return null;
+      const byId = (appData.reminders || [])
+        .map(normalizeReminder)
+        .filter(Boolean)
+        .find((r) => r.schoolEventId && r.schoolEventId === event.id);
+      if (byId) return byId;
       const text = schoolEventReminderText(event);
-      const date = String(event?.date || "").trim();
-      if (!date || !text) return false;
-      return (appData.reminders || []).some((r) => {
-        const n = normalizeReminder(r);
-        return n && n.date === date && n.text === text;
+      const date = String(event.date || "").trim();
+      if (!date || !text) return null;
+      return (
+        (appData.reminders || [])
+          .map(normalizeReminder)
+          .filter(Boolean)
+          .find((r) => r.date === date && r.text === text) || null
+      );
+    }
+
+    function reminderExistsForSchoolEvent(event) {
+      return !!findReminderForSchoolEvent(event);
+    }
+
+    function schoolTermCount(mode) {
+      return mode === "semestre" ? 2 : 3;
+    }
+
+    function schoolTermLabel(mode, index) {
+      const n = index + 1;
+      return mode === "semestre" ? `Semestre ${n}` : `Trimestre ${n}`;
+    }
+
+    function normalizeSchoolTermSchedule() {
+      if (!appData.schoolTermSchedule || typeof appData.schoolTermSchedule !== "object") {
+        appData.schoolTermSchedule = { mode: "trimestre", terms: [] };
+      }
+      const sched = appData.schoolTermSchedule;
+      sched.mode = sched.mode === "semestre" ? "semestre" : "trimestre";
+      if (!Array.isArray(sched.terms)) sched.terms = [];
+      const count = schoolTermCount(sched.mode);
+      const next = [];
+      for (let i = 0; i < count; i++) {
+        const prev = sched.terms[i] || {};
+        next.push({
+          id: prev.id || uid(),
+          startDate: coerceISODateString(prev.startDate) || "",
+          endDate: coerceISODateString(prev.endDate) || "",
+        });
+      }
+      sched.terms = next;
+      const ids = new Set(next.map((t) => t.id));
+      appData.reminders = (appData.reminders || []).filter((r) => !r.schoolTermId || ids.has(r.schoolTermId));
+    }
+
+    function getSchoolTermSchedule() {
+      normalizeSchoolTermSchedule();
+      return appData.schoolTermSchedule;
+    }
+
+    function schoolTermsHaveDates() {
+      const sched = getSchoolTermSchedule();
+      return sched.terms.some((t) => t.startDate || t.endDate);
+    }
+
+    function getSchoolTermsOnDate(dateStr) {
+      const sched = getSchoolTermSchedule();
+      const items = [];
+      sched.terms.forEach((term, index) => {
+        if (term.startDate === dateStr) {
+          items.push({ type: "start", term, index, label: schoolTermLabel(sched.mode, index) });
+        }
+        if (term.endDate === dateStr) {
+          items.push({ type: "end", term, index, label: schoolTermLabel(sched.mode, index) });
+        }
+      });
+      return items;
+    }
+
+    function getSchoolTermDayKind(dateStr) {
+      const items = getSchoolTermsOnDate(dateStr);
+      const hasStart = items.some((i) => i.type === "start");
+      const hasEnd = items.some((i) => i.type === "end");
+      if (hasStart && hasEnd) return "both";
+      if (hasEnd) return "end";
+      if (hasStart) return "start";
+      return "";
+    }
+
+    function calCellTermClass(dateStr) {
+      const kind = getSchoolTermDayKind(dateStr);
+      if (!kind) return "";
+      if (kind === "both") return " cal-cell--term-start cal-cell--term-end";
+      return ` cal-cell--term-${kind}`;
+    }
+
+    function calWeekDayTermClass(dateStr) {
+      const kind = getSchoolTermDayKind(dateStr);
+      return kind ? ` cal-week-day--term-${kind}` : "";
+    }
+
+    function renderCalSchoolTermLabelsInCell(dateStr) {
+      if (!schoolTermsHaveDates()) return "";
+      return getSchoolTermsOnDate(dateStr)
+        .map((item) => {
+          const short = item.type === "start" ? `${item.label} · début` : `${item.label} · fin`;
+          return `<span class="cal-term-day-label cal-term-day-label--${item.type}">${escapeHtml(short)}</span>`;
+        })
+        .join("");
+    }
+
+    function schoolTermDayTitle(dateStr) {
+      const items = getSchoolTermsOnDate(dateStr);
+      if (!items.length) return "";
+      return items
+        .map((item) =>
+          item.type === "start"
+            ? `Début ${item.label} (${fmtDateFr(item.term.startDate)})`
+            : `Fin ${item.label} (${fmtDateFr(item.term.endDate)})`
+        )
+        .join(" · ");
+    }
+
+    function renderCalSchoolTermLegendHtml() {
+      if (!schoolTermsHaveDates()) return "";
+      const sched = getSchoolTermSchedule();
+      const unit = sched.mode === "semestre" ? "semestre" : "trimestre";
+      return `<div class="cal-term-legend no-print" role="note">
+        <span class="cal-term-legend__item"><span class="cal-term-legend__swatch cal-term-legend__swatch--start" aria-hidden="true"></span>Début de ${unit}</span>
+        <span class="cal-term-legend__item"><span class="cal-term-legend__swatch cal-term-legend__swatch--end" aria-hidden="true"></span>Fin de ${unit}</span>
+      </div>`;
+    }
+
+    function renderCalSchoolTermChipsForDate(dateStr) {
+      return renderCalSchoolTermLabelsInCell(dateStr);
+    }
+
+    function resolveSchoolTermForReminder(main, termId) {
+      const sched = getSchoolTermSchedule();
+      const idx = sched.terms.findIndex((t) => t.id === termId);
+      if (idx < 0) return null;
+      const term = { ...sched.terms[idx] };
+      const endEl = main?.querySelector(`.school-term-end[data-id="${termId}"]`);
+      const startEl = main?.querySelector(`.school-term-start[data-id="${termId}"]`);
+      if (endEl?.value) term.endDate = coerceISODateString(endEl.value);
+      if (startEl?.value) term.startDate = coerceISODateString(startEl.value);
+      return { term, mode: sched.mode, index: idx };
+    }
+
+    function schoolTermReminderText(term, mode, index) {
+      return `Fin du ${schoolTermLabel(mode, index).toLowerCase()}`;
+    }
+
+    function findReminderForSchoolTerm(term, mode, index) {
+      if (!term) return null;
+      const byId = (appData.reminders || [])
+        .map(normalizeReminder)
+        .filter(Boolean)
+        .find((r) => r.schoolTermId && r.schoolTermId === term.id);
+      if (byId) return byId;
+      if (!term.endDate) return null;
+      const text = schoolTermReminderText(term, mode, index);
+      return (
+        (appData.reminders || [])
+          .map(normalizeReminder)
+          .filter(Boolean)
+          .find((r) => r.date === term.endDate && r.text === text) || null
+      );
+    }
+
+    function syncSchoolTermReminderDates() {
+      const sched = getSchoolTermSchedule();
+      (appData.reminders || []).forEach((r) => {
+        if (!r.schoolTermId) return;
+        const idx = sched.terms.findIndex((t) => t.id === r.schoolTermId);
+        if (idx < 0) return;
+        const term = sched.terms[idx];
+        if (term.endDate) {
+          r.date = term.endDate;
+          r.text = schoolTermReminderText(term, sched.mode, idx);
+        }
       });
     }
 
-    function createReminderFromSchoolEvent(eventId) {
+    function readSchoolTermsFromForm(main) {
+      if (!main || !main.querySelector(".school-term-start")) return false;
+      const mode = main.querySelector("#school-term-mode")?.value === "semestre" ? "semestre" : "trimestre";
+      const count = schoolTermCount(mode);
+      const prevSched = appData.schoolTermSchedule || { mode: "trimestre", terms: [] };
+      const terms = [];
+      for (let i = 0; i < count; i++) {
+        const startEl = main.querySelector(`.school-term-start[data-index="${i}"]`);
+        const endEl = main.querySelector(`.school-term-end[data-index="${i}"]`);
+        const prev = prevSched.terms && prevSched.terms[i] ? prevSched.terms[i] : {};
+        terms.push({
+          id: (startEl && startEl.getAttribute("data-id")) || prev.id || uid(),
+          startDate: coerceISODateString(startEl?.value || ""),
+          endDate: coerceISODateString(endEl?.value || ""),
+        });
+      }
+      appData.schoolTermSchedule = { mode, terms };
+      normalizeSchoolTermSchedule();
+      return true;
+    }
+
+    function persistSchoolTermsFromForm(main, opts) {
+      opts = opts || {};
+      if (!readSchoolTermsFromForm(main)) return false;
+      if (opts.syncReminders) syncSchoolTermReminderDates();
+      saveData({ skipAutoRegen: true });
+      return true;
+    }
+
+    function renderSchoolTermsPanelHtml() {
+      const sched = getSchoolTermSchedule();
+      const rows = sched.terms
+        .map((term, i) => {
+          const hasReminder = !!findReminderForSchoolTerm(term, sched.mode, i);
+          return `<tr>
+            <td><strong>${escapeHtml(schoolTermLabel(sched.mode, i))}</strong></td>
+            <td><input type="date" class="school-term-start" data-index="${i}" data-id="${escapeHtml(term.id)}" value="${escapeHtml(term.startDate || "")}" /></td>
+            <td><input type="date" class="school-term-end" data-index="${i}" data-id="${escapeHtml(term.id)}" value="${escapeHtml(term.endDate || "")}" /></td>
+            <td class="no-print" style="white-space:nowrap">
+              <button type="button" class="btn-school-term-reminder${hasReminder ? " is-active" : ""}" data-id="${escapeHtml(term.id)}" title="${hasReminder ? "Annuler le rappel sur l'accueil" : "Créer un rappel pour la fin de période"}" aria-label="${hasReminder ? "Annuler le rappel" : "Créer un rappel"}">🔔</button>
+            </td>
+          </tr>`;
+        })
+        .join("");
+      return `<div class="school-terms-panel" style="margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px dashed var(--border)">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:.75rem;flex-wrap:wrap;margin-bottom:.65rem">
+          <div class="form-group" style="margin:0;min-width:12rem">
+            <label for="school-term-mode">Organisation de l'année</label>
+            <select id="school-term-mode">
+              <option value="trimestre"${sched.mode === "trimestre" ? " selected" : ""}>Trimestre (3 périodes)</option>
+              <option value="semestre"${sched.mode === "semestre" ? " selected" : ""}>Semestre (2 périodes)</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-sm btn-primary" id="btn-save-school-terms">Enregistrer les périodes</button>
+        </div>
+        <div class="table-wrap school-terms-table-wrap">
+          <table class="school-terms-table">
+            <thead><tr><th>Période</th><th>Début</th><th>Fin</th><th class="no-print" title="Rappel accueil">🔔</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
+    }
+
+    function openSchoolTermReminderModal(termId, main) {
+      let resolved = resolveSchoolTermForReminder(main, termId);
+      if (!resolved) return;
+      if (!resolved.term.endDate) {
+        alert("Renseignez d'abord la date de fin de cette période.");
+        return;
+      }
+      persistSchoolTermsFromForm(main);
+      resolved = resolveSchoolTermForReminder(main, termId);
+      if (!resolved || !resolved.term.endDate) return;
+      const { term, mode, index } = resolved;
+      const existing = findReminderForSchoolTerm(term, mode, index);
+      if (existing) {
+        removeReminderById(existing.id);
+        saveData({ skipAutoRegen: true });
+        render();
+        return;
+      }
+      const body = el(`<div>
+        <p class="kpi-sub" style="margin:0 0 .65rem;line-height:1.5"><strong>${escapeHtml(fmtDateFr(term.endDate))}</strong> — ${escapeHtml(schoolTermReminderText(term, mode, index))}</p>
+        ${reminderDaysBeforeFieldHtml(7)}
+      </div>`);
+      openModal("Rappel sur l'accueil", body, () => {
+        persistSchoolTermsFromForm(main);
+        const fresh = resolveSchoolTermForReminder(main, termId);
+        const endDate = fresh?.term.endDate || term.endDate;
+        const idx = fresh?.index ?? index;
+        const m = fresh?.mode ?? mode;
+        const t = fresh?.term || term;
+        addReminderEntry({
+          date: endDate,
+          text: schoolTermReminderText(t, m, idx),
+          daysBefore: readReminderDaysBeforeFromForm(body),
+          schoolTermId: t.id,
+        });
+        saveData({ skipAutoRegen: true });
+        render();
+        return true;
+      });
+    }
+
+    function findReminderForHolidayOnDate(holidayId, dateStr) {
+      const holiday = (appData.holidays || []).find((h) => h && h.id === holidayId);
+      if (!holiday || !dateStr) return null;
+      const byId = (appData.reminders || [])
+        .map(normalizeReminder)
+        .filter(Boolean)
+        .find((r) => r.holidayId === holidayId && r.date === dateStr);
+      if (byId) return byId;
+      const text = holidayReminderText(holiday);
+      return (
+        (appData.reminders || [])
+          .map(normalizeReminder)
+          .filter(Boolean)
+          .find((r) => r.date === dateStr && r.text === text) || null
+      );
+    }
+
+    function openSchoolEventReminderModal(eventId) {
+      const event = (appData.schoolCalendarEvents || []).find((e) => e && e.id === eventId);
+      if (!event) return;
+      const existing = findReminderForSchoolEvent(event);
+      if (existing) {
+        removeReminderById(existing.id);
+        saveData({ skipAutoRegen: true });
+        render();
+        return;
+      }
+      const body = el(`<div>
+        <p class="kpi-sub" style="margin:0 0 .65rem;line-height:1.5"><strong>${escapeHtml(fmtDateFr(event.date))}</strong> — ${escapeHtml(schoolEventReminderText(event))}</p>
+        ${reminderDaysBeforeFieldHtml(7)}
+      </div>`);
+      openModal("Rappel sur l'accueil", body, () => {
+        addReminderEntry({
+          date: event.date,
+          text: schoolEventReminderText(event),
+          daysBefore: readReminderDaysBeforeFromForm(body),
+          schoolEventId: event.id,
+        });
+        saveData({ skipAutoRegen: true });
+        render();
+        return true;
+      });
+    }
+
+    function createReminderFromSchoolEvent(eventId, daysBefore) {
       const event = (appData.schoolCalendarEvents || []).find((e) => e && e.id === eventId);
       if (!event) return false;
-      if (reminderExistsForSchoolEvent(event)) {
-        alert("Un rappel existe déjà pour cet événement.");
-        return false;
-      }
+      if (findReminderForSchoolEvent(event)) return false;
       const date = String(event.date || "").trim();
       const text = schoolEventReminderText(event);
       if (!date || !text) return false;
-      if (!Array.isArray(appData.reminders)) appData.reminders = [];
-      appData.reminders.push({ id: uid(), date, text });
+      addReminderEntry({
+        date,
+        text,
+        daysBefore: daysBefore ?? 7,
+        schoolEventId: event.id,
+      });
       saveData({ skipAutoRegen: true });
       return true;
     }
 
-    function createReminderFromHolidayOnDate(holidayId, dateStr) {
+    function createReminderFromHolidayOnDate(holidayId, dateStr, daysBefore) {
       const holiday = (appData.holidays || []).find((h) => h && h.id === holidayId);
       if (!holiday || !dateStr) return false;
+      if (findReminderForHolidayOnDate(holidayId, dateStr)) return false;
       const text = holidayReminderText(holiday);
-      const exists = (appData.reminders || []).some((r) => {
-        const n = normalizeReminder(r);
-        return n && n.date === dateStr && n.text === text;
+      addReminderEntry({
+        date: dateStr,
+        text,
+        daysBefore: daysBefore ?? 7,
+        holidayId,
       });
-      if (exists) {
-        alert("Un rappel existe déjà pour cet événement.");
-        return false;
-      }
-      if (!Array.isArray(appData.reminders)) appData.reminders = [];
-      appData.reminders.push({ id: uid(), date: dateStr, text });
       saveData({ skipAutoRegen: true });
       return true;
+    }
+
+    function openHolidayReminderModal(holidayId, dateStr) {
+      const holiday = (appData.holidays || []).find((h) => h && h.id === holidayId);
+      if (!holiday || !dateStr) return;
+      const existing = findReminderForHolidayOnDate(holidayId, dateStr);
+      if (existing) {
+        removeReminderById(existing.id);
+        saveData({ skipAutoRegen: true });
+        render();
+        return;
+      }
+      const body = el(`<div>
+        <p class="kpi-sub" style="margin:0 0 .65rem;line-height:1.5"><strong>${escapeHtml(fmtDateFr(dateStr))}</strong> — ${escapeHtml(holidayReminderText(holiday))}</p>
+        ${reminderDaysBeforeFieldHtml(7)}
+      </div>`);
+      openModal("Rappel sur l'accueil", body, () => {
+        addReminderEntry({
+          date: dateStr,
+          text: holidayReminderText(holiday),
+          daysBefore: readReminderDaysBeforeFromForm(body),
+          holidayId,
+        });
+        saveData({ skipAutoRegen: true });
+        render();
+        return true;
+      });
     }
 
     function openDashboardReminderModal() {
       const body = el(`<div>
-        <p class="kpi-sub" style="margin:0 0 .65rem;line-height:1.5">Le rappel s'affiche sur l'accueil <strong>7 jours avant</strong> la date de l'événement (inclus), jusqu'au jour J, puis disparaît.</p>
         <div class="form-group"><label>Date de l'événement</label><input type="date" id="f-reminder-date" value="${escapeHtml(dashboardDateISO())}" /></div>
-        <div class="form-group"><label>Type de rappel</label>
-          <select id="f-reminder-preset">
-            ${REMINDER_PRESETS.map((p) => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join("")}
-            <option value="__custom__">Autre (saisie libre)</option>
-          </select>
-        </div>
-        <div class="form-group" id="f-reminder-custom-wrap" style="display:none">
+        <div class="form-group">
           <label>Libellé</label>
-          <input id="f-reminder-custom" placeholder="ex : Remise des bulletins" />
+          <input id="f-reminder-text" placeholder="ex : Remise des bulletins" />
         </div>
+        ${reminderDaysBeforeFieldHtml(7)}
         <div style="margin-top:.85rem">
           <h4 style="margin:0 0 .4rem;font-size:.92rem">Rappels enregistrés</h4>
           <div id="f-reminders-list"></div>
         </div>
       </div>`);
-      const presetSel = body.querySelector("#f-reminder-preset");
-      const customWrap = body.querySelector("#f-reminder-custom-wrap");
-      presetSel?.addEventListener("change", () => {
-        if (!customWrap) return;
-        customWrap.style.display = presetSel.value === "__custom__" ? "block" : "none";
-      });
       renderDashboardRemindersList(body.querySelector("#f-reminders-list"));
       openModal("Rappels", body, () => {
         const date = body.querySelector("#f-reminder-date")?.value;
         if (!date) return;
-        const preset = body.querySelector("#f-reminder-preset")?.value || "";
-        const text =
-          preset === "__custom__"
-            ? (body.querySelector("#f-reminder-custom")?.value || "").trim()
-            : preset.trim();
+        const text = (body.querySelector("#f-reminder-text")?.value || "").trim();
         if (!text) return;
-        if (!Array.isArray(appData.reminders)) appData.reminders = [];
-        appData.reminders.push({ id: uid(), date, text });
+        addReminderEntry({
+          date,
+          text,
+          daysBefore: readReminderDaysBeforeFromForm(body),
+        });
         saveData({ skipAutoRegen: true });
         render();
+        return true;
       });
     }
 
@@ -7330,8 +8916,8 @@
       const coversAll =
         configured.size === active.size && [...configured].every((g) => active.has(g));
       if (coversAll && configured.size > 1) return "Tous";
-      if (coversAll && configured.size === 1) return associationFormatGroupLabels(configured);
-      return associationFormatGroupLabels(active);
+      if (coversAll && configured.size === 1) return associationFormatGroupLabelsAbbrev(configured);
+      return associationFormatGroupLabelsAbbrev(active);
     }
 
     function associationSlotCancellationSummary(activity, dateIso, dayIndex, startTime, endTime) {
@@ -7432,14 +9018,11 @@
 
     function associationWeekRecapSlotLabel(activity, dayIndex, startTime, endTime) {
       if (!activity || associationDistinctTrainingSlots(activity) <= 1) return "";
-      const parts = [];
-      if (Number.isInteger(dayIndex)) {
-        const dow = DOW[dayIndex] || "";
-        if (dow) parts.push(dow.slice(0, 3) + ".");
-      }
-      const time = formatAssociationRecapSlotTime(startTime, endTime);
-      if (time) parts.push(time);
-      return parts.join(" ");
+      const slot = { dayIndex, startTime: startTime || "", endTime: endTime || "" };
+      const schedule = associationSlotScheduleLabel(slot);
+      const cats = associationSlotCategoriesLabel(activity, slot);
+      if (cats && cats !== "Tous") return `${schedule} (${cats})`;
+      return schedule;
     }
 
     /** Nombre de créneaux distincts (jour + horaire) configurés pour l'activité. */
@@ -7654,7 +9237,32 @@
           const tab = active && active.getAttribute("data-tab");
           if (tab === "planning" || tab === "admin") dashAsActivityPanelTab[id] = tab;
         });
+        main.querySelectorAll(".btn-dash-as-slot-tab.as-activity-tab--active").forEach((btn) => {
+          const id = btn.getAttribute("data-activity-id");
+          const sk = btn.getAttribute("data-slot-key");
+          if (id && sk) dashAsActivitySlotTab[id] = sk;
+        });
       }
+    }
+
+    function associationEventMatchesSlot(e, slot, activity) {
+      if (!slot || !e) return true;
+      if (e.eventType === "competition") {
+        const d = parseISODate(e.date);
+        return dayIndexMon0(d) === slot.dayIndex;
+      }
+      if (e.eventType === "training") {
+        const training = (activity.trainings || []).find((t) => t.id === e.eventId);
+        if (training) {
+          return (
+            training.dayIndex === slot.dayIndex &&
+            (training.startTime || "") === slot.startTime &&
+            (training.endTime || "") === slot.endTime
+          );
+        }
+        return (e.startTime || "") === slot.startTime && (e.endTime || "") === slot.endTime;
+      }
+      return true;
     }
 
     function renderAssociationEventRow(e) {
@@ -7663,16 +9271,19 @@
       const hour = e.eventType === "training" ? `${e.startTime || "—"}${e.endTime ? "–" + e.endTime : ""}` : "—";
       const extra = e.eventType === "competition" ? [e.place, e.coach].filter(Boolean).join(" · ") : "";
       const cancel = associationCancellationSummary(e);
-      const detailLine = [e.detail, extra].filter(Boolean).join(" · ");
+      const detailAbbrev = formatAssociationDetailAbbrev(e.detail);
+      const detailLine = [detailAbbrev, extra].filter(Boolean).join(" · ");
       let statusHtml = "";
       if (cancel.state === "all") {
         statusHtml = `<span class="status-pill status-pill--cancelled"><span class="status-dot" style="background:var(--danger)"></span>Annulé (tous)</span>`;
       } else {
         statusHtml = '<span class="status-pill status-pill--planned"><span class="status-dot" style="background:var(--success)"></span>Prévu</span>';
         if (cancel.state === "partial" && cancel.cancelledFor.length) {
-          statusHtml += cancel.cancelledFor.map((g) =>
-            `<div class="kpi-sub" style="margin-top:.2rem;color:var(--danger);font-weight:600">Annulé pour ${escapeHtml(g)}</div>`
-          ).join("");
+          statusHtml += cancel.cancelledFor.map((g) => {
+            const gAbbrev = formatAssociationCategoryAbbrev(g);
+            const gTitle = g !== gAbbrev ? ` title="${escapeHtml(g)}"` : "";
+            return `<div class="kpi-sub" style="margin-top:.2rem;color:var(--danger);font-weight:600"${gTitle}>Annulé pour ${escapeHtml(gAbbrev !== "—" ? gAbbrev : g)}</div>`;
+          }).join("");
         }
       }
       const presentN = associationAttendancePresentCount(e);
@@ -7854,21 +9465,58 @@
         const expanded = dashAsExpandedActivityIds.has(block.activityId);
         const panelTab = dashAsActivityPanelTab[block.activityId] || "planning";
         const activity = activities.find((a) => a.id === block.activityId) || null;
-        const rows = block.events.length
-          ? block.events.map((e) => renderAssociationEventRow(e)).join("")
+        const slots = activity ? associationListDistinctSlots(activity) : [];
+        const multiSlot = slots.length > 1;
+        let slotKey = dashAsActivitySlotTab[block.activityId] || "";
+        if (multiSlot && (!slotKey || !slots.some((s) => s.key === slotKey))) {
+          slotKey = slots[0].key;
+        }
+        const activeSlot = slots.find((s) => s.key === slotKey) || slots[0] || null;
+        let displayEvents = block.events;
+        if (multiSlot && activeSlot) {
+          displayEvents = block.events.filter((e) => associationEventMatchesSlot(e, activeSlot, activity));
+        }
+        const rows = displayEvents.length
+          ? displayEvents.map((e) => renderAssociationEventRow(e)).join("")
           : `<tr><td colspan="7" class="kpi-sub" style="text-align:center">Aucun créneau à venir.</td></tr>`;
-        const tableHtml = `<div class="table-wrap"><table>
-            <thead><tr><th>Date</th><th>Type</th><th>Horaire</th><th>Détail catégorie</th><th>Présents</th><th>Statut</th><th>Action</th></tr></thead>
+        const planningTableTitle = `Planning — ${block.activityName}${
+          activeSlot ? " — " + associationSlotTabLabel(activeSlot, activity) : ""
+        }`;
+        const tableHtml = `<div class="table-wrap as-planning-table-wrap as-planning-table-wrap--tap-fullscreen" data-table-title="${escapeHtml(planningTableTitle)}">
+            <table class="as-planning-table">
+            <thead><tr><th>Date</th><th>Type</th><th>Horaire</th><th title="Catégorie (abréviation : B=benjamins, M=minimes, F=filles, G=garçons)">Cat.</th><th>Présents</th><th>Statut</th><th>Action</th></tr></thead>
             <tbody>${rows}</tbody>
-          </table></div>`;
+          </table>
+          <p class="as-planning-table-hint no-print">Touchez le tableau pour l'afficher en plein écran · faites défiler horizontalement · touchez une ligne pour l'appel</p>
+          </div>`;
         const tabsHtml = `<div class="as-activity-tabs no-print" style="margin-bottom:.5rem">
             <button type="button" class="as-activity-tab btn-dash-as-subtab ${panelTab === "planning" ? "as-activity-tab--active" : ""}" data-activity-id="${escapeHtml(block.activityId)}" data-tab="planning">Planning</button>
             <button type="button" class="as-activity-tab btn-dash-as-subtab ${panelTab === "admin" ? "as-activity-tab--active" : ""}" data-activity-id="${escapeHtml(block.activityId)}" data-tab="admin">Gestion administrative</button>
           </div>`;
-        const planningHint = panelTab === "planning"
-          ? `<p class="kpi-sub dash-as-planning-hint" style="margin:0 0 .45rem">Cliquez sur la séance pour faire l'appel.</p>`
+        const slotTabsHtml = multiSlot
+          ? `<div class="as-activity-tabs as-slot-tabs no-print" style="margin-bottom:.35rem;flex-wrap:wrap">
+            ${slots
+              .map((s) => {
+                const active = s.key === (activeSlot && activeSlot.key);
+                return renderAssociationSlotTabHtml(activity, block.activityId, s, active);
+              })
+              .join("")}
+          </div>`
           : "";
-        const panelContent = panelTab === "admin" && activity ? viewAssociationAdminBody(activity) : tableHtml;
+        const slotCatsHint =
+          activity &&
+          activeSlot &&
+          (multiSlot || associationSlotCategoriesLabel(activity, activeSlot) !== "Tous")
+            ? associationSlotCategoriesHintHtml(activity, activeSlot)
+            : "";
+        const planningHint =
+          panelTab === "planning"
+            ? `${slotCatsHint}<p class="kpi-sub dash-as-planning-hint" style="margin:0 0 .45rem">Touchez le tableau (hors ligne) pour le plein écran · une ligne pour l'appel.</p>`
+            : "";
+        const panelContent =
+          panelTab === "admin" && activity
+            ? viewAssociationAdminBody(activity, activeSlot ? activeSlot.key : "")
+            : tableHtml;
         return `<div class="dash-as-activity-block no-print" style="margin-bottom:.55rem">
           <div class="dash-as-activity-head">
             <button type="button" class="dash-as-activity-toggle as-activity-btn" data-activity-id="${escapeHtml(block.activityId)}" aria-expanded="${expanded ? "true" : "false"}" style="justify-content:center">
@@ -7878,6 +9526,7 @@
           </div>
           <div class="dash-as-activity-panel" data-activity-id="${escapeHtml(block.activityId)}" ${expanded ? "" : "hidden"} style="margin-top:.45rem">
             ${tabsHtml}
+            ${slotTabsHtml}
             ${planningHint}
             ${panelContent}
           </div>
@@ -7907,7 +9556,7 @@
       const attendance = getAssociationAttendance(event);
       const kind = event.eventType === "training" ? "Entraînement" : "Compétition";
       const body = el(`<div>
-        <p class="kpi-sub" style="margin-bottom:.6rem"><strong>${escapeHtml(fmtDateFr(event.date))}</strong> · ${escapeHtml(event.activityName || activity?.name || "—")} · ${escapeHtml(kind)}${event.detail ? " · " + escapeHtml(event.detail) : ""}</p>
+        <p class="kpi-sub" style="margin-bottom:.6rem"><strong>${escapeHtml(fmtDateFr(event.date))}</strong> · ${escapeHtml(event.activityName || activity?.name || "—")} · ${escapeHtml(kind)}${event.detail ? ` · <span title="${escapeHtml(event.detail)}">${escapeHtml(formatAssociationDetailAbbrev(event.detail))}</span>` : ""}</p>
       </div>`);
       body.appendChild(buildAssociationAttendanceBlock(attendance, students, () => {
         saveData();
@@ -8023,7 +9672,8 @@
       const itemHtml = (item) => {
         const date = item.date ? fmtDateFr(item.date).slice(0, 5) : "";
         const day = item.dayName ? item.dayName.toLowerCase() : "";
-        return `<div class="dash-edt-item">${escapeHtml(day)} ${escapeHtml(date)} — ${escapeHtml(item.className)} — ${escapeHtml(item.time)}</div>`;
+        const reason = item.reason ? ` <span style="color:var(--text-muted)">(${escapeHtml(item.reason)})</span>` : "";
+        return `<div class="dash-edt-item">${escapeHtml(day)} ${escapeHtml(date)} — ${escapeHtml(item.className)} — ${escapeHtml(item.time)}${reason}</div>`;
       };
       const groupHtml = (kind, items) => {
         if (!items.length) return "";
@@ -8061,20 +9711,28 @@
       const todayStr = dashboardDateISO();
       const alerts = [];
       appData.classes.forEach((cl) => {
-        const clPeriods = periodsForClass(cl.id);
-        const curPeriod = clPeriods.find((p) => todayStr >= p.startDate && todayStr <= p.endDate);
-        if (!curPeriod) return;
-        const items = (appData.forgottenGear || []).filter((f) => f.classId === cl.id && f.date >= curPeriod.startDate && f.date <= curPeriod.endDate);
+        const range = forgottenGearFilterRangeForClass(cl.id, todayStr);
+        if (!range) return;
+        const items = (appData.forgottenGear || []).filter(
+          (f) => f.classId === cl.id && f.date >= range.startDate && f.date <= range.endDate
+        );
         const byStudent = {};
-        items.forEach((f) => { byStudent[f.studentName] = (byStudent[f.studentName] || 0) + 1; });
+        items.forEach((f) => {
+          byStudent[f.studentName] = (byStudent[f.studentName] || 0) + 1;
+        });
         Object.entries(byStudent).forEach(([name, count]) => {
           if (count >= threshold) alerts.push({ name, className: cl.name, classId: cl.id, count });
         });
       });
       alerts.sort((a, b) => b.count - a.count);
       const total = alerts.length;
-      const detail = alerts.map((a) => `<a href="#" class="link-fg-student" data-classid="${a.classId}" data-student="${escapeHtml(a.name)}" style="color:var(--danger);font-weight:700;text-decoration:underline;cursor:pointer">${escapeHtml(a.name)}</a> (${escapeHtml(a.className)}) — ${a.count} oubli(s)`).join("<br>");
-      return `<div class="kpi kpi--tint kpi--warning${total ? " has-alert" : ""}" style="animation-delay:${animationDelay}"><div class="kpi-label">⚠️ Oublis de matériel répétés <button type="button" id="btn-fg-threshold" title="Régler le seuil d'oublis" style="background:none;border:none;cursor:pointer;font-size:.95rem;padding:0;line-height:1;flex-shrink:0">⚙️</button></div>${total ? `<div class="kpi-value" style="color:var(--danger)">${total}</div><div class="kpi-sub" style="line-height:1.5">${detail}</div>` : '<div class="kpi-sub">Aucun élève concerné</div>'}</div>`;
+      const detail = alerts
+        .map(
+          (a) =>
+            `<a href="#" class="link-fg-student" data-classid="${a.classId}" data-student="${escapeHtml(a.name)}" style="color:var(--danger);font-weight:700;text-decoration:underline;cursor:pointer">${escapeHtml(a.name)}</a> (${escapeHtml(a.className)}) — ${a.count} oubli(s)`
+        )
+        .join("<br>");
+      return `<div class="kpi kpi--tint kpi--warning${total ? " has-alert" : ""}" style="animation-delay:${animationDelay}"><div class="kpi-label">⚠️ Oublis de matériel répétés <button type="button" id="btn-fg-threshold" title="Régler le seuil et la période de comptage" style="background:none;border:none;cursor:pointer;font-size:.95rem;padding:0;line-height:1;flex-shrink:0">⚙️</button></div>${total ? `<div class="kpi-value" style="color:var(--danger)">${total}</div><div class="kpi-sub" style="line-height:1.5">${detail}</div>` : '<div class="kpi-sub">Aucun élève concerné</div>'}</div>`;
     }
 
     function dashCalendarKpiHtml(animationDelay) {
@@ -8090,7 +9748,7 @@
       const classCards = appData.classes
         .filter((c) => matchesSearch(c.name))
         .map((cl, idx) => {
-          const periodActs = activitiesOnDatePeriod(cl.id, dISO);
+          const periodActs = activitiesForClassActivePeriod(cl.id, dISO);
           const days = weekdaysForDashboardClass(cl.id, dISO);
           const vid = getClassViewId(cl.id);
           const noPeriod = !periodActs.length;
@@ -8108,7 +9766,7 @@
                   <span class="dash-activity-name">${escapeHtml(a.name)}</span>
                   ${dayLabel ? `<span class="dash-activity-days">${escapeHtml(dayLabel)}</span>` : ""}
                 </div>
-                ${lastDate ? `<span class="dash-activity-last">Dernière séance · ${fmtDateFr(lastDate)}</span>` : ""}
+                ${lastDate ? `<span class="dash-activity-last">Dernière séance prévue · ${fmtDateFr(lastDate)}</span>` : ""}
               </div>
               <div class="dash-class-metrics">
                 <div class="dash-metric-done"><span class="num">${ast.done}</span><span class="lbl"><span class="lbl-long">Effectuées</span><span class="lbl-short">Eff.</span></span></div>
@@ -8267,6 +9925,68 @@
       );
     }
 
+    function periodExtensionFormHtml(period) {
+      const classes = classesForPeriod(period);
+      if (!classes.length) {
+        return `<p class="kpi-sub" style="margin:0">Aucune classe sur les niveaux sélectionnés.</p>`;
+      }
+      const overrides = periodDateOverrides(period);
+      return classes
+        .map((cl) => {
+          const o = overrides[cl.id];
+          const checked = !!(o && o.endDate && o.endDate > period.endDate);
+          const extEnd = checked ? o.endDate : period.endDate;
+          return `<div class="period-class-extension" style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.45rem">
+            <label style="display:inline-flex;align-items:center;gap:.35rem;cursor:pointer;min-width:4.5rem">
+              <input type="checkbox" class="period-ext-cb" data-classid="${cl.id}" ${checked ? "checked" : ""} />
+              <span class="legend-dot" style="background:${escapeHtml(cl.color)}"></span>
+              ${escapeHtml(cl.name)}
+            </label>
+            <input type="date" class="period-ext-end" data-classid="${cl.id}" value="${extEnd}" min="${period.endDate}" ${checked ? "" : "disabled"} style="font-size:.9rem;padding:.35rem .45rem" />
+          </div>`;
+        })
+        .join("");
+    }
+
+    function wirePeriodExtensionForm(body) {
+      const baseEndInput = body.querySelector("#f-per-end");
+      const syncMin = () => {
+        const baseEnd = baseEndInput?.value || "";
+        body.querySelectorAll(".period-ext-end").forEach((inp) => {
+          inp.min = baseEnd;
+          if (inp.disabled) inp.value = baseEnd;
+          else if (inp.value && baseEnd && inp.value < baseEnd) inp.value = baseEnd;
+        });
+      };
+      baseEndInput?.addEventListener("change", syncMin);
+      body.querySelectorAll(".period-ext-cb").forEach((cb) => {
+        cb.addEventListener("change", () => {
+          const cid = cb.getAttribute("data-classid");
+          const inp = body.querySelector(`.period-ext-end[data-classid="${cid}"]`);
+          if (!inp) return;
+          inp.disabled = !cb.checked;
+          if (cb.checked) {
+            const baseEnd = baseEndInput?.value || "";
+            if (!inp.value || (baseEnd && inp.value < baseEnd)) inp.value = baseEnd;
+          } else {
+            inp.value = baseEndInput?.value || "";
+          }
+        });
+      });
+      syncMin();
+    }
+
+    function readPeriodClassExtensions(body, baseEndDate) {
+      const overrides = {};
+      body.querySelectorAll(".period-ext-cb:checked").forEach((cb) => {
+        const cid = cb.getAttribute("data-classid");
+        const inp = body.querySelector(`.period-ext-end[data-classid="${cid}"]`);
+        const extEnd = inp?.value || "";
+        if (extEnd && baseEndDate && extEnd > baseEndDate) overrides[cid] = { endDate: extEnd };
+      });
+      return overrides;
+    }
+
     function viewPeriodsBody() {
       const rows = appData.periods
         .slice()
@@ -8275,13 +9995,24 @@
           const levelNames = periodLevels(p).join(", ");
           const today = fmtISODate(new Date());
           const isCurrent = today >= p.startDate && today <= p.endDate;
+          const extLines = Object.entries(periodDateOverrides(p))
+            .filter(([, o]) => o && o.endDate && o.endDate > p.endDate)
+            .map(([cid, o]) => {
+              const cl = getClassById(cid);
+              return cl ? `${escapeHtml(cl.name)} → ${fmtDateFr(o.endDate)}` : "";
+            })
+            .filter(Boolean);
           const badge = isCurrent
             ? '<span class="badge" style="background:var(--accent);color:#fff">En cours</span>'
             : today > p.endDate ? '<span class="badge">Terminée</span>' : '<span class="badge" style="border:1px solid var(--accent);color:var(--accent)">À venir</span>';
           return `<tr>
             <td><strong>${escapeHtml(p.name)}</strong></td>
             <td>${fmtDateFr(p.startDate)}</td>
-            <td>${fmtDateFr(p.endDate)}</td>
+            <td>${fmtDateFr(p.endDate)}${
+              extLines.length
+                ? `<br><span class="kpi-sub" style="line-height:1.45">Prolong. : ${extLines.join(" · ")}</span>`
+                : ""
+            }</td>
             <td>${escapeHtml(levelNames) || "<em>Aucun</em>"}</td>
             <td>${badge}</td>
             <td class="no-print">
@@ -8340,6 +10071,29 @@
         (p.classIds || []).includes(classId)
       )
         .slice().sort((a, b) => a.startDate.localeCompare(b.startDate));
+    }
+
+    /** Période calendaire en cours pour une classe (même règle que l'onglet classe). */
+    function currentPeriodForClass(classId, refDateStr) {
+      const ref = refDateStr || fmtISODate(new Date());
+      return (
+        periodsForClass(classId).find((p) => {
+          const { start, end } = periodDatesForClass(p, classId);
+          return ref >= start && ref <= end;
+        }) || null
+      );
+    }
+
+    /** APSA de la période en cours (même filtre que viewClassPage → periodActs). */
+    function activitiesForClassActivePeriod(classId, refDateStr) {
+      const period = currentPeriodForClass(classId, refDateStr);
+      if (!period) return activitiesOnDatePeriod(classId, refDateStr);
+      const { start, end } = periodDatesForClass(period, classId);
+      return activitiesForClass(classId).filter(
+        (a) =>
+          (a.periodId && a.periodId === period.id) ||
+          (a.startDate >= start && a.endDate <= end)
+      );
     }
 
     function periodLevels(period) {
@@ -8573,14 +10327,15 @@
           if (!apsaName || !Number.isInteger(dayIndex)) return;
           const key = `${classId}|${periodId}|${apsaName}`;
           if (!planned.has(key)) {
+            const { start, end } = periodDatesForClass(period, classId);
             planned.set(key, {
               classId,
               periodId,
               name: apsaName,
               field: caForLevelApsa(level, apsaName),
               color: select.getAttribute("data-color") || colors[planned.size % colors.length],
-              startDate: period.startDate,
-              endDate: period.endDate,
+              startDate: start,
+              endDate: end,
               venue: venueName,
               objectives: "",
               competencies: "",
@@ -8788,19 +10543,19 @@
         .slice()
         .sort((a, b) =>
           String(a.date).localeCompare(String(b.date)) ||
-          String(a.time || "99:99").localeCompare(String(b.time || "99:99")) ||
+          String(a.startTime || a.time || "99:99").localeCompare(String(b.startTime || b.time || "99:99")) ||
           String(a.title).localeCompare(String(b.title), "fr")
         )
         .map((e) => {
           const hasReminder = reminderExistsForSchoolEvent(e);
           return `<tr>
           <td>${escapeHtml(fmtDateFr(e.date))}</td>
-          <td>${escapeHtml(e.time || "—")}</td>
+          <td>${escapeHtml(schoolEventHoursLabel(e))}</td>
           <td>${escapeHtml(e.kind || "Autre")}</td>
           <td>${escapeHtml(e.title)}</td>
           <td>${e.blocksSessions ? "Oui" : "Non"}</td>
           <td class="no-print" style="white-space:nowrap">
-            <button type="button" class="btn-school-event-reminder${hasReminder ? " is-active" : ""}" data-id="${escapeHtml(e.id)}" title="${hasReminder ? "Rappel déjà créé pour l'accueil" : "Créer un rappel sur l'accueil"}" aria-label="Créer un rappel" ${hasReminder ? "disabled" : ""}>🔔</button>
+            <button type="button" class="btn-school-event-reminder${hasReminder ? " is-active" : ""}" data-id="${escapeHtml(e.id)}" title="${hasReminder ? "Annuler le rappel sur l'accueil" : "Créer un rappel sur l'accueil"}" aria-label="${hasReminder ? "Annuler le rappel" : "Créer un rappel"}">🔔</button>
           </td>
           <td class="no-print"><button type="button" class="btn btn-sm btn-danger btn-del-school-event" data-id="${escapeHtml(e.id)}">Suppr.</button></td>
         </tr>`;
@@ -8846,11 +10601,12 @@
             <h3 class="cal-panel__title" style="margin:0">🏫 Calendrier de l'établissement</h3>
             <button type="button" class="btn btn-sm btn-primary" id="btn-add-school-event">+ Événement établissement</button>
           </div>
+          ${renderSchoolTermsPanelHtml()}
           <p class="kpi-sub" style="margin-bottom:.65rem">Dates propres à l'établissement : arrêt des notes, portes ouvertes, conseils de classe… Cochez « Bloque les séances » pour annuler les cours concernés.</p>
           <details class="cal-panel__events">
             <summary>Événements de l'établissement (${schoolEventsCount})</summary>
             <div class="cal-panel__events-body">
-              <div class="table-wrap"><table><thead><tr><th>Date</th><th>Heure</th><th>Type</th><th>Événement</th><th>Bloque</th><th class="no-print" title="Rappel accueil">🔔</th><th class="no-print"></th></tr></thead><tbody>
+              <div class="table-wrap"><table><thead><tr><th>Date</th><th>Horaires</th><th>Type</th><th>Événement</th><th>Bloque</th><th class="no-print" title="Rappel accueil">🔔</th><th class="no-print"></th></tr></thead><tbody>
                 ${schoolEventsRows || '<tr><td colspan="7">Aucun événement établissement.</td></tr>'}
               </tbody></table></div>
             </div>
@@ -8906,7 +10662,9 @@
     function schoolEventsOnDate(dateStr) {
       return (appData.schoolCalendarEvents || [])
         .filter((e) => e && e.date === dateStr)
-        .sort((a, b) => String(a.time || "99:99").localeCompare(String(b.time || "99:99")));
+        .sort((a, b) =>
+          String(a.startTime || a.time || "99:99").localeCompare(String(b.startTime || b.time || "99:99"))
+        );
     }
 
     function capitalizeFrLabel(s) {
@@ -8940,8 +10698,9 @@
     const CAL_DOW_SHORT = ["L", "M", "M", "J", "V", "S", "D"];
 
     function renderCalSchoolEventChip(e) {
-      const label = `${e.time ? escapeHtml(e.time) + " · " : ""}${escapeHtml(e.title)}`;
-      const tip = [e.kind, e.title, e.time ? "Heure : " + e.time : ""].filter(Boolean).join(" · ");
+      const hours = schoolEventHoursLabel(e);
+      const label = `${hours !== "Journée" ? escapeHtml(hours) + " · " : ""}${escapeHtml(e.title)}`;
+      const tip = [e.kind, e.title, hours !== "Journée" ? "Horaires : " + hours : "Journée"].filter(Boolean).join(" · ");
       return `<button type="button" class="cal-chip btn-cal-event-detail" data-kind="school" data-id="${escapeHtml(e.id)}" data-date="${escapeHtml(e.date)}" title="${escapeHtml(tip)}" style="background:rgba(245,158,11,.22);border:1px solid rgba(245,158,11,.45)">🏫 ${label}</button>`;
     }
 
@@ -8959,6 +10718,8 @@
     }
 
     function openCalendarPeriodPicker() {
+      const restoreFullscreen = typeof calendarViewRefresh === "function";
+      if (restoreFullscreen) calendarViewRefresh = null;
       const body = el("<div></div>");
       if (calendarMode === "month") {
         const y = calendarCursor.getFullYear();
@@ -8970,7 +10731,8 @@
           const [yy, mm] = v.split("-").map(Number);
           if (!yy || !mm) return false;
           calendarCursor = new Date(yy, mm - 1, 1);
-          render();
+          if (restoreFullscreen) openFullscreenCalendar();
+          else render();
         });
         return;
       }
@@ -8981,15 +10743,163 @@
         const v = body.querySelector("#cal-pick-period")?.value || "";
         if (!v) return false;
         calendarCursor = parseISODate(v);
-        render();
+        if (restoreFullscreen) openFullscreenCalendar();
+        else render();
       });
     }
 
+    function finishCalendarSubModal(restoreFullscreen) {
+      closeModal();
+      if (restoreFullscreen) openFullscreenCalendar();
+      else refreshCalendarView();
+    }
+
+    function finishCalendarAfterEdit(restoreFullscreen) {
+      if (restoreFullscreen) {
+        if (typeof calendarViewRefresh === "function") calendarViewRefresh();
+        else openFullscreenCalendar();
+      } else {
+        refreshCalendarView();
+      }
+    }
+
+    const SCHOOL_EVENT_KINDS = [
+      "Arrêt des notes",
+      "Journée portes ouvertes",
+      "Conseil de classe",
+      "Fin de trimestre",
+      "Réunion",
+      "Autre",
+    ];
+
+    function openSchoolEventCreateModal(defaultDate, restoreFullscreen) {
+      const dateVal = coerceISODateString(defaultDate) || dashboardDateISO();
+      const kindOpts = SCHOOL_EVENT_KINDS.map(
+        (k) => `<option value="${escapeHtml(k)}">${escapeHtml(k)}</option>`
+      ).join("");
+      const body = el(`<div>
+        <div class="form-group"><label>Date</label><input type="date" id="f-school-event-date" value="${escapeHtml(dateVal)}" /></div>
+        <div class="form-group">
+          <label>Horaires <span class="kpi-sub">(optionnel)</span></label>
+          <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center">
+            <input type="time" id="f-school-event-start" aria-label="Heure de début" />
+            <span class="kpi-sub">à</span>
+            <input type="time" id="f-school-event-end" aria-label="Heure de fin" />
+          </div>
+          <p class="kpi-sub" style="margin:.35rem 0 0">Sans horaires : journée entière. Avec début et fin : les cours qui chevauchent ce créneau sont annulés si « Bloque les séances » est coché.</p>
+        </div>
+        <div class="form-group"><label>Type</label><select id="f-school-event-kind">${kindOpts}</select></div>
+        <div class="form-group"><label>Intitulé</label><input id="f-school-event-title" placeholder="ex : Réunion parents-professeurs" /></div>
+        <div class="form-group"><label><input type="checkbox" id="f-school-event-blocks" /> Bloque les séances (annule les cours sur cette date / ce créneau)</label></div>
+      </div>`);
+      openModal("Événement établissement", body, () => {
+        const date = body.querySelector("#f-school-event-date")?.value || "";
+        const startTime = normalizeTimeHHMM(body.querySelector("#f-school-event-start")?.value || "");
+        const endTime = normalizeTimeHHMM(body.querySelector("#f-school-event-end")?.value || "");
+        const kind = body.querySelector("#f-school-event-kind")?.value || "Autre";
+        const title = (body.querySelector("#f-school-event-title")?.value || "").trim();
+        const blocksSessions = !!body.querySelector("#f-school-event-blocks")?.checked;
+        if (!date) {
+          alert("Veuillez renseigner la date.");
+          return false;
+        }
+        if (!title) {
+          alert("Veuillez renseigner l'intitulé de l'événement.");
+          return false;
+        }
+        if ((startTime && !endTime) || (!startTime && endTime)) {
+          alert("Indiquez une heure de début et de fin, ou laissez les deux vides pour la journée entière.");
+          return false;
+        }
+        if (startTime && endTime && startTime >= endTime) {
+          alert("L'heure de fin doit être après l'heure de début.");
+          return false;
+        }
+        if (!Array.isArray(appData.schoolCalendarEvents)) appData.schoolCalendarEvents = [];
+        appData.schoolCalendarEvents.push({ id: uid(), date, startTime, endTime, kind, title, blocksSessions });
+        if (blocksSessions) {
+          regenerateSessions();
+          saveData();
+        } else {
+          saveData({ skipAutoRegen: true });
+        }
+        finishCalendarAfterEdit(restoreFullscreen);
+        if (blocksSessions && !restoreFullscreen) render();
+        return true;
+      });
+    }
+
+    function openReminderCreateModal(defaultDate, restoreFullscreen) {
+      const dateVal = coerceISODateString(defaultDate) || dashboardDateISO();
+      const body = el(`<div>
+        <div class="form-group"><label>Date de l'événement</label><input type="date" id="f-reminder-date" value="${escapeHtml(dateVal)}" /></div>
+        <div class="form-group">
+          <label>Libellé du rappel</label>
+          <input id="f-reminder-text" placeholder="ex : Remise des bulletins" />
+        </div>
+        ${reminderDaysBeforeFieldHtml(7)}
+      </div>`);
+      openModal("Rappel sur l'accueil", body, () => {
+        const date = body.querySelector("#f-reminder-date")?.value || "";
+        const text = (body.querySelector("#f-reminder-text")?.value || "").trim();
+        if (!date) {
+          alert("Veuillez renseigner la date.");
+          return false;
+        }
+        if (!text) {
+          alert("Veuillez renseigner le libellé du rappel.");
+          return false;
+        }
+        addReminderEntry({
+          date,
+          text,
+          daysBefore: readReminderDaysBeforeFromForm(body),
+        });
+        saveData({ skipAutoRegen: true });
+        finishCalendarAfterEdit(restoreFullscreen);
+        return true;
+      });
+    }
+
+    function openCalendarDayActionModal(dateStr) {
+      if (!dateStr) return;
+      const restoreFullscreen = typeof calendarViewRefresh === "function";
+      const body = el(`<div>
+        <p class="kpi-sub" style="margin:0 0 .75rem">Que souhaitez-vous ajouter pour le <strong>${escapeHtml(fmtDateFr(dateStr))}</strong> ?</p>
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <button type="button" class="btn btn-primary btn-cal-day-add-event">🏫 Événement établissement</button>
+          <button type="button" class="btn btn-primary btn-cal-day-add-reminder">🔔 Rappel sur l'accueil</button>
+        </div>
+      </div>`);
+      body.querySelector(".btn-cal-day-add-event").addEventListener("click", () => {
+        closeModal();
+        setTimeout(() => openSchoolEventCreateModal(dateStr, restoreFullscreen), 0);
+      });
+      body.querySelector(".btn-cal-day-add-reminder").addEventListener("click", () => {
+        closeModal();
+        setTimeout(() => openReminderCreateModal(dateStr, restoreFullscreen), 0);
+      });
+      openModal(`Ajouter — ${fmtDateFr(dateStr)}`, body, () => true, { infoOnly: true });
+      if (restoreFullscreen) {
+        const root = document.getElementById("modal-root");
+        const finish = () => {
+          closeModal();
+          if (typeof calendarViewRefresh === "function") calendarViewRefresh();
+        };
+        root.querySelector(".modal-close").onclick = finish;
+        const footClose = root.querySelector(".modal-footer .btn");
+        if (footClose) footClose.onclick = finish;
+      }
+    }
+
     function openCalendarEventDetailModal(kind, id, dateStr) {
+      const restoreFullscreen = typeof calendarViewRefresh === "function";
+      if (restoreFullscreen) calendarViewRefresh = null;
       const body = el('<div class="cal-event-detail"></div>');
       let title = "Détail";
-      let canRemind = false;
-      let onRemind = null;
+      let remindKind = null;
+      let remindTargetId = null;
+      let remindDateStr = dateStr || "";
 
       if (kind === "school") {
         const event = (appData.schoolCalendarEvents || []).find((e) => e && e.id === id);
@@ -8997,12 +10907,13 @@
         title = "Événement établissement";
         body.innerHTML = `
           <p><strong>Date</strong><br>${escapeHtml(fmtDateFr(event.date))}</p>
-          <p><strong>Heure</strong><br>${escapeHtml(event.time || "—")}</p>
+          <p><strong>Horaires</strong><br>${escapeHtml(schoolEventHoursLabel(event))}</p>
           <p><strong>Type</strong><br>${escapeHtml(event.kind || "—")}</p>
           <p><strong>Intitulé</strong><br>${escapeHtml(event.title || "—")}</p>
           <p><strong>Bloque les séances</strong><br>${event.blocksSessions ? "Oui" : "Non"}</p>`;
-        canRemind = !reminderExistsForSchoolEvent(event);
-        onRemind = () => createReminderFromSchoolEvent(id);
+        remindKind = "school";
+        remindTargetId = id;
+        remindDateStr = event.date;
       } else if (kind === "holiday") {
         const holiday = (appData.holidays || []).find((h) => h && h.id === id);
         if (!holiday) return;
@@ -9014,13 +10925,8 @@
           <p><strong>Période</strong><br>${escapeHtml(fmtDateFr(holiday.startDate))} → ${escapeHtml(fmtDateFr(holiday.endDate))}</p>
           <p><strong>Jour consulté</strong><br>${escapeHtml(fmtDateFr(dateStr))}</p>
           <p><strong>Impact cours</strong><br>${holiday.blocksSessions !== false ? "Pas de séance générée" : "Séances possibles"}</p>`;
-        const text = holidayReminderText(holiday);
-        const exists = (appData.reminders || []).some((r) => {
-          const n = normalizeReminder(r);
-          return n && n.date === dateStr && n.text === text;
-        });
-        canRemind = !exists;
-        onRemind = () => createReminderFromHolidayOnDate(id, dateStr);
+        remindKind = "holiday";
+        remindTargetId = id;
       } else if (kind === "session") {
         const s = appData.sessions.find((x) => x.id === id);
         if (!s) return;
@@ -9034,23 +10940,58 @@
           <p><strong>Classe</strong><br>${escapeHtml(cl?.name || "—")}</p>
           <p><strong>APSA</strong><br>${escapeHtml(act?.name || "—")}</p>
           ${canc ? `<p><strong>Statut</strong><br><span style="color:var(--danger)">Annulée · ${escapeHtml(canc.reasonType || "")}${canc.comment ? " — " + escapeHtml(canc.comment) : ""}</span></p>` : `<p><strong>Statut</strong><br>Prévue</p>`}`;
-        canRemind = false;
       } else {
         return;
       }
 
-      if (canRemind && onRemind) {
-        const bRem = el(`<button type="button" class="btn btn-sm btn-primary" style="margin-top:.85rem">🔔 Créer un rappel sur l'accueil</button>`);
-        bRem.addEventListener("click", () => {
-          if (onRemind()) {
-            closeModal();
-            render();
-          }
-        });
-        body.appendChild(bRem);
+      if (remindKind === "school" || remindKind === "holiday") {
+        const existing =
+          remindKind === "school"
+            ? findReminderForSchoolEvent(
+                (appData.schoolCalendarEvents || []).find((e) => e && e.id === remindTargetId)
+              )
+            : findReminderForHolidayOnDate(remindTargetId, remindDateStr);
+        const wrap = el(`<div class="cal-event-remind-block" style="margin-top:.85rem;padding-top:.75rem;border-top:1px solid var(--border)"></div>`);
+        if (existing) {
+          const bOff = el(
+            `<button type="button" class="btn btn-sm btn-danger">🔔 Annuler le rappel sur l'accueil</button>`
+          );
+          bOff.addEventListener("click", () => {
+            removeReminderById(existing.id);
+            saveData({ skipAutoRegen: true });
+            finishCalendarSubModal(restoreFullscreen);
+          });
+          wrap.appendChild(bOff);
+        } else {
+          wrap.innerHTML = reminderDaysBeforeFieldHtml(7, "f-cal-reminder-days");
+          const bOn = el(
+            `<button type="button" class="btn btn-sm btn-primary" style="margin-top:.55rem">🔔 Créer un rappel sur l'accueil</button>`
+          );
+          bOn.addEventListener("click", () => {
+            const daysBefore = readReminderDaysBeforeFromForm(wrap, "f-cal-reminder-days");
+            if (remindKind === "school") {
+              createReminderFromSchoolEvent(remindTargetId, daysBefore);
+            } else {
+              createReminderFromHolidayOnDate(remindTargetId, remindDateStr, daysBefore);
+            }
+            finishCalendarSubModal(restoreFullscreen);
+          });
+          wrap.appendChild(bOn);
+        }
+        body.appendChild(wrap);
       }
 
       openModal(title, body, () => true, { infoOnly: true });
+      if (restoreFullscreen) {
+        const root = document.getElementById("modal-root");
+        const finish = () => finishCalendarSubModal(true);
+        root.querySelector(".modal-close").onclick = finish;
+        const footClose = root.querySelector(".modal-footer .btn");
+        if (footClose) footClose.onclick = finish;
+        root.onclick = (e) => {
+          if (e.target === root) finish();
+        };
+      }
     }
 
     function renderCalendarNavToolbar() {
@@ -9077,7 +11018,9 @@
       ).join("");
     }
 
-    function viewCalendarBody() {
+    function viewCalendarBody(options) {
+      options = options || {};
+      const inFullscreen = !!options.fullscreen;
       const showCourses = calendarEventFilter !== "no-courses";
       const y = calendarCursor.getFullYear();
       const m = calendarCursor.getMonth();
@@ -9095,11 +11038,13 @@
         });
         const hol = appData.holidays.find((h) => dateStr >= h.startDate && dateStr <= h.endDate);
         const schoolEvents = schoolEventsOnDate(dateStr).filter((e) => matchesSearch(e.title || "") || matchesSearch(e.kind || ""));
+        const termTitle = schoolTermDayTitle(dateStr);
         const chips =
+          renderCalSchoolTermLabelsInCell(dateStr) +
           (hol ? renderCalHolidayChip(hol, dateStr) : "") +
           schoolEvents.map((e) => renderCalSchoolEventChip(e)).join("") +
           sess.map((s) => renderCalSessionChip(s)).join("");
-        cells += `<div class="cal-cell ${dateStr === today ? "today" : ""}">
+        cells += `<div class="cal-cell cal-cell--day${dateStr === today ? " today" : ""}${calCellTermClass(dateStr)}" data-date="${dateStr}" role="button" tabindex="0" aria-label="Jour ${d} — ajouter ou voir le détail"${termTitle ? ` title="${escapeHtml(termTitle)}"` : ""}>
           <div class="num">${d}</div>
           <div class="cal-cell-events">${chips}</div>
         </div>`;
@@ -9113,24 +11058,44 @@
           const list = showCourses ? sessionsOnDate(ds) : [];
           const hol = appData.holidays.find((h) => ds >= h.startDate && ds <= h.endDate);
           const schoolEvents = schoolEventsOnDate(ds).filter((e) => matchesSearch(e.title || "") || matchesSearch(e.kind || ""));
+          const weekTermTitle = schoolTermDayTitle(ds);
           const weekChips =
+            renderCalSchoolTermLabelsInCell(ds) +
             (hol ? renderCalHolidayChip(hol, ds) : "") +
             schoolEvents.map((e) => renderCalSchoolEventChip(e)).join("") +
             list.map((s) => renderCalSessionChip(s)).join("");
-          rows += `<div class="card cal-week-day"><strong>${DOW[i]} ${fmtDateFr(ds)}</strong>
+          rows += `<div class="card cal-week-day cal-week-day--pick${calWeekDayTermClass(ds)}" data-date="${ds}" role="button" tabindex="0" aria-label="${escapeHtml(DOW[i])} ${escapeHtml(fmtDateFr(ds))} — ajouter ou voir le détail"${weekTermTitle ? ` title="${escapeHtml(weekTermTitle)}"` : ""}><strong>${DOW[i]} ${fmtDateFr(ds)}</strong>
             ${weekChips || (showCourses ? '<p class="kpi-sub">Aucune séance</p>' : '<p class="kpi-sub">Cours masqués</p>')}
           </div>`;
         }
         return `<div class="cal-week-grid">${rows}</div>`;
       })();
 
-      const calHint = `<p class="cal-scroll-hint no-print">Touchez un événement pour le détail · le mois ou la semaine pour changer de période · pincez pour zoomer</p>`;
+      const calHint = `<p class="cal-scroll-hint no-print">Touchez une case pour ajouter un événement ou un rappel · un événement pour le détail · pincez pour zoomer</p>`;
+      const calTapHint = inFullscreen
+        ? ""
+        : `<p class="cal-tap-fullscreen-hint no-print">Touchez le calendrier pour l'afficher en plein écran</p>`;
+      const termLegend = renderCalSchoolTermLegendHtml();
       const monthBlock =
         calendarMode === "month"
-          ? `<div class="card"><div class="cal-grid">${renderCalDowHeaders()}${cells}</div></div>`
+          ? `<div class="card"><div class="cal-grid">${renderCalDowHeaders()}${cells}</div>${termLegend}</div>`
           : "";
-      const weekBlock = calendarMode === "week" ? `<div class="card">${weekHtml}</div>` : "";
-      return `<div class="cal-scroll-area" id="cal-scroll-area">${calHint}${monthBlock}${weekBlock}</div>`;
+      const weekBlock = calendarMode === "week" ? `<div class="card">${weekHtml}${termLegend}</div>` : "";
+      const inner = `${calTapHint}${calHint}${monthBlock}${weekBlock}`;
+      if (options.embedded) return inner;
+      const scrollClass = inFullscreen ? "cal-scroll-area" : "cal-scroll-area cal-scroll-area--tap-fullscreen";
+      return `<div class="${scrollClass}" id="cal-scroll-area">${inner}</div>`;
+    }
+
+    function renderCalendarScrollBlock(options) {
+      options = options || {};
+      const inFullscreen = !!options.fullscreen;
+      const scrollClass = inFullscreen ? "cal-scroll-area" : "cal-scroll-area cal-scroll-area--tap-fullscreen";
+      const toolbar = options.toolbar === false ? "" : renderCalendarNavToolbar();
+      return `<div class="${scrollClass}" id="cal-scroll-area">${toolbar}${viewCalendarBody({
+        fullscreen: inFullscreen,
+        embedded: true,
+      })}</div>`;
     }
 
     function viewCalendar() {
@@ -9289,16 +11254,24 @@
           const summaryIcon = hasSummary ? '<span style="color:var(--accent);font-weight:700;font-size:1rem;margin-right:.35rem" title="Résumé rédigé">📝</span>' : "";
           const pdfIcon = hasPdf ? '<span style="color:var(--danger);font-size:1rem;margin-right:.2rem" title="PDF joint">📄</span>' : "";
           const cyclePos = sessionCyclePosition(s);
+          const pillClass =
+            stt.code === "cancelled"
+              ? "status-pill--cancelled"
+              : stt.code === "done"
+                ? "status-pill--done"
+                : stt.code === "holiday"
+                  ? "status-pill--holiday"
+                  : "status-pill--planned";
           const actCell = act
             ? `${escapeHtml(act.name)}${cyclePos ? `<span class="session-cycle-num">Séance n°${cyclePos.index} / ${cyclePos.total}</span>` : ""}`
             : "—";
-          rowParts.push(`<tr style="${isToday ? "background:#16a34a22;font-weight:600" : ""};cursor:pointer" class="btn-session-summary" data-session-id="${s.id}" title="${hasSummary ? "Voir / modifier le résumé" : "Ajouter un résumé"}">
+          rowParts.push(`<tr style="${isToday ? "background:#16a34a22;font-weight:600" : ""}${stt.code === "cancelled" ? ";opacity:.92" : ""};cursor:pointer" class="btn-session-summary" data-session-id="${s.id}" title="${hasSummary ? "Voir / modifier le résumé" : "Ajouter un résumé"}">
             <td>${fmtDateFr(s.date)}</td>
             <td>${escapeHtml(jour)}</td>
             <td>${s.startTime}–${s.endTime}</td>
             <td>${escapeHtml(s.venue || "—")}</td>
             <td>${actCell}</td>
-            <td><span class="status-dot" style="background:${col}"></span>${escapeHtml(stt.label)}</td>
+            <td><span class="status-pill ${pillClass}"><span class="status-dot" style="background:${col}"></span>${escapeHtml(stt.label)}</span></td>
             <td>${escapeHtml(canc ? REASON_TYPES.find((x) => x[0] === canc.reasonType)?.[1] || canc.reasonType : stt.reason || "")}</td>
             <td class="no-print">${(() => { const att = s.attendance || {}; const keys = Object.keys(att); if (!keys.length) return ""; const p = keys.filter((k) => att[k] === "present").length; const ab = keys.filter((k) => att[k] === "absent").length; const l = keys.filter((k) => att[k] === "late").length; return `<span style="font-size:.7rem;font-weight:600;padding:.15rem .45rem;border-radius:10px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;margin-right:.3rem" title="Appel">${p}P${l ? " "+l+"R" : ""}${ab ? " "+ab+"A" : ""}</span>`; })()}${pdfIcon}${summaryIcon}${action}</td>
           </tr>`);
@@ -9346,7 +11319,8 @@
     function renderForgottenGearBlock(classId, activePeriod) {
       let items = forgottenGearForClass(classId);
       if (activePeriod) {
-        items = items.filter((f) => f.date >= activePeriod.startDate && f.date <= activePeriod.endDate);
+        const { start, end } = periodDatesForClass(activePeriod, classId);
+        items = items.filter((f) => f.date >= start && f.date <= end);
       }
       const countByStudent = {};
       items.forEach((f) => {
@@ -9391,7 +11365,10 @@
 
       const clPeriods = periodsForClass(classId);
       const todayStr = fmtISODate(new Date());
-      const currentPeriod = clPeriods.find((p) => todayStr >= p.startDate && todayStr <= p.endDate);
+      const currentPeriod = clPeriods.find((p) => {
+        const { start, end } = periodDatesForClass(p, classId);
+        return todayStr >= start && todayStr <= end;
+      });
       const hasManualPeriodChoice = Object.prototype.hasOwnProperty.call(classSelectedPeriod, classId);
       const selectedPeriodId = hasManualPeriodChoice
         ? classSelectedPeriod[classId]
@@ -9405,7 +11382,9 @@
         ? `<select id="class-period-select" aria-label="Sélectionner une période">
               ${clPeriods.map((p) => {
                 const isCur = currentPeriod && p.id === currentPeriod.id;
-                return `<option value="${p.id}" ${p.id === selectedPeriodId ? "selected" : ""}>${escapeHtml(p.name)} (${fmtDateFr(p.startDate)} → ${fmtDateFr(p.endDate)})${isCur ? " ● en cours" : ""}</option>`;
+                const pRange = periodDatesForClass(p, classId);
+                const extMark = periodDateOverrides(p)[classId]?.endDate > p.endDate ? " ⏱" : "";
+                return `<option value="${p.id}" ${p.id === selectedPeriodId ? "selected" : ""}>${escapeHtml(p.name)} (${fmtDateFr(pRange.start)} → ${fmtDateFr(pRange.end)}${extMark})${isCur ? " ● en cours" : ""}</option>`;
               }).join("")}
               <option value="__all__" ${selectedPeriodId === null ? "selected" : ""}>Toutes les périodes</option>
             </select>`
@@ -9423,12 +11402,22 @@
         </div>`
         : "";
 
+      const activePeriodRange = activePeriod ? periodDatesForClass(activePeriod, classId) : null;
       const periodActs = activePeriod
-        ? activitiesForClass(classId).filter((a) => a.startDate >= activePeriod.startDate && a.endDate <= activePeriod.endDate || (a.periodId && a.periodId === activePeriod.id))
+        ? activitiesForClass(classId).filter(
+            (a) =>
+              (a.periodId && a.periodId === activePeriod.id) ||
+              (activePeriodRange &&
+                a.startDate >= activePeriodRange.start &&
+                a.endDate <= activePeriodRange.end)
+          )
         : activitiesForClass(classId);
 
-      const activityBelongsToPeriod = (activity, period) =>
-        activity.periodId === period.id || (activity.startDate >= period.startDate && activity.endDate <= period.endDate);
+      const activityBelongsToPeriod = (activity, period) => {
+        if (activity.periodId === period.id) return true;
+        const { start, end } = periodDatesForClass(period, activity.classId);
+        return activity.startDate >= start && activity.endDate <= end;
+      };
       const allClassActs = activitiesForClass(classId);
       const activePeriodActIds = new Set(activePeriod ? periodActs.map((a) => a.id) : []);
       const programmedCountForActivity = (activityId) => {
@@ -9454,7 +11443,11 @@
           <div class="class-apSA-period-head">
             <span class="class-apSA-period-title">${escapeHtml(p.name)}</span>
             ${isSelected ? '<span class="class-apSA-period-badge">Période sélectionnée</span>' : ""}
-            <span class="class-apSA-period-dates">${fmtDateFr(p.startDate)} → ${fmtDateFr(p.endDate)}</span>
+            <span class="class-apSA-period-dates">${(() => {
+              const r = periodDatesForClass(p, classId);
+              const ext = periodDateOverrides(p)[classId]?.endDate > p.endDate;
+              return `${fmtDateFr(r.start)} → ${fmtDateFr(r.end)}${ext ? " (prolongée)" : ""}`;
+            })()}</span>
           </div>
           ${actHtml}
         </div>`;
@@ -9697,15 +11690,12 @@
             viewHolidaysBody() +
             `<section class="cal-panel cal-panel--visual no-print">
               <h3 class="cal-panel__title">🗓️ Calendrier visuel</h3>
-              ${renderCalendarNavToolbar()}
-              ${viewCalendarBody()}
+              ${renderCalendarScrollBlock()}
             </section>`;
           break;
         case "calendarFull":
           panelTitle = "🗓️ Calendrier visuel";
-          panel =
-            `<div class="card no-print" style="margin-bottom:1rem;padding:.75rem">${renderCalendarNavToolbar()}</div>` +
-            viewCalendarBody();
+          panel = renderCalendarScrollBlock();
           break;
         case "backup":
           panelTitle = "💾 Sauvegarde";
@@ -9750,6 +11740,18 @@
       if (planningRoot && !planningRoot.dataset.asDashDelegated) {
         planningRoot.dataset.asDashDelegated = "1";
         planningRoot.addEventListener("click", (e) => {
+          const slotBtn = e.target.closest(".btn-dash-as-slot-tab");
+          if (slotBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const id = slotBtn.getAttribute("data-activity-id");
+            const sk = slotBtn.getAttribute("data-slot-key");
+            if (!id || !sk) return;
+            dashAsActivitySlotTab[id] = sk;
+            dashAsExpandedActivityIds.add(id);
+            refreshAssociationDashPlanning();
+            return;
+          }
           const sub = e.target.closest(".btn-dash-as-subtab");
           if (sub) {
             e.preventDefault();
@@ -9765,6 +11767,7 @@
         });
         wireAssociationAdminCellEvents(planningRoot);
         wireAssociationAdminDeleteStudentButtons(planningRoot);
+        wireAssociationPlanningTableInteractions(planningRoot);
       }
       main.querySelectorAll(".dash-as-activity-toggle").forEach((btn) => {
         btn.addEventListener("click", (e) => {
@@ -9790,16 +11793,18 @@
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
           const id = btn.getAttribute("data-id");
+          const slotKey = btn.getAttribute("data-slot-key") || "";
           const a = (appData.association.activities || []).find((x) => x.id === id);
           if (!a) return;
           const body = el(`<div class="form-group"><label>Nom de la colonne</label><input id="f-as-admin-col-label" placeholder="Document d'inscription rendu" /></div>`);
           openModal("Ajouter une colonne", body, () => {
             const label = body.querySelector("#f-as-admin-col-label").value.trim();
             if (!label) return;
-            if (!Array.isArray(a.adminColumns)) a.adminColumns = [];
-            a.adminColumns.push({ id: uid(), label });
+            const store = getAssociationAdminStore(a, slotKey);
+            store.columns.push({ id: uid(), label });
             saveData();
             dashAsActivityPanelTab[id] = "admin";
+            if (slotKey) dashAsActivitySlotTab[id] = slotKey;
             dashAsExpandedActivityIds.add(id);
             refreshAssociationDashPlanning();
           });
@@ -9810,110 +11815,60 @@
           e.stopPropagation();
           const activityId = btn.getAttribute("data-activity-id");
           const colId = btn.getAttribute("data-col-id");
+          const slotKey = btn.getAttribute("data-slot-key") || "";
           const a = (appData.association.activities || []).find((x) => x.id === activityId);
           if (!a || !colId) return;
           if (!confirm("Supprimer cette colonne et toutes les cases cochées ?")) return;
-          a.adminColumns = (a.adminColumns || []).filter((c) => c.id !== colId);
-          if (a.adminChecks && a.adminChecks[colId]) delete a.adminChecks[colId];
+          const store = getAssociationAdminStore(a, slotKey);
+          store.columns = store.columns.filter((c) => c.id !== colId);
+          if (store.checks[colId]) delete store.checks[colId];
           saveData();
           refreshAssociationDashPlanning();
-        });
-      });
-      main.querySelectorAll(".dash-as-session-row").forEach((row) => {
-        const openAtt = () => openAssociationAttendanceModal(associationEventFromRow(row));
-        row.addEventListener("click", (e) => {
-          if (e.target.closest("button")) return;
-          openAtt();
-        });
-        row.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            if (e.target.closest("button")) return;
-            openAtt();
-          }
-        });
-      });
-      main.querySelectorAll(".btn-as-dash-uncancel").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const event = associationEventKeyFromBtn(btn);
-          if (!event.date) return;
-          removeAssociationCancellationsForEvent(event);
-          saveData();
-          refreshAssociationDashPlanning();
-        });
-      });
-      main.querySelectorAll(".btn-as-dash-cancel").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const activityId = btn.getAttribute("data-activity-id") || "";
-          const eventType = btn.getAttribute("data-event-type") || "";
-          const eventId = btn.getAttribute("data-event-id") || "";
-          const date = btn.getAttribute("data-date") || "";
-          const detail = btn.getAttribute("data-detail") || "";
-          const body = el(`<div>
-            <p class="kpi-sub" style="margin-bottom:.6rem"><strong>${escapeHtml(fmtDateFr(date))}</strong> · ${escapeHtml(eventType === "training" ? "Entraînement" : "Compétition")} ${detail ? "· " + escapeHtml(detail) : ""}</p>
-            <div class="form-group"><label>Portée de l'annulation</label>
-              <select id="f-as-cancel-mode">
-                <option value="all">Tous les élèves concernés</option>
-                <option value="targeted">Seulement une catégorie et/ou un sexe</option>
-              </select>
-            </div>
-            <div id="f-as-cancel-target" style="display:none">
-              <div class="form-row">
-                <div class="form-group">
-                  <label>Catégorie</label>
-                  <select id="f-as-cancel-category">
-                    <option value="">Toutes catégories</option>
-                    <option value="minimes">Minimes</option>
-                    <option value="benjamins">Benjamins</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label>Sexe</label>
-                  <select id="f-as-cancel-sex">
-                    <option value="">Tous sexes</option>
-                    <option value="filles">filles</option>
-                    <option value="garçons">garçons</option>
-                    <option value="tous">tous</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>`);
-          body.querySelector("#f-as-cancel-mode")?.addEventListener("change", () => {
-            const targeted = body.querySelector("#f-as-cancel-mode").value === "targeted";
-            body.querySelector("#f-as-cancel-target").style.display = targeted ? "block" : "none";
-          });
-          openModal("Annuler une séance AS", body, () => {
-            const mode = body.querySelector("#f-as-cancel-mode").value;
-            const category = mode === "targeted" ? body.querySelector("#f-as-cancel-category").value : "";
-            const sex = mode === "targeted" ? body.querySelector("#f-as-cancel-sex").value : "";
-            if (mode === "targeted" && !category && !sex) return;
-            if (!appData.association || typeof appData.association !== "object") appData.association = {};
-            if (!Array.isArray(appData.association.cancellations)) appData.association.cancellations = [];
-            appData.association.cancellations.push({
-              id: uid(),
-              activityId,
-              eventType,
-              eventId: eventId || null,
-              date,
-              mode: mode === "targeted" ? "targeted" : "all",
-              category,
-              sex,
-            });
-            saveData();
-            refreshAssociationDashPlanning();
-          });
         });
       });
     }
 
     function wireEvents(main) {
       const wireLandscapeTableWrap = (wrap) => {
+        if (wrap.dataset.fullscreenTableWired) return;
+        wrap.dataset.fullscreenTableWired = "1";
         wrap.addEventListener(
           "click",
           (e) => {
+            if (wrap.classList.contains("as-admin-table-wrap")) {
+              if (e.target.closest(".btn-as-admin-del-student")) return;
+              if (e.target.closest(".btn-as-admin-del-col")) return;
+              if (e.target.closest(".as-admin-check")) return;
+              if (e.target.closest(".as-admin-cell-text")) return;
+              if (e.target.closest(".as-admin-cell-input")) return;
+              if (!window.matchMedia("(max-width: 480px)").matches) return;
+              e.preventDefault();
+              e.stopPropagation();
+              openFullscreenAdminTable(wrap);
+              return;
+            }
+            if (wrap.classList.contains("as-planning-table-wrap")) {
+              if (e.target.closest(".btn-as-dash-cancel, .btn-as-dash-uncancel")) return;
+              if (e.target.closest(".dash-as-session-row")) return;
+              if (!window.matchMedia("(max-width: 480px)").matches) return;
+              e.preventDefault();
+              e.stopPropagation();
+              openFullscreenAssociationPlanningTable(wrap);
+              return;
+            }
+            if (wrap.classList.contains("session-table-wrap")) {
+              if (
+                e.target.closest(".btn-session-summary") ||
+                e.target.closest(".btn-cancel-session, .btn-del-extra-session, .btn-remove-canc-row")
+              ) {
+                return;
+              }
+              if (!window.matchMedia("(max-width: 480px) and (orientation: portrait)").matches) return;
+              e.preventDefault();
+              e.stopPropagation();
+              openLandscapeTable(wrap);
+              return;
+            }
             if (e.target.closest(".btn-as-admin-del-student")) return;
             if (e.target.closest("button") && !e.target.closest(".as-admin-check")) return;
             if (
@@ -9931,7 +11886,7 @@
           true
         );
       };
-      main.querySelectorAll(".session-table-wrap, .as-admin-table-wrap").forEach(wireLandscapeTableWrap);
+      main.querySelectorAll(".session-table-wrap, .as-admin-table-wrap, .as-planning-table-wrap").forEach(wireLandscapeTableWrap);
       main.querySelectorAll("[data-tuto-goto]").forEach((btn) => {
         btn.addEventListener("click", () => {
           const t = btn.getAttribute("data-tuto-goto");
@@ -9950,6 +11905,20 @@
         }
       });
       main.querySelector("#btn-dash-reminder")?.addEventListener("click", openDashboardReminderModal);
+      if (!main.dataset.reminderDismissWired) {
+        main.dataset.reminderDismissWired = "1";
+        main.addEventListener("click", (e) => {
+          const dismissBtn = e.target.closest(".btn-reminder-dismiss-home");
+          if (!dismissBtn || !main.contains(dismissBtn)) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const id = dismissBtn.getAttribute("data-id");
+          if (id && removeReminderById(id)) {
+            saveData({ skipAutoRegen: true });
+            render();
+          }
+        });
+      }
       main.querySelector("#dash-prev-day")?.addEventListener("click", () => {
         dashboardDate = addDays(dashboardDate, -1);
         render();
@@ -10270,16 +12239,79 @@
         });
       });
       main.querySelector("#btn-fg-threshold")?.addEventListener("click", () => {
-        const opts = Array.from({length: 10}, (_, i) => i + 1).map((n) => `<option value="${n}" ${n === forgottenGearThreshold ? "selected" : ""}>${n}</option>`).join("");
+        const f = forgottenGearFilter;
+        const threshOpts = Array.from({ length: 10 }, (_, i) => i + 1)
+          .map((n) => `<option value="${n}"${n === forgottenGearThreshold ? " selected" : ""}>${n}</option>`)
+          .join("");
+        const schedMode = getSchoolTermSchedule().mode;
+        const termUnit = schedMode === "semestre" ? "Semestre" : "Trimestre";
+        const scopeOpts = [
+          ["period", "Périodes pédagogiques"],
+          ["term", termUnit],
+          ["year", "Année scolaire"],
+        ]
+          .map(
+            ([val, label]) =>
+              `<option value="${val}"${f.scope === val ? " selected" : ""}>${escapeHtml(label)}</option>`
+          )
+          .join("");
         const body = el(`<div>
-          <div class="form-group"><label>Afficher les élèves ayant au moins :</label>
-            <select id="f-fg-thresh" style="font-size:1rem;padding:.4rem .6rem">${opts}</select> <span>oubli(s) sur la période</span>
+          <div class="form-group"><label>Compter les oublis sur</label>
+            <select id="f-fg-filter-scope" style="font-size:.95rem;padding:.4rem .5rem;width:100%">${scopeOpts}</select>
+          </div>
+          <div id="f-fg-period-options" class="form-group" style="display:none">
+            <label style="display:flex;align-items:center;gap:.45rem;cursor:pointer;margin-bottom:.55rem">
+              <input type="checkbox" id="f-fg-period-current"${f.useCurrent && f.scope === "period" ? " checked" : ""} style="width:1.05rem;height:1.05rem;accent-color:var(--accent)" />
+              <span>Période en cours (par classe)</span>
+            </label>
+            <div id="f-fg-period-pick-wrap">
+              <label>Période</label>
+              <select id="f-fg-filter-period" style="font-size:.95rem;padding:.4rem .5rem;width:100%">${forgottenGearFilterPeriodOptionsHtml(f.periodId)}</select>
+            </div>
+          </div>
+          <div id="f-fg-term-options" class="form-group" style="display:none">
+            <label style="display:flex;align-items:center;gap:.45rem;cursor:pointer;margin-bottom:.55rem">
+              <input type="checkbox" id="f-fg-term-current"${f.useCurrent && f.scope === "term" ? " checked" : ""} style="width:1.05rem;height:1.05rem;accent-color:var(--accent)" />
+              <span>${escapeHtml(termUnit)} en cours</span>
+            </label>
+            <div id="f-fg-term-pick-wrap">
+              <label>${escapeHtml(termUnit)}</label>
+              <select id="f-fg-filter-term" style="font-size:.95rem;padding:.4rem .5rem;width:100%">${forgottenGearFilterTermOptionsHtml(f.termIndex)}</select>
+              <p class="kpi-sub" style="margin:.4rem 0 0">Dates dans Réglages → Calendriers → Calendrier de l'établissement.</p>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:.85rem;padding-top:.75rem;border-top:1px dashed var(--border)">
+            <label>Afficher les élèves ayant au moins</label>
+            <div style="display:flex;align-items:center;gap:.45rem;flex-wrap:wrap">
+              <select id="f-fg-thresh" style="font-size:1rem;padding:.4rem .6rem">${threshOpts}</select>
+              <span>oubli(s) sur la période choisie</span>
+            </div>
           </div>
         </div>`);
-        openModal("Seuil d'oublis de matériel", body, () => {
+        wireForgottenGearFilterModal(body);
+        openModal("Oublis de matériel répétés", body, () => {
+          const scope = body.querySelector("#f-fg-filter-scope")?.value || "period";
+          const useCurrent =
+            scope === "period"
+              ? !!body.querySelector("#f-fg-period-current")?.checked
+              : scope === "term"
+                ? !!body.querySelector("#f-fg-term-current")?.checked
+                : false;
+          forgottenGearFilter = {
+            scope: ["period", "term", "year"].includes(scope) ? scope : "period",
+            useCurrent,
+            periodId: body.querySelector("#f-fg-filter-period")?.value || "",
+            termIndex: parseInt(body.querySelector("#f-fg-filter-term")?.value, 10) || 0,
+          };
+          if (forgottenGearFilter.scope === "period" && !forgottenGearFilter.useCurrent && !forgottenGearFilter.periodId) {
+            alert("Veuillez choisir une période pédagogique.");
+            return false;
+          }
           forgottenGearThreshold = parseInt(body.querySelector("#f-fg-thresh").value, 10) || 3;
           lsSet("eps_fg_threshold", String(forgottenGearThreshold));
+          saveForgottenGearFilter();
           render();
+          return true;
         });
       });
       main.querySelector("#btn-dash-prog-pdf")?.addEventListener("click", () => {
@@ -10681,7 +12713,7 @@
           if (!name || !startDate || !endDate) return;
           const levels = [...body.querySelectorAll(".period-level-cb:checked")].map((cb) => cb.value);
           const classIds = appData.classes.filter((cl) => levels.includes(classLevel(cl))).map((cl) => cl.id);
-          appData.periods.push({ id: uid(), name, startDate, endDate, levels, classIds });
+          appData.periods.push({ id: uid(), name, startDate, endDate, levels, classIds, classDateOverrides: {} });
           regenerateSessions();
           saveData();
           render();
@@ -10703,10 +12735,16 @@
             <div class="form-group"><label>Nom de la période</label><input id="f-per-name" value="${escapeHtml(p.name)}" /></div>
             <div class="form-row">
               <div class="form-group"><label>Date de début</label><input type="date" id="f-per-start" value="${p.startDate}" /></div>
-              <div class="form-group"><label>Date de fin</label><input type="date" id="f-per-end" value="${p.endDate}" /></div>
+              <div class="form-group"><label>Date de fin (toutes les classes)</label><input type="date" id="f-per-end" value="${p.endDate}" /></div>
             </div>
             <div class="form-group"><label>Niveaux concernés</label><div id="f-per-levels" style="display:flex;flex-wrap:wrap;gap:.25rem .5rem;margin-top:.35rem">${levelCheckboxes}</div></div>
+            <div class="form-group" style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
+              <label>Prolonger la fin pour certaines classes</label>
+              <p class="kpi-sub" style="margin:.35rem 0 .65rem">Cochez une classe pour lui appliquer une date de fin ultérieure à celle du reste du niveau (report de fin de période).</p>
+              <div id="f-per-extensions">${periodExtensionFormHtml(p)}</div>
+            </div>
           </div>`);
+          wirePeriodExtensionForm(body);
           openModal("Modifier la période", body, () => {
             const name = body.querySelector("#f-per-name").value.trim();
             const startDate = body.querySelector("#f-per-start").value;
@@ -10717,6 +12755,13 @@
             p.endDate = endDate;
             p.levels = [...body.querySelectorAll(".period-level-cb:checked")].map((cb) => cb.value);
             p.classIds = appData.classes.filter((cl) => p.levels.includes(classLevel(cl))).map((cl) => cl.id);
+            const extensions = readPeriodClassExtensions(body, endDate);
+            const allowedIds = new Set(p.classIds);
+            p.classDateOverrides = {};
+            Object.entries(extensions).forEach(([cid, o]) => {
+              if (allowedIds.has(cid)) p.classDateOverrides[cid] = o;
+            });
+            syncActivitiesDatesFromPeriod(p);
             regenerateSessions();
             saveData();
             render();
@@ -11319,41 +13364,7 @@
         });
       });
       main.querySelector("#btn-add-school-event")?.addEventListener("click", () => {
-        const eventKinds = [
-          "Arrêt des notes",
-          "Journée portes ouvertes",
-          "Conseil de classe",
-          "Fin de trimestre",
-          "Réunion",
-          "Autre",
-        ];
-        const body = el(`<div>
-          <div class="form-group"><label>Date</label><input type="date" id="f-school-event-date" value="${escapeHtml(dashboardDateISO())}" /></div>
-          <div class="form-group"><label>Heure</label><input type="time" id="f-school-event-time" /></div>
-          <div class="form-group"><label>Type</label><select id="f-school-event-kind">${eventKinds.map((k) => `<option value="${escapeHtml(k)}">${escapeHtml(k)}</option>`).join("")}</select></div>
-          <div class="form-group"><label>Intitulé</label><input id="f-school-event-title" placeholder="ex : Réunion parents-professeurs" /></div>
-          <div class="form-group"><label><input type="checkbox" id="f-school-event-blocks" /> Bloque les séances (annule les cours sur cette date / ce créneau)</label></div>
-        </div>`);
-        openModal("Événement établissement", body, () => {
-          const date = body.querySelector("#f-school-event-date")?.value || "";
-          const time = body.querySelector("#f-school-event-time")?.value || "";
-          const kind = body.querySelector("#f-school-event-kind")?.value || "Autre";
-          const title = (body.querySelector("#f-school-event-title")?.value || "").trim();
-          const blocksSessions = !!body.querySelector("#f-school-event-blocks")?.checked;
-          if (!date) { alert("Veuillez renseigner la date."); return false; }
-          if (!time) { alert("Veuillez renseigner l'heure de l'événement."); return false; }
-          if (!title) { alert("Veuillez renseigner l'intitulé de l'événement."); return false; }
-          if (!Array.isArray(appData.schoolCalendarEvents)) appData.schoolCalendarEvents = [];
-          appData.schoolCalendarEvents.push({ id: uid(), date, time, kind, title, blocksSessions });
-          if (blocksSessions) {
-            regenerateSessions();
-            saveData();
-          } else {
-            saveData({ skipAutoRegen: true });
-          }
-          render();
-          return true;
-        });
+        openSchoolEventCreateModal(dashboardDateISO(), false);
       });
       main.querySelectorAll(".btn-del-school-event").forEach((b) => {
         b.addEventListener("click", () => {
@@ -11371,9 +13382,24 @@
       });
       main.querySelectorAll(".btn-school-event-reminder").forEach((b) => {
         b.addEventListener("click", () => {
-          if (b.disabled || b.classList.contains("is-active")) return;
-          const ok = createReminderFromSchoolEvent(b.getAttribute("data-id"));
-          if (ok) render();
+          openSchoolEventReminderModal(b.getAttribute("data-id") || "");
+        });
+      });
+      main.querySelector("#school-term-mode")?.addEventListener("change", () => {
+        persistSchoolTermsFromForm(main);
+        render();
+      });
+      main.querySelector("#btn-save-school-terms")?.addEventListener("click", () => {
+        if (persistSchoolTermsFromForm(main, { syncReminders: true })) render();
+      });
+      main.querySelectorAll(".school-term-start, .school-term-end").forEach((inp) => {
+        inp.addEventListener("change", () => {
+          persistSchoolTermsFromForm(main);
+        });
+      });
+      main.querySelectorAll(".btn-school-term-reminder").forEach((b) => {
+        b.addEventListener("click", () => {
+          openSchoolTermReminderModal(b.getAttribute("data-id") || "", main);
         });
       });
       main.querySelector("#btn-apply-calendar")?.addEventListener("click", async () => {
@@ -11426,36 +13452,8 @@
           render();
         });
       });
-      main.querySelector("#cal-prev")?.addEventListener("click", () => {
-        if (calendarMode === "month") calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() - 1, 1);
-        else calendarCursor = addDays(calendarCursor, -7);
-        render();
-      });
-      main.querySelector("#cal-next")?.addEventListener("click", () => {
-        if (calendarMode === "month") calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + 1, 1);
-        else calendarCursor = addDays(calendarCursor, 7);
-        render();
-      });
-      main.querySelector("#cal-mode")?.addEventListener("change", (e) => {
-        calendarMode = e.target.value === "year" ? "month" : e.target.value;
-        render();
-      });
-      main.querySelector("#cal-period-label")?.addEventListener("click", openCalendarPeriodPicker);
-      main.querySelector("#cal-show-courses")?.addEventListener("change", (e) => {
-        calendarEventFilter = e.target.checked ? "all" : "no-courses";
-        render();
-      });
-      main.querySelectorAll(".btn-cal-event-detail").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          openCalendarEventDetailModal(
-            btn.getAttribute("data-kind"),
-            btn.getAttribute("data-id"),
-            btn.getAttribute("data-date")
-          );
-        });
-      });
+      wireCalendarEvents(main);
+      main.querySelectorAll(".cal-scroll-area--tap-fullscreen").forEach(wireFullscreenCalendarArea);
       main.querySelector("#btn-export")?.addEventListener("click", exportJSON);
       main.querySelector("#inp-import")?.addEventListener("change", (e) => {
         const f = e.target.files[0];
@@ -11631,22 +13629,7 @@
           if (e.target.closest("button")) return;
           const sid = row.getAttribute("data-session-id");
           const s = appData.sessions.find((x) => x.id === sid);
-          if (!s) return;
-          const act = activityById(s.activityId);
-          const body = el(`<div>
-            <p class="kpi-sub" style="margin-bottom:.75rem"><strong>${fmtDateFr(s.date)}</strong> · ${s.startTime}–${s.endTime}${act ? " · " + escapeHtml(act.name) : ""}</p>
-            <div id="cp-prev-absent-reminder"></div>
-            <div class="form-group"><label>Résumé de la séance</label><textarea id="f-summary" rows="6" style="width:100%;font-size:.9rem;line-height:1.5" placeholder="Contenu de la séance, observations, points à retenir…"></textarea></div>
-          </div>`);
-          body.querySelector("#f-summary").value = s.summary || "";
-          injectPreviousAbsentReminder(body.querySelector("#cp-prev-absent-reminder"), s);
-          body.appendChild(buildAttendanceBlock(s));
-          body.appendChild(buildSessionPdfBlock(s));
-          openModal("Résumé de séance", body, () => {
-            s.summary = body.querySelector("#f-summary").value;
-            saveData();
-            render();
-          });
+          openSessionSummaryModal(s);
         });
       });
       main.querySelectorAll(".btn-cancel-session").forEach((b) => {
@@ -11706,6 +13689,10 @@
       }
       const changed =
         cur.view !== view || (view === "tools" && cur.view === "tools" && cur.toolsPanel !== nextPanel);
+      if (!changed) {
+        scrollPageToStart();
+        return;
+      }
       if (changed) pushNavHistory();
       currentView = view;
       if (view === "tools") {
@@ -11744,7 +13731,13 @@
 
     function enhanceMobileTables(root) {
       root.querySelectorAll(".table-wrap table").forEach((table) => {
-        if (table.closest(".session-table-wrap") || table.closest(".as-admin-table-wrap")) return;
+        if (
+          table.closest(".session-table-wrap") ||
+          table.closest(".as-admin-table-wrap") ||
+          table.closest(".as-planning-table-wrap") ||
+          table.closest(".school-terms-table-wrap")
+        )
+          return;
         const headers = [...table.querySelectorAll("thead th")].map((th) => th.textContent.trim());
         if (!headers.length) return;
         table.querySelectorAll("tbody tr").forEach((row) => {
@@ -11756,8 +13749,17 @@
     }
 
     function scrollPageToStart() {
-      requestAnimationFrame(() => {
+      const scrollAll = () => {
         window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        const main = document.getElementById("main");
+        if (main) main.scrollTop = 0;
+      };
+      scrollAll();
+      requestAnimationFrame(() => {
+        scrollAll();
+        requestAnimationFrame(scrollAll);
       });
     }
 
@@ -11867,6 +13869,7 @@
         saveData();
       } else {
         if (!appData.settings) appData.settings = { schoolYearStart: "2025-09-01", schoolYearEnd: "2026-07-05", zone: "C" };
+        migrateDataModel();
         regenerateSessions();
       }
 
