@@ -5368,6 +5368,8 @@
         if (!Array.isArray(a.trainings)) a.trainings = [];
         if (!Array.isArray(a.students)) a.students = [];
         if (!Array.isArray(a.competitions)) a.competitions = [];
+        if (typeof a.seasonStart !== "string") a.seasonStart = a.seasonStart ? String(a.seasonStart) : "";
+        if (typeof a.seasonEnd !== "string") a.seasonEnd = a.seasonEnd ? String(a.seasonEnd) : "";
         a.students = a.students.map(normalizeAssociationStudent);
         if (!Array.isArray(a.adminColumns)) a.adminColumns = [];
         if (!a.adminChecks || typeof a.adminChecks !== "object") a.adminChecks = {};
@@ -7663,14 +7665,139 @@
       );
     }
 
+    function openAddAssociationCompetitionModal(activity, opts) {
+      opts = opts || {};
+      const activities = (appData.association && appData.association.activities) || [];
+      let target = activity || null;
+      const needPick = !target && activities.length > 1;
+      if (!target && activities.length === 1) target = activities[0];
+      if (!target && !needPick) {
+        alert("Ajoutez d'abord une activité dans Réglages → Association sportive.");
+        return;
+      }
+      const activitySelect = needPick
+        ? `<div class="form-group"><label>Activité</label><select id="f-as-comp-activity">${activities
+            .map((a) => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.name || "—")}</option>`)
+            .join("")}</select></div>`
+        : (target
+            ? `<p class="kpi-sub" style="margin:0 0 .55rem">Activité : <strong>${escapeHtml(target.name || "—")}</strong></p>`
+            : "");
+      const body = el(`<div>
+        ${activitySelect}
+        <div class="form-row">
+          <div class="form-group"><label>Date</label><input type="date" id="f-as-comp-date" /></div>
+          <div class="form-group"><label>Lieu</label><input id="f-as-comp-place" placeholder="Gymnase municipal" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Catégorie</label>
+            <select id="f-as-comp-category">
+              <option value="Minimes">Minimes</option>
+              <option value="Benjamins">Benjamins</option>
+              <option value="__other__">Autre (saisie)</option>
+            </select>
+            <input id="f-as-comp-category-other" placeholder="Catégorie personnalisée" style="margin-top:.35rem;display:none" />
+          </div>
+          <div class="form-group"><label>Sexe</label>
+            <select id="f-as-comp-sex">
+              <option value="filles">filles</option>
+              <option value="garçons">garçons</option>
+              <option value="tous">tous</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Accompagnateur</label><input id="f-as-comp-coach" placeholder="Mme Dupont" /></div>
+        </div>
+        <label class="kpi-sub" style="display:flex;gap:.45rem;align-items:flex-start;margin-top:.35rem;cursor:pointer">
+          <input type="checkbox" id="f-as-comp-cancel-others" checked style="margin-top:.2rem" />
+          <span>Annuler aussi l'entraînement pour les catégories <strong>non concernées</strong> par cette compétition (les deux apparaîtront sur l'accueil).</span>
+        </label>
+      </div>`);
+      body.querySelector("#f-as-comp-category")?.addEventListener("change", () => {
+        const sel = body.querySelector("#f-as-comp-category");
+        const other = body.querySelector("#f-as-comp-category-other");
+        if (!sel || !other) return;
+        other.style.display = sel.value === "__other__" ? "block" : "none";
+      });
+      openModal("Ajouter une compétition", body, () => {
+        let a = target;
+        if (needPick) {
+          const id = body.querySelector("#f-as-comp-activity")?.value;
+          a = activities.find((x) => x.id === id) || null;
+        }
+        if (!a) return false;
+        const date = body.querySelector("#f-as-comp-date").value;
+        if (!date) return false;
+        const categorySel = body.querySelector("#f-as-comp-category").value;
+        const categoryBase = categorySel === "__other__"
+          ? (body.querySelector("#f-as-comp-category-other").value || "").trim()
+          : categorySel;
+        if (!categoryBase) return false;
+        const sex = (body.querySelector("#f-as-comp-sex").value || "").trim();
+        const categoryAge = associationCompetitionCategoryAgeFromBase(categoryBase);
+        const category = [categoryBase, sex === "tous" ? "" : sex].filter(Boolean).join(" ").trim();
+        if (!Array.isArray(a.competitions)) a.competitions = [];
+        const comp = {
+          id: uid(),
+          date,
+          place: (body.querySelector("#f-as-comp-place").value || "").trim(),
+          category,
+          categoryAge,
+          sex,
+          coach: (body.querySelector("#f-as-comp-coach").value || "").trim(),
+        };
+        normalizeAssociationCompetition(comp);
+        a.competitions.push(comp);
+        if (body.querySelector("#f-as-comp-cancel-others")?.checked) {
+          const concerned = associationCompetitionConcernedGroups(comp);
+          const configured = associationConfiguredGroupsOnDate(a, date);
+          const toCancel = [];
+          if (configured && configured.size) {
+            configured.forEach((g) => {
+              if (!associationGroupMatchesAny(g, concerned)) toCancel.push(g);
+            });
+          } else {
+            // fallback: cancel opposite age/sex combinations not matching competition
+            ["benjamins filles", "benjamins garçons", "minimes filles", "minimes garçons"].forEach((g) => {
+              if (!associationGroupMatchesAny(g, concerned)) toCancel.push(g);
+            });
+          }
+          cancelAssociationTrainingsForGroupsOnDate(a, date, toCancel);
+        }
+        saveData();
+        if (typeof opts.onSaved === "function") opts.onSaved();
+        else render();
+        return true;
+      });
+    }
+
     function openAssociationCancelModalFromBtn(btn) {
       const activityId = btn.getAttribute("data-activity-id") || "";
       const eventType = btn.getAttribute("data-event-type") || "";
       const eventId = btn.getAttribute("data-event-id") || "";
       const date = btn.getAttribute("data-date") || "";
       const detail = btn.getAttribute("data-detail") || "";
+      const activity = ((appData.association && appData.association.activities) || []).find((a) => a.id === activityId) || null;
+      const compsSameDay = ((activity && activity.competitions) || []).filter((c) => c && c.date === date);
+      let nonConcernedHint = "";
+      let nonConcernedGroups = [];
+      if (eventType === "training" && compsSameDay.length && activity) {
+        const concerned = new Set();
+        compsSameDay.forEach((c) => associationCompetitionConcernedGroups(c).forEach((g) => concerned.add(g)));
+        const configured = associationConfiguredGroupsOnDate(activity, date);
+        if (configured && configured.size) {
+          configured.forEach((g) => {
+            if (!associationGroupMatchesAny(g, concerned)) nonConcernedGroups.push(g);
+          });
+        }
+        if (nonConcernedGroups.length) {
+          nonConcernedHint = `<label class="kpi-sub" style="display:flex;gap:.45rem;align-items:flex-start;margin:.35rem 0 .55rem;cursor:pointer">
+            <input type="checkbox" id="f-as-cancel-non-concerned" style="margin-top:.2rem" />
+            <span>Annuler uniquement les catégories <strong>non concernées</strong> par la compétition du jour (${escapeHtml(nonConcernedGroups.join(", "))}). Compétition et annulation s'afficheront toutes deux sur l'accueil.</span>
+          </label>`;
+        }
+      }
       const body = el(`<div>
         <p class="kpi-sub" style="margin-bottom:.6rem"><strong>${escapeHtml(fmtDateFr(date))}</strong> · ${escapeHtml(eventType === "training" ? "Entraînement" : "Compétition")} ${detail ? "· " + escapeHtml(detail) : ""}</p>
+        ${nonConcernedHint}
         <div class="form-group"><label>Portée de l'annulation</label>
           <select id="f-as-cancel-mode">
             <option value="all">Tous les élèves concernés</option>
@@ -7699,17 +7826,32 @@
           </div>
         </div>
       </div>`);
+      const syncCancelModeVisibility = () => {
+        const non = body.querySelector("#f-as-cancel-non-concerned")?.checked;
+        const modeWrap = body.querySelector("#f-as-cancel-mode")?.closest(".form-group");
+        const targetWrap = body.querySelector("#f-as-cancel-target");
+        if (modeWrap) modeWrap.style.display = non ? "none" : "";
+        if (targetWrap && non) targetWrap.style.display = "none";
+      };
+      body.querySelector("#f-as-cancel-non-concerned")?.addEventListener("change", syncCancelModeVisibility);
       body.querySelector("#f-as-cancel-mode")?.addEventListener("change", () => {
         const targeted = body.querySelector("#f-as-cancel-mode").value === "targeted";
         body.querySelector("#f-as-cancel-target").style.display = targeted ? "block" : "none";
       });
       openModal("Annuler une séance AS", body, () => {
+        if (!appData.association || typeof appData.association !== "object") appData.association = {};
+        if (!Array.isArray(appData.association.cancellations)) appData.association.cancellations = [];
+        if (body.querySelector("#f-as-cancel-non-concerned")?.checked) {
+          if (!activity || !nonConcernedGroups.length) return false;
+          cancelAssociationTrainingsForGroupsOnDate(activity, date, nonConcernedGroups);
+          saveData();
+          refreshAssociationDashPlanning();
+          return true;
+        }
         const mode = body.querySelector("#f-as-cancel-mode").value;
         const category = mode === "targeted" ? body.querySelector("#f-as-cancel-category").value : "";
         const sex = mode === "targeted" ? body.querySelector("#f-as-cancel-sex").value : "";
         if (mode === "targeted" && !category && !sex) return false;
-        if (!appData.association || typeof appData.association !== "object") appData.association = {};
-        if (!Array.isArray(appData.association.cancellations)) appData.association.cancellations = [];
         appData.association.cancellations.push({
           id: uid(),
           activityId,
@@ -9214,6 +9356,112 @@
       });
     }
 
+    function associationActivityDateInSeason(activity, dateStr) {
+      if (!activity || !dateStr) return true;
+      const start = String(activity.seasonStart || "").trim();
+      const end = String(activity.seasonEnd || "").trim();
+      if (start && dateStr < start) return false;
+      if (end && dateStr > end) return false;
+      return true;
+    }
+
+    function associationCompetitionConcernedGroups(competition) {
+      if (!competition) return new Set();
+      normalizeAssociationCompetition(competition);
+      const groups = new Set();
+      const age = String(competition.categoryAge || "").trim().toLowerCase();
+      const sex = String(competition.sex || "").trim().toLowerCase();
+      const cat = String(competition.category || "").trim().toLowerCase();
+      if (age && sex && sex !== "tous") {
+        groups.add(`${age} ${sex}`);
+      } else if (age) {
+        groups.add(age);
+        groups.add(`${age} filles`);
+        groups.add(`${age} garçons`);
+      }
+      if (cat) groups.add(cat);
+      return groups;
+    }
+
+    function associationGroupMatchesAny(groupKey, groupSet) {
+      const g = String(groupKey || "").toLowerCase().trim();
+      if (!g || !groupSet || !groupSet.size) return false;
+      for (const raw of groupSet) {
+        const c = String(raw || "").toLowerCase().trim();
+        if (!c) continue;
+        if (g === c || g.includes(c) || c.includes(g)) return true;
+        const parts = c.split(/\s+/).filter(Boolean);
+        if (parts.length && parts.every((p) => g.includes(p))) return true;
+      }
+      return false;
+    }
+
+    function associationConfiguredGroupsOnDate(activity, dateIso) {
+      const d = parseISODate(dateIso);
+      if (!d) return new Set();
+      const dayIndex = dayIndexMon0(d);
+      const all = new Set();
+      (activity.trainings || []).forEach((t) => {
+        if (!t || t.dayIndex !== dayIndex) return;
+        associationExpandTrainingGroups(t).forEach((g) => {
+          if (g !== "__all__") all.add(g);
+        });
+      });
+      return all;
+    }
+
+    function parseAssociationGroupToCancelTarget(groupLabel) {
+      const raw = String(groupLabel || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      let category = "";
+      let sex = "";
+      if (raw.includes("benjamin")) category = "benjamins";
+      else if (raw.includes("minime")) category = "minimes";
+      if (/\bfilles?\b|\bfeminines?\b/.test(raw)) sex = "filles";
+      else if (/\bgarcons?\b|\bmasculins?\b/.test(raw)) sex = "garçons";
+      return { category, sex };
+    }
+
+    function cancelAssociationTrainingsForGroupsOnDate(activity, dateIso, groupsToCancel) {
+      if (!activity || !dateIso || !groupsToCancel || !groupsToCancel.length) return;
+      if (!appData.association || typeof appData.association !== "object") appData.association = {};
+      if (!Array.isArray(appData.association.cancellations)) appData.association.cancellations = [];
+      const d = parseISODate(dateIso);
+      if (!d) return;
+      const dayIndex = dayIndexMon0(d);
+      (activity.trainings || []).forEach((t) => {
+        if (!t || t.dayIndex !== dayIndex) return;
+        groupsToCancel.forEach((label) => {
+          const { category, sex } = parseAssociationGroupToCancelTarget(label);
+          if (!category && !sex) return;
+          const already = appData.association.cancellations.some(
+            (c) =>
+              c &&
+              c.activityId === activity.id &&
+              c.eventType === "training" &&
+              c.date === dateIso &&
+              c.eventId === t.id &&
+              (c.mode || "all") === "targeted" &&
+              (c.category || "") === category &&
+              (c.sex || "") === sex
+          );
+          if (already) return;
+          appData.association.cancellations.push({
+            id: uid(),
+            activityId: activity.id,
+            eventType: "training",
+            eventId: t.id,
+            date: dateIso,
+            mode: "targeted",
+            category,
+            sex,
+          });
+        });
+      });
+    }
+
     function buildAssociationTimelineByActivity(weeksAhead) {
       const horizonWeeks = Math.max(1, Number(weeksAhead) || 12);
       const start = todayStart();
@@ -9225,12 +9473,14 @@
           if (!Number.isInteger(t.dayIndex)) return;
           for (let d = new Date(start); d <= end; d = addDays(d, 1)) {
             if (dayIndexMon0(d) !== t.dayIndex) continue;
+            const date = fmtISODate(d);
+            if (!associationActivityDateInSeason(a, date)) continue;
             events.push({
               activityId: a.id,
               activityName: a.name || "—",
               eventType: "training",
               eventId: t.id,
-              date: fmtISODate(d),
+              date,
               startTime: t.startTime || "",
               endTime: t.endTime || "",
               detail: (t.groups || []).join(" · ") || "Tous",
@@ -9239,6 +9489,7 @@
         });
         (a.competitions || []).forEach((c) => {
           if (!c || !c.date || c.date < fmtISODate(start)) return;
+          if (!associationActivityDateInSeason(a, c.date)) return;
           events.push({
             activityId: a.id,
             activityName: a.name || "—",
@@ -9495,7 +9746,10 @@
       return abbrevs.length ? [...new Set(abbrevs)] : ["—"];
     }
 
-    function formatAssociationStripRecapParts(event, cancelOverride) {
+    function formatAssociationStripRecapParts(event, cancelOverride, opts) {
+      opts = opts || {};
+      const competitionGroups = opts.competitionGroups || null;
+      const configuredGroups = opts.configuredGroups || null;
       const cancel = cancelOverride || associationCancellationSummary(event);
       const detail = String(event.detail || "").trim();
 
@@ -9510,6 +9764,28 @@
         }));
       }
 
+      const makeAbbrev = (label) => {
+        const a = formatAssociationCategoryAbbrev(label);
+        return a !== "—" ? a : label;
+      };
+
+      if (configuredGroups && configuredGroups.size) {
+        const parts = [];
+        configuredGroups.forEach((g) => {
+          if (associationGroupMatchesAny(g, competitionGroups)) return;
+          const isCancelled =
+            cancel.state === "all" ||
+            (cancel.state === "partial" && associationGroupMatchesCancelTarget(g, cancel.cancelledFor));
+          parts.push({
+            abbrev: makeAbbrev(g),
+            label: isCancelled ? "entraînement annulé" : "entraînement",
+            cancelled: isCancelled,
+            kind: "training",
+          });
+        });
+        if (parts.length) return parts;
+      }
+
       if (cancel.state === "all") {
         return associationDetailToAbbrevList(detail).map((abbrev) => ({
           abbrev,
@@ -9519,15 +9795,29 @@
         }));
       }
       if (cancel.state === "partial") {
-        return cancel.cancelledFor.map((target) => ({
-          abbrev:
-            formatAssociationCategoryAbbrev(target) !== "—"
-              ? formatAssociationCategoryAbbrev(target)
-              : target,
+        const cancelledParts = cancel.cancelledFor.map((target) => ({
+          abbrev: makeAbbrev(target),
           label: "entraînement annulé",
           cancelled: true,
           kind: "training",
         }));
+        if (detail && !/^tous$/i.test(detail)) {
+          associationDetailToAbbrevList(detail).forEach((abbrev) => {
+            const already = cancelledParts.some((p) => p.abbrev === abbrev);
+            if (already) return;
+            if (associationGroupMatchesAny(detail, competitionGroups)) return;
+            cancelledParts.push({
+              abbrev,
+              label: "entraînement",
+              cancelled: false,
+              kind: "training",
+            });
+          });
+        }
+        return cancelledParts;
+      }
+      if (associationGroupMatchesAny(detail, competitionGroups) && /^tous$/i.test(detail) === false) {
+        return [];
       }
       return associationDetailToAbbrevList(detail).map((abbrev) => ({
         abbrev,
@@ -9637,6 +9927,18 @@
           for (let d = parseISODate(rangeStart); fmtISODate(d) <= rangeEnd; d = addDays(d, 1)) {
             if (dayIndexMon0(d) !== t.dayIndex) continue;
             const date = fmtISODate(d);
+            if (!associationActivityDateInSeason(a, date)) continue;
+            const competitionGroups = new Set();
+            (a.competitions || []).forEach((c) => {
+              if (!c || c.date !== date) return;
+              associationCompetitionConcernedGroups(c).forEach((g) => competitionGroups.add(g));
+            });
+            const configured = associationSlotConfiguredGroups(
+              a,
+              t.dayIndex,
+              t.startTime,
+              t.endTime
+            );
             const detail = associationTrainingDetailForRecap(
               a,
               date,
@@ -9659,19 +9961,27 @@
               date,
               detail,
             };
-            associationWeekRecapAddParts(groups, formatAssociationStripRecapParts(event, cancel), {
-              activityId: a.id,
-              activityName: a.name || "—",
-              activity: a,
-              dayIndex: t.dayIndex,
-              startTime: t.startTime || "",
-              endTime: t.endTime || "",
-              sortName,
-            });
+            associationWeekRecapAddParts(
+              groups,
+              formatAssociationStripRecapParts(event, cancel, {
+                competitionGroups,
+                configuredGroups: configured,
+              }),
+              {
+                activityId: a.id,
+                activityName: a.name || "—",
+                activity: a,
+                dayIndex: t.dayIndex,
+                startTime: t.startTime || "",
+                endTime: t.endTime || "",
+                sortName,
+              }
+            );
           }
         });
         (a.competitions || []).forEach((c) => {
           if (!c || !c.date || c.date < rangeStart || c.date > rangeEnd) return;
+          if (!associationActivityDateInSeason(a, c.date)) return;
           const compDate = parseISODate(c.date);
           const compDayIndex = dayIndexMon0(compDate);
           const slot = associationWeekRecapCompetitionSlot(a, c.date);
@@ -10183,7 +10493,10 @@
       return (
         renderTopbar("🏅 Association sportive", "") +
         `<div class="dash-block dash-block--association no-print">
-          <h3 class="dash-block__title">🏅 Compétitions à venir<span id="as-upcoming-comp-count">${upcomingCountLabel}</span></h3>
+          <div class="card-header" style="margin-bottom:.55rem;padding:0;border:none;align-items:center">
+            <h3 class="dash-block__title" style="margin:0">🏅 Compétitions à venir<span id="as-upcoming-comp-count">${upcomingCountLabel}</span></h3>
+            <button type="button" class="btn btn-sm btn-primary" id="btn-as-upcoming-add-competition">+ Ajouter une compétition</button>
+          </div>
           ${renderAssociationCompetitionFiltersHtml(activities)}
           <p class="kpi-sub as-comp-filter-hint" id="as-upcoming-comp-empty-hint" style="margin:0 0 .5rem" ${hasFilters && !n && all.length ? "" : "hidden"}>Aucune compétition ne correspond à ces filtres.</p>
           <div id="as-upcoming-comp-list">${renderAssociationUpcomingCompetitionsRowsHtml(filtered)}</div>
@@ -10981,6 +11294,17 @@
             <h4 style="margin:0">Créneaux d'entraînement</h4>
             <button type="button" class="btn btn-sm btn-primary btn-as-add-training" data-id="${escapeHtml(openActivity.id)}">+ Créneau</button>
           </div>
+          <div class="form-row" style="margin-bottom:.75rem">
+            <div class="form-group" style="margin:0">
+              <label for="as-season-start">Début des séances</label>
+              <input type="date" id="as-season-start" data-activity-id="${escapeHtml(openActivity.id)}" value="${escapeHtml(openActivity.seasonStart || "")}" />
+            </div>
+            <div class="form-group" style="margin:0">
+              <label for="as-season-end">Fin des séances</label>
+              <input type="date" id="as-season-end" data-activity-id="${escapeHtml(openActivity.id)}" value="${escapeHtml(openActivity.seasonEnd || "")}" />
+            </div>
+          </div>
+          <p class="kpi-sub" style="margin:0 0 .65rem">Les entraînements du planning et de l'accueil ne s'affichent qu'entre ces deux dates (si renseignées).</p>
           ${trainingsHtml}
         </div>`;
       }
@@ -12641,63 +12965,31 @@
             ? appData.association.activities.find((x) => x.id === id)
             : null;
           if (!a) return;
-          const body = el(`<div>
-            <div class="form-row">
-              <div class="form-group"><label>Date</label><input type="date" id="f-as-comp-date" /></div>
-              <div class="form-group"><label>Lieu</label><input id="f-as-comp-place" placeholder="Gymnase municipal" /></div>
-            </div>
-            <div class="form-row">
-              <div class="form-group"><label>Catégorie</label>
-                <select id="f-as-comp-category">
-                  <option value="Minimes">Minimes</option>
-                  <option value="Benjamins">Benjamins</option>
-                  <option value="__other__">Autre (saisie)</option>
-                </select>
-                <input id="f-as-comp-category-other" placeholder="Catégorie personnalisée" style="margin-top:.35rem;display:none" />
-              </div>
-              <div class="form-group"><label>Sexe</label>
-                <select id="f-as-comp-sex">
-                  <option value="filles">filles</option>
-                  <option value="garçons">garçons</option>
-                  <option value="tous">tous</option>
-                </select>
-              </div>
-              <div class="form-group"><label>Accompagnateur</label><input id="f-as-comp-coach" placeholder="Mme Dupont" /></div>
-            </div>
-          </div>`);
-          body.querySelector("#f-as-comp-category")?.addEventListener("change", () => {
-            const sel = body.querySelector("#f-as-comp-category");
-            const other = body.querySelector("#f-as-comp-category-other");
-            if (!sel || !other) return;
-            other.style.display = sel.value === "__other__" ? "block" : "none";
-          });
-          openModal("Ajouter une compétition", body, () => {
-            const date = body.querySelector("#f-as-comp-date").value;
-            if (!date) return;
-            const categorySel = body.querySelector("#f-as-comp-category").value;
-            const categoryBase = categorySel === "__other__"
-              ? body.querySelector("#f-as-comp-category-other").value.trim()
-              : categorySel;
-            const sex = body.querySelector("#f-as-comp-sex").value.trim();
-            const categoryAge = associationCompetitionCategoryAgeFromBase(categoryBase);
-            const category = [categoryBase, sex === "tous" ? "" : sex].filter(Boolean).join(" ").trim();
-            if (!Array.isArray(a.competitions)) a.competitions = [];
-            const comp = {
-              id: uid(),
-              date,
-              place: body.querySelector("#f-as-comp-place").value.trim(),
-              category,
-              categoryAge,
-              sex,
-              coach: body.querySelector("#f-as-comp-coach").value.trim(),
-            };
-            normalizeAssociationCompetition(comp);
-            a.competitions.push(comp);
-            saveData();
-            render();
-          });
+          openAddAssociationCompetitionModal(a);
         });
       });
+      main.querySelector("#btn-as-upcoming-add-competition")?.addEventListener("click", () => {
+        openAddAssociationCompetitionModal(null);
+      });
+      const saveAssociationSeasonDates = () => {
+        const startEl = main.querySelector("#as-season-start");
+        const endEl = main.querySelector("#as-season-end");
+        const activityId = (startEl || endEl)?.getAttribute("data-activity-id");
+        if (!activityId) return;
+        const a = appData.association && Array.isArray(appData.association.activities)
+          ? appData.association.activities.find((x) => x.id === activityId)
+          : null;
+        if (!a) return;
+        a.seasonStart = startEl ? startEl.value || "" : a.seasonStart || "";
+        a.seasonEnd = endEl ? endEl.value || "" : a.seasonEnd || "";
+        if (a.seasonStart && a.seasonEnd && a.seasonStart > a.seasonEnd) {
+          alert("La date de début doit être antérieure à la date de fin.");
+          return;
+        }
+        saveData();
+      };
+      main.querySelector("#as-season-start")?.addEventListener("change", saveAssociationSeasonDates);
+      main.querySelector("#as-season-end")?.addEventListener("change", saveAssociationSeasonDates);
       main.querySelector("#btn-todo-add")?.addEventListener("click", () => {
         const inp = main.querySelector("#todo-input");
         const text = inp ? inp.value.trim() : "";
