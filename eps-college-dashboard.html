@@ -15078,11 +15078,14 @@
     }
 
     try {
-      if ("serviceWorker" in navigator && location.protocol === "https:") {
-        const swCode = `self.addEventListener("install",e=>{self.skipWaiting()});self.addEventListener("activate",e=>{e.waitUntil(clients.claim())});self.addEventListener("fetch",e=>{e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)))});`;
-        const swBlob = new Blob([swCode], { type: "application/javascript" });
-        const swURL = URL.createObjectURL(swBlob);
-        navigator.serviceWorker.register(swURL).catch(() => {});
+      // Pas de service worker : sur GitHub Pages / Safari, un SW peut garder une vieille version de la page.
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations().then((regs) => {
+          regs.forEach((r) => r.unregister());
+        }).catch(() => {});
+      }
+      if (window.caches && caches.keys) {
+        caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {});
       }
     } catch(e) {}
 
