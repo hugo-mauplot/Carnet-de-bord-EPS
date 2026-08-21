@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="EPS Dashboard" />
-  <meta name="theme-color" content="#0a0c12" />
+  <meta name="theme-color" content="#eef2f7" />
   <title>EPS Collège — Tableau de bord pédagogique</title>
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%236c8cff' width='100' height='100' rx='20'/><text x='50' y='68' text-anchor='middle' font-size='48' fill='white' font-family='sans-serif' font-weight='bold'>EPS</text></svg>" />
   <style>
@@ -45,11 +45,11 @@
       --hover: rgba(139, 164, 255, 0.14);
     }
     [data-theme="light"] {
-      --bg: #d4dce8;
+      --bg: #eef2f7;
       --bg-elevated: #ffffff;
       --surface: #ffffff;
-      --border: rgba(15, 23, 42, 0.14);
-      --border-strong: rgba(15, 23, 42, 0.22);
+      --border: rgba(15, 23, 42, 0.12);
+      --border-strong: rgba(15, 23, 42, 0.18);
       --text: #0f172a;
       --text-muted: #475569;
       --accent: #2563eb;
@@ -57,9 +57,9 @@
       --success: #059669;
       --warning: #d97706;
       --danger: #dc2626;
-      --shadow: 0 10px 32px rgba(15, 23, 42, 0.14);
-      --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.1), 0 1px 2px rgba(15, 23, 42, 0.06);
-      --shadow-zone: 0 4px 18px rgba(15, 23, 42, 0.12), 0 1px 4px rgba(15, 23, 42, 0.08);
+      --shadow: 0 10px 32px rgba(15, 23, 42, 0.1);
+      --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.05);
+      --shadow-zone: 0 4px 16px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.06);
       --hover: rgba(37, 99, 235, 0.06);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -234,7 +234,8 @@
       white-space: nowrap;
     }
     .dash-date-nav__side .btn-help,
-    .dash-date-nav__side .btn-reminder-icon {
+    .dash-date-nav__side .btn-reminder-icon,
+    .dash-date-nav__side .btn-theme-icon {
       width: 2.1rem;
       height: 2.1rem;
       min-width: 36px;
@@ -244,7 +245,8 @@
       width: 15px;
       height: 15px;
     }
-    .dash-date-nav__side .btn-reminder-icon {
+    .dash-date-nav__side .btn-reminder-icon,
+    .dash-date-nav__side .btn-theme-icon {
       font-size: 0.95rem;
     }
     .dash-weather {
@@ -409,6 +411,7 @@
     }
     .btn-calendar-icon,
     .btn-reminder-icon,
+    .btn-theme-icon,
     .btn-regen-icon {
       width: 34px;
       height: 34px;
@@ -424,6 +427,7 @@
     }
     .btn-calendar-icon:hover,
     .btn-reminder-icon:hover,
+    .btn-theme-icon:hover,
     .btn-regen-icon:hover {
       color: var(--accent);
       background: var(--accent-soft);
@@ -431,6 +435,7 @@
     .btn-regen-icon:hover { transform: rotate(-24deg); }
     .btn-calendar-icon:active,
     .btn-reminder-icon:active,
+    .btn-theme-icon:active,
     .btn-regen-icon:active { transform: scale(0.94); }
     .btn-regen-icon:active { transform: rotate(-24deg) scale(0.94); }
     .bottom-nav {
@@ -548,6 +553,11 @@
     }
     .cal-panel--official .cal-panel__title { color: #0d9488; }
     [data-theme="light"] .cal-panel--official .cal-panel__title { color: #0f766e; }
+    .cal-panel--official .cal-panel__title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .cal-panel--school {
       border-left: 5px solid #f59e0b;
       background: linear-gradient(165deg, rgba(245, 158, 11, 0.14) 0%, var(--surface) 38%);
@@ -575,6 +585,59 @@
       margin: 0 0 0.75rem;
       font-size: 1.08rem;
       line-height: 1.25;
+    }
+    .cal-panel__title--one-line,
+    .title-one-line,
+    .dash-block__title--inline {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      min-width: 0;
+    }
+    .cal-panel__title--one-line {
+      font-size: clamp(0.82rem, 3.6vw, 1.05rem);
+      line-height: 1.2;
+      margin-bottom: 0.55rem;
+    }
+    .cal-panel__action-btns {
+      display: inline-flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 0.4rem;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .cal-panel__action-btns .btn {
+      flex: 0 1 auto;
+      white-space: nowrap;
+    }
+    .btn-compact-label {
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .card-header {
+      flex-wrap: nowrap;
+    }
+    .card-header h3,
+    .card-header .dash-block__title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+    .card-header .btn {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+    .dash-block--association > .card-header {
+      flex-wrap: nowrap;
+      gap: 0.45rem;
+    }
+    .dash-block--association .dash-block__title--inline {
+      font-size: clamp(0.72rem, 3.2vw, 0.8rem);
+      letter-spacing: 0.03em;
     }
     .cal-panel__setup {
       margin-bottom: 0.85rem;
@@ -3903,6 +3966,33 @@
       .cal-panel--school .cal-panel__title {
         font-size: 0.9rem;
       }
+      .cal-panel--official .cal-panel__title,
+      .cal-panel__title--one-line {
+        font-size: 0.84rem;
+      }
+      .cal-panel__actions {
+        gap: 0.4rem;
+      }
+      .cal-panel__actions > label {
+        display: none; /* labels implied by selects; keeps one-line denser */
+      }
+      .cal-panel__action-btns {
+        flex: 1 1 100%;
+        justify-content: flex-start;
+      }
+      .cal-panel__action-btns .btn {
+        font-size: 0.72rem;
+        padding: 0.38rem 0.55rem;
+      }
+      .dash-block--association > .card-header .btn,
+      .card-header .btn-compact-label {
+        font-size: 0.7rem;
+        padding: 0.32rem 0.5rem;
+      }
+      .card-header h3.title-one-line,
+      .card-header h3 {
+        font-size: 0.95rem;
+      }
       .cal-panel--school .btn-add-school-event-inline {
         margin-top: 0.35rem;
       }
@@ -4542,7 +4632,7 @@
       <div class="sidebar-footer">
         <div class="theme-toggle">
           <span>Thème</span>
-          <button type="button" class="btn btn-sm" id="btn-theme">Sombre / Clair</button>
+          <button type="button" class="btn btn-sm btn-theme-toggle" id="btn-theme">Passer en Clair</button>
         </div>
       </div>
     </aside>
@@ -4675,6 +4765,41 @@
         } catch (e) {}
       }
       delete LS_MEMORY[key];
+    }
+
+    function isAppThemeLight() {
+      return document.documentElement.getAttribute("data-theme") === "light";
+    }
+
+    function syncThemeColor() {
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute("content", isAppThemeLight() ? "#eef2f7" : "#0a0c12");
+    }
+
+    function applyAppTheme(theme) {
+      if (theme === "dark") {
+        document.documentElement.removeAttribute("data-theme");
+        lsSet("eps_theme", "dark");
+      } else {
+        document.documentElement.setAttribute("data-theme", "light");
+        lsSet("eps_theme", "light");
+      }
+      syncThemeColor();
+      const label = theme === "dark" ? "Clair" : "Sombre";
+      document.querySelectorAll(".btn-theme-toggle").forEach((btn) => {
+        if (btn.classList.contains("btn-theme-icon")) {
+          btn.textContent = theme === "dark" ? "☀️" : "🌙";
+          btn.setAttribute("aria-label", "Changer le thème — passer en " + label.toLowerCase());
+          btn.setAttribute("title", "Passer en " + label);
+          return;
+        }
+        btn.textContent = "Passer en " + label;
+        btn.setAttribute("aria-label", "Changer le thème — passer en " + label.toLowerCase());
+      });
+    }
+
+    function toggleAppTheme() {
+      applyAppTheme(isAppThemeLight() ? "dark" : "light");
     }
 
     /**
@@ -10666,8 +10791,8 @@
         renderTopbar("🏅 Association sportive", "") +
         `<div class="dash-block dash-block--association no-print">
           <div class="card-header" style="margin-bottom:.55rem;padding:0;border:none;align-items:center">
-            <h3 class="dash-block__title" style="margin:0">🏅 Compétitions à venir<span id="as-upcoming-comp-count">${upcomingCountLabel}</span></h3>
-            <button type="button" class="btn btn-sm btn-primary" id="btn-as-upcoming-add-competition">+ Ajouter une compétition</button>
+            <h3 class="dash-block__title dash-block__title--inline" style="margin:0">🏅 Compétitions à venir<span id="as-upcoming-comp-count">${upcomingCountLabel}</span></h3>
+            <button type="button" class="btn btn-sm btn-primary btn-compact-label" id="btn-as-upcoming-add-competition" title="Ajouter une compétition">+ Compétition</button>
           </div>
           ${renderAssociationCompetitionFiltersHtml(activities)}
           <p class="kpi-sub as-comp-filter-hint" id="as-upcoming-comp-empty-hint" style="margin:0 0 .5rem" ${hasFilters && !n && all.length ? "" : "hidden"}>Aucune compétition ne correspond à ces filtres.</p>
@@ -11514,8 +11639,8 @@
 
       return `<div class="card" style="border-left:5px solid #f59e0b">
         <div class="card-header">
-          <h3>Activités encadrées</h3>
-          <button type="button" class="btn btn-sm btn-primary" id="btn-add-association-activity">Ajouter une activité</button>
+          <h3 class="title-one-line">Activités encadrées</h3>
+          <button type="button" class="btn btn-sm btn-primary btn-compact-label" id="btn-add-association-activity" title="Ajouter une activité">+ Activité</button>
         </div>
         <p class="kpi-sub">Gérez les activités de l'association sportive, les entraînements, la liste des élèves et les compétitions.</p>
         ${activityButtons}
@@ -11593,7 +11718,7 @@
       const schoolEventsCount = (appData.schoolCalendarEvents || []).length;
       return (
         `<section class="cal-panel cal-panel--official">
-          <h3 class="cal-panel__title">📅 ${escapeHtml(officialCalendarAcademyTitle())}</h3>
+          <h3 class="cal-panel__title cal-panel__title--one-line" title="${escapeHtml(officialCalendarAcademyTitle())}">📅 ${escapeHtml(officialCalendarAcademyTitle())}</h3>
           <div class="cal-panel__setup">
             <div class="cal-panel__setup-title">Paramétrage</div>
             <div class="cal-panel__actions">
@@ -11607,8 +11732,10 @@
                 <optgroup label="Métropole">${academyOpts}</optgroup>
                 <optgroup label="Outre-mer">${domOpts}</optgroup>
               </select>
-              <button type="button" class="btn btn-sm btn-primary" id="btn-apply-calendar">Appliquer le calendrier officiel</button>
-              <button type="button" class="btn btn-sm btn-primary" id="btn-add-holiday">+ Événement</button>
+              <div class="cal-panel__action-btns">
+                <button type="button" class="btn btn-sm btn-primary btn-compact-label" id="btn-apply-calendar" title="Appliquer le calendrier officiel">Appliquer</button>
+                <button type="button" class="btn btn-sm btn-primary btn-compact-label" id="btn-add-holiday" title="Ajouter un événement">+ Événement</button>
+              </div>
             </div>
             <p class="kpi-sub" style="margin:.55rem 0 0">${escapeHtml(zoneHint)} — Source : <a href="https://www.education.gouv.fr/calendrier-scolaire-87125" target="_blank" rel="noopener">education.gouv.fr</a> (jeu de données ouvert). Choisissez l'année scolaire puis l'académie, puis cliquez sur « Appliquer ».</p>
           </div>
@@ -12170,8 +12297,16 @@
 
     function viewBackupBody() {
       const origin = escapeHtml(location.href);
+      const themeNext = isAppThemeLight() ? "Sombre" : "Clair";
       return (
-        `<div class="card" style="border-left:4px solid var(--accent)">
+        `<div class="card no-print">
+          <div class="card-header" style="margin-bottom:.35rem">
+            <h3 style="margin:0">🎨 Apparence</h3>
+            <button type="button" class="btn btn-sm btn-primary btn-theme-toggle" id="btn-theme-backup" aria-label="Changer le thème — passer en ${themeNext.toLowerCase()}">Passer en ${themeNext}</button>
+          </div>
+          <p class="kpi-sub" style="margin:0">Fond clair ou sombre de l'application.</p>
+        </div>
+        <div class="card" style="border-left:4px solid var(--accent)">
           <h3>Où sont mes données ?</h3>
           <p class="kpi-sub" style="line-height:1.55;margin-top:.35rem">
             Elles ne sont <strong>pas</strong> écrites dans le fichier <code>eps-college-dashboard.html</code> sur votre disque. Elles sont enregistrées dans le <strong>navigateur</strong> (ou l’aperçu web) pour l’<strong>adresse exacte</strong> utilisée au moment où vous travaillez.
@@ -12658,9 +12793,17 @@
             <div class="tools-card__sub">${escapeHtml(c.sub)}</div>
           </div>`
         ).join("");
+        const themeNext = isAppThemeLight() ? "Sombre" : "Clair";
         return (
           renderTopbar("Réglages & données", "") +
-          `<div class="tools-cards-grid no-print">${cards}</div>
+          `<div class="card no-print" style="margin-bottom:1rem;border-left:4px solid var(--accent)">
+            <div class="card-header" style="margin-bottom:0">
+              <h3 class="title-one-line" style="margin:0">🎨 Apparence</h3>
+              <button type="button" class="btn btn-sm btn-primary btn-theme-toggle" id="btn-theme-settings" aria-label="Changer le thème — passer en ${themeNext.toLowerCase()}">Passer en ${themeNext}</button>
+            </div>
+            <p class="kpi-sub" style="margin:.45rem 0 0">Choisissez un fond clair ou sombre pour l'application.</p>
+          </div>
+          <div class="tools-cards-grid no-print">${cards}</div>
           <div style="text-align:center;margin-top:1.5rem">
             <button type="button" class="btn btn-sm" id="btn-reset-all" style="background:#dc2626;color:#fff;font-weight:700;padding:.5rem 1.2rem;border-radius:var(--radius)">🗑️ Réinitialiser toutes les données</button>
           </div>`
@@ -14449,7 +14592,7 @@
         } catch (e) {
           alert(e && e.message ? e.message : String(e));
         } finally {
-          if (btn) { btn.removeAttribute("disabled"); btn.textContent = "Appliquer le calendrier officiel"; }
+          if (btn) { btn.removeAttribute("disabled"); btn.textContent = "Appliquer"; }
         }
       });
       main.querySelector("#btn-submit-canc")?.addEventListener("click", () => {
@@ -14481,6 +14624,9 @@
       main.querySelector("#inp-import")?.addEventListener("change", (e) => {
         const f = e.target.files[0];
         if (f) importJSONFile(f);
+      });
+      main.querySelectorAll(".btn-theme-toggle").forEach((btn) => {
+        btn.addEventListener("click", toggleAppTheme);
       });
       main.querySelector("#btn-reset")?.addEventListener("click", resetAll);
       main.querySelector("#btn-reset-all")?.addEventListener("click", resetAll);
@@ -14937,24 +15083,9 @@
         regenerateSessions();
       }
 
-      function syncThemeColor() {
-        const meta = document.querySelector('meta[name="theme-color"]');
-        if (meta) meta.setAttribute("content", document.documentElement.getAttribute("data-theme") === "light" ? "#d4dce8" : "#0a0c12");
-      }
-      document.getElementById("btn-theme").onclick = () => {
-        const isLight = document.documentElement.getAttribute("data-theme") === "light";
-        if (isLight) {
-          document.documentElement.removeAttribute("data-theme");
-          lsSet("eps_theme", "dark");
-        } else {
-          document.documentElement.setAttribute("data-theme", "light");
-          lsSet("eps_theme", "light");
-        }
-        syncThemeColor();
-      };
-      if (lsGet("eps_theme") === "light") document.documentElement.setAttribute("data-theme", "light");
-      else document.documentElement.removeAttribute("data-theme");
-      syncThemeColor();
+      if (lsGet("eps_theme") === "dark") applyAppTheme("dark");
+      else applyAppTheme("light");
+      document.getElementById("btn-theme")?.addEventListener("click", toggleAppTheme);
 
       render();
     }
