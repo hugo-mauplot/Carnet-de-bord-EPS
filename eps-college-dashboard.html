@@ -12297,16 +12297,8 @@
 
     function viewBackupBody() {
       const origin = escapeHtml(location.href);
-      const themeNext = isAppThemeLight() ? "Sombre" : "Clair";
       return (
-        `<div class="card no-print">
-          <div class="card-header" style="margin-bottom:.35rem">
-            <h3 style="margin:0">🎨 Apparence</h3>
-            <button type="button" class="btn btn-sm btn-primary btn-theme-toggle" id="btn-theme-backup" aria-label="Changer le thème — passer en ${themeNext.toLowerCase()}">Passer en ${themeNext}</button>
-          </div>
-          <p class="kpi-sub" style="margin:0">Fond clair ou sombre de l'application.</p>
-        </div>
-        <div class="card" style="border-left:4px solid var(--accent)">
+        `<div class="card" style="border-left:4px solid var(--accent)">
           <h3>Où sont mes données ?</h3>
           <p class="kpi-sub" style="line-height:1.55;margin-top:.35rem">
             Elles ne sont <strong>pas</strong> écrites dans le fichier <code>eps-college-dashboard.html</code> sur votre disque. Elles sont enregistrées dans le <strong>navigateur</strong> (ou l’aperçu web) pour l’<strong>adresse exacte</strong> utilisée au moment où vous travaillez.
@@ -12796,12 +12788,8 @@
         const themeNext = isAppThemeLight() ? "Sombre" : "Clair";
         return (
           renderTopbar("Réglages & données", "") +
-          `<div class="card no-print" style="margin-bottom:1rem;border-left:4px solid var(--accent)">
-            <div class="card-header" style="margin-bottom:0">
-              <h3 class="title-one-line" style="margin:0">🎨 Apparence</h3>
-              <button type="button" class="btn btn-sm btn-primary btn-theme-toggle" id="btn-theme-settings" aria-label="Changer le thème — passer en ${themeNext.toLowerCase()}">Passer en ${themeNext}</button>
-            </div>
-            <p class="kpi-sub" style="margin:.45rem 0 0">Choisissez un fond clair ou sombre pour l'application.</p>
+          `<div class="no-print" style="display:flex;justify-content:flex-end;margin:0 0 .65rem">
+            <button type="button" class="btn btn-sm btn-ghost btn-theme-toggle" id="btn-theme-settings" aria-label="Changer le thème — passer en ${themeNext.toLowerCase()}" style="font-size:.78rem;font-weight:600;color:var(--text-muted);border:1px solid var(--border);padding:.28rem .55rem">Passer en ${themeNext}</button>
           </div>
           <div class="tools-cards-grid no-print">${cards}</div>
           <div style="text-align:center;margin-top:1.5rem">
