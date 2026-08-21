@@ -4685,6 +4685,7 @@
       settings: {
         schoolYearStart: "2025-09-01",
         schoolYearEnd: "2026-07-05",
+        calendarSchoolYear: "2025-2026",
         zone: "C",
       },
       classes: [],
@@ -5358,6 +5359,9 @@
       }
       normalizeSchoolTermSchedule();
       if (!appData.settings.academy) appData.settings.academy = "";
+      if (!appData.settings.calendarSchoolYear) {
+        appData.settings.calendarSchoolYear = schoolYearLabelFromSettings() || "2025-2026";
+      }
       if (!appData.association || typeof appData.association !== "object") appData.association = {};
       if (!Array.isArray(appData.association.activities)) appData.association.activities = [];
       if (!Array.isArray(appData.association.cancellations)) appData.association.cancellations = [];
@@ -6551,6 +6555,7 @@
         settings: {
           schoolYearStart: "2025-09-01",
           schoolYearEnd: "2026-07-05",
+          calendarSchoolYear: "2025-2026",
           zone: "C",
           academy: "Paris",
         },
@@ -6920,27 +6925,53 @@
       ete: { name: "Été", startDate: "2026-07-04", endDate: "2026-09-01" },
     };
 
-    function schoolYearLabel() {
+    const OFFICIAL_SCHOOL_YEARS_DEFAULT = [
+      "2027-2028", "2026-2027", "2025-2026", "2024-2025", "2023-2024",
+      "2022-2023", "2021-2022", "2020-2021", "2019-2020", "2018-2019",
+    ];
+    let officialSchoolYearsCache = OFFICIAL_SCHOOL_YEARS_DEFAULT.slice();
+
+    function schoolYearLabelFromSettings() {
       const start = appData && appData.settings && appData.settings.schoolYearStart ? String(appData.settings.schoolYearStart) : "";
       const end = appData && appData.settings && appData.settings.schoolYearEnd ? String(appData.settings.schoolYearEnd) : "";
       const y1 = start.slice(0, 4);
       const y2 = end.slice(0, 4);
       if (/^\d{4}$/.test(y1) && /^\d{4}$/.test(y2) && y1 !== y2) return `${y1}-${y2}`;
       if (/^\d{4}$/.test(y1)) return `${y1}-${Number(y1) + 1}`;
-      return "2025-2026";
+      return "";
+    }
+
+    function schoolYearLabel() {
+      const stored = appData && appData.settings && appData.settings.calendarSchoolYear
+        ? String(appData.settings.calendarSchoolYear).trim()
+        : "";
+      if (/^\d{4}-\d{4}$/.test(stored)) return stored;
+      return schoolYearLabelFromSettings() || "2025-2026";
+    }
+
+    function parseSchoolYearParts(annee) {
+      const m = String(annee || "").match(/^(\d{4})-(\d{4})$/);
+      if (!m) return null;
+      return { y1: Number(m[1]), y2: Number(m[2]) };
+    }
+
+    function syncSchoolYearDatesFromLabel(annee) {
+      const parts = parseSchoolYearParts(annee);
+      if (!parts || !appData.settings) return;
+      appData.settings.calendarSchoolYear = annee;
+      // Aligne les bornes de l'année scolaire (modifiables ensuite dans Réglages → Sauvegarde).
+      appData.settings.schoolYearStart = `${parts.y1}-09-01`;
+      appData.settings.schoolYearEnd = `${parts.y2}-07-05`;
     }
 
     function eduGovApiUrlForAcademy(academy, anneeScolaire) {
-      // Source officielle (éducation nationale) — Opendatasoft hébergé sur data.education.gouv.fr
-      // NB: le champ "location" correspond au nom d'académie (ex: "Paris", "Versailles", "Normandie", "Guadeloupe"...).
+      // Source officielle — dataset fr-en-calendrier-scolaire (data.education.gouv.fr)
       const base = "https://data.education.gouv.fr/api/records/1.0/search/";
       const params = new URLSearchParams();
       params.set("dataset", "fr-en-calendrier-scolaire");
       params.set("rows", "200");
-      params.set("refine.population", "Élèves");
       params.set("refine.annee_scolaire", anneeScolaire || schoolYearLabel());
       params.set("refine.location", academy);
-      params.set("facet", "description");
       return base + "?" + params.toString();
     }
 
@@ -6949,31 +6980,147 @@
       const params = new URLSearchParams();
       params.set("dataset", "fr-en-calendrier-scolaire");
       params.set("rows", "250");
-      params.set("refine.population", "Élèves");
       params.set("refine.annee_scolaire", anneeScolaire || schoolYearLabel());
       params.set("refine.zones", "Zone " + zone);
-      params.set("facet", "description");
       return base + "?" + params.toString();
+    }
+
+    function eduGovApiUrlSchoolYears() {
+      const base = "https://data.education.gouv.fr/api/records/1.0/search/";
+      const params = new URLSearchParams();
+      params.set("dataset", "fr-en-calendrier-scolaire");
+      params.set("rows", "0");
+      params.set("facet", "annee_scolaire");
+      return base + "?" + params.toString();
+    }
+
+    async function fetchOfficialSchoolYears() {
+      try {
+        const res = await fetch(eduGovApiUrlSchoolYears(), { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        const group = ((json && json.facet_groups) || []).find((g) => g.name === "annee_scolaire");
+        const facets = (group && group.facets) || [];
+        const rich = facets
+          .filter((f) => /^\d{4}-\d{4}$/.test(String(f.name || "")) && Number(f.count || 0) >= 50)
+          .map((f) => String(f.name).trim())
+          .sort()
+          .reverse();
+        if (rich.length) {
+          officialSchoolYearsCache = rich;
+          return rich;
+        }
+        const years = facets
+          .map((f) => String(f.name || "").trim())
+          .filter((y) => /^\d{4}-\d{4}$/.test(y))
+          .sort()
+          .reverse();
+        if (years.length) {
+          officialSchoolYearsCache = years;
+          return years;
+        }
+      } catch (e) {
+        console.warn("Impossible de charger la liste des années scolaires officielles:", e);
+      }
+      return officialSchoolYearsCache.slice();
     }
 
     function normalizeIsoDate(value) {
       if (!value) return "";
-      const s = String(value);
-      // API retourne souvent un datetime ISO (2026-02-07T00:00:00+01:00)
+      const s = String(value).trim();
+      // Les dates API sont souvent en UTC (ex. 2025-10-17T22:00:00+00:00 = 18/10 à Paris).
+      if (s.includes("T")) {
+        const d = new Date(s);
+        if (!Number.isNaN(d.getTime())) {
+          try {
+            const parts = new Intl.DateTimeFormat("en-CA", {
+              timeZone: "Europe/Paris",
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }).formatToParts(d);
+            const y = parts.find((p) => p.type === "year")?.value;
+            const m = parts.find((p) => p.type === "month")?.value;
+            const day = parts.find((p) => p.type === "day")?.value;
+            if (y && m && day) return `${y}-${m}-${day}`;
+          } catch (_) { /* fallback below */ }
+        }
+      }
       if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
       return s;
     }
 
     function isCalendarBlockingEvent(desc) {
       const d = String(desc || "").toLowerCase();
-      // On garde uniquement ce qui bloque réellement des cours dans l'année :
-      // vacances + pont/vaquer (jours sans école).
       return d.includes("vacances") || d.includes("pont") || d.includes("vaquer");
     }
 
-    async function applyOfficialCalendarFromEducationGouv(academy, zone) {
-      const annee = schoolYearLabel();
-      // Le filtre par zone est plus stable que le filtre par académie (certaines réponses académie sont partielles).
+    function easterSundayISO(year) {
+      // Algorithme de Meeus/Jones/Butcher (calendrier grégorien)
+      const a = year % 19;
+      const b = Math.floor(year / 100);
+      const c = year % 100;
+      const d = Math.floor(b / 4);
+      const e = b % 4;
+      const f = Math.floor((b + 8) / 25);
+      const g = Math.floor((b - f + 1) / 3);
+      const h = (19 * a + b - d - g + 15) % 30;
+      const i = Math.floor(c / 4);
+      const k = c % 4;
+      const l = (32 + 2 * e + 2 * i - h - k) % 7;
+      const m = Math.floor((a + 11 * h + 22 * l) / 451);
+      const month = Math.floor((h + l - 7 * m + 114) / 31);
+      const day = ((h + l - 7 * m + 114) % 31) + 1;
+      return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    }
+
+    function addDaysISO(iso, days) {
+      const d = parseISODate(iso);
+      if (!d) return "";
+      return fmtISODate(addDays(d, days));
+    }
+
+    function frenchPublicHolidaysForSchoolYear(annee) {
+      const parts = parseSchoolYearParts(annee);
+      if (!parts) return [];
+      const list = [];
+      const push = (name, date) => {
+        if (!date) return;
+        list.push({ name, startDate: date, endDate: date });
+      };
+      // Année civile de début (sept–déc) + année de fin (jan–juil)
+      push("Toussaint", `${parts.y1}-11-01`);
+      push("Armistice 1918", `${parts.y1}-11-11`);
+      push("Noël", `${parts.y1}-12-25`);
+      push("Jour de l'An", `${parts.y2}-01-01`);
+      const easter = easterSundayISO(parts.y2);
+      push("Lundi de Pâques", addDaysISO(easter, 1));
+      push("Fête du Travail", `${parts.y2}-05-01`);
+      push("Victoire 1945", `${parts.y2}-05-08`);
+      push("Ascension", addDaysISO(easter, 39));
+      push("Lundi de Pentecôte", addDaysISO(easter, 50));
+      push("Fête nationale", `${parts.y2}-07-14`);
+      return list;
+    }
+
+    function officialHolidayRecordPriority(fields) {
+      const pop = String((fields && fields.population) || "").trim();
+      const desc = String((fields && fields.description) || "").toLowerCase();
+      // Pour l'été, préférer la borne « Élèves » (fin août) à « Enseignants ».
+      if (desc.includes("été") || desc.includes("ete")) {
+        if (pop === "Élèves" || pop === "Eleves") return 3;
+        if (pop === "-" || pop === "") return 2;
+        return 1;
+      }
+      if (pop === "-" || pop === "") return 2;
+      if (pop === "Élèves" || pop === "Eleves") return 1;
+      return 0;
+    }
+
+    async function applyOfficialCalendarFromEducationGouv(academy, zone, anneeScolaire) {
+      const annee = anneeScolaire || schoolYearLabel();
+      // Filtre zone plus stable ; on ne filtre plus par « population=Élèves »
+      // (sinon seules les vacances d'été sont renvoyées).
       const url = zone ? eduGovApiUrlForZone(zone, annee) : eduGovApiUrlForAcademy(academy, annee);
       let json;
       try {
@@ -6982,22 +7129,33 @@
         json = await res.json();
       } catch (e) {
         console.error(e);
-        throw new Error("Impossible de récupérer le calendrier officiel sur education.gouv.fr (réseau ou accès bloqué).");
+        throw new Error("Impossible de récupérer le calendrier officiel sur data.education.gouv.fr (réseau ou accès bloqué).");
       }
 
-      const records = (json && json.records) || [];
+      let records = (json && json.records) || [];
+      // Si filtre zone trop large, restreindre à l'académie choisie quand possible.
+      if (academy && records.length) {
+        const byAc = records.filter((r) => String((r.fields || {}).location || "") === academy);
+        if (byAc.length >= 5) records = byAc;
+      }
       if (!records.length) {
         throw new Error(`Aucune donnée trouvée pour l'académie "${academy}" (année ${annee}).`);
       }
 
-      // Injecte les fériés officiels (métropole) puis remplace vacances/ponts depuis la source officielle.
       appData.holidays = [];
-      OFFICIAL_HOLIDAYS_2025_2026.feries.forEach((f) => {
-        appData.holidays.push({ id: uid(), type: "ferie", name: f.name, startDate: f.startDate, endDate: f.endDate, color: "#94a3b8", blocksSessions: true });
+      frenchPublicHolidaysForSchoolYear(annee).forEach((f) => {
+        appData.holidays.push({
+          id: uid(),
+          type: "ferie",
+          name: f.name,
+          startDate: f.startDate,
+          endDate: f.endDate,
+          color: "#94a3b8",
+          blocksSessions: true,
+        });
       });
 
-      const seen = new Set();
-      let insertedBlocking = 0;
+      const bestByDesc = new Map();
       records.forEach((r) => {
         const f = r.fields || {};
         const desc = f.description || f.description_fr || f.description_en || "";
@@ -7005,32 +7163,45 @@
         const startDate = normalizeIsoDate(f.start_date);
         const endDate = normalizeIsoDate(f.end_date);
         if (!startDate || !endDate) return;
-        const key = `${desc}|${startDate}|${endDate}`;
-        if (seen.has(key)) return;
-        seen.add(key);
+        const key = String(desc).toLowerCase().replace(/\s+/g, " ").trim();
+        const prio = officialHolidayRecordPriority(f);
+        const prev = bestByDesc.get(key);
+        if (!prev || prio > prev.prio) {
+          bestByDesc.set(key, { desc, startDate, endDate, prio });
+        }
+      });
 
-        const isPont = String(desc).toLowerCase().includes("pont");
+      let insertedBlocking = 0;
+      bestByDesc.forEach((item) => {
+        const isPont = String(item.desc).toLowerCase().includes("pont");
         appData.holidays.push({
           id: uid(),
           type: isPont ? "pont" : "vacances",
-          name: String(desc).replace(/^Vacances\s+(de|d')\s+/i, "Vacances ").trim(),
-          startDate,
-          endDate,
+          name: String(item.desc).replace(/^Vacances\s+(de|d'|de la)\s+/i, "Vacances ").trim(),
+          startDate: item.startDate,
+          endDate: item.endDate,
           color: isPont ? "#f59e0b" : "#64748b",
           blocksSessions: true,
         });
         insertedBlocking += 1;
       });
 
-      // Sécurité : une réponse partielle (ex: seulement été) ne doit pas écraser le calendrier.
       if (insertedBlocking < 5) {
-        throw new Error("Réponse officielle incomplète pour cette sélection (moins de 5 périodes).");
+        throw new Error(`Réponse officielle incomplète pour ${annee} (seulement ${insertedBlocking} période(s)).`);
       }
 
       appData.holidays.sort((a, b) => a.startDate.localeCompare(b.startDate));
+      syncSchoolYearDatesFromLabel(annee);
     }
 
-    function applyOfficialCalendar(zone) {
+    function applyOfficialCalendar(zone, anneeScolaire) {
+      const annee = anneeScolaire || schoolYearLabel();
+      // Fallback local uniquement pour 2025-2026 (données embarquées).
+      if (annee !== "2025-2026") {
+        throw new Error(
+          `Le calendrier de secours n'est disponible que pour 2025-2026. Vérifiez la connexion pour charger ${annee} depuis data.education.gouv.fr.`
+        );
+      }
       appData.holidays = [];
       OFFICIAL_HOLIDAYS_2025_2026.feries.forEach((f) => {
         appData.holidays.push({ id: uid(), type: "ferie", name: f.name, startDate: f.startDate, endDate: f.endDate, color: "#94a3b8", blocksSessions: true });
@@ -7047,6 +7218,7 @@
       const ete = OFFICIAL_HOLIDAYS_2025_2026.ete;
       appData.holidays.push({ id: uid(), type: "vacances", name: ete.name, startDate: ete.startDate, endDate: ete.endDate, color: "#64748b", blocksSessions: true });
       appData.holidays.sort((a, b) => a.startDate.localeCompare(b.startDate));
+      syncSchoolYearDatesFromLabel(annee);
     }
 
     /** Sous-onglet actif dans « Réglages & données » (EDT, APSA, etc.). */
@@ -11378,6 +11550,12 @@
     }
 
     function viewHolidaysBody() {
+      const selectedYear = schoolYearLabel();
+      const yearList = officialSchoolYearsCache.slice();
+      if (selectedYear && !yearList.includes(selectedYear)) yearList.unshift(selectedYear);
+      const yearOpts = yearList
+        .map((y) => `<option value="${escapeHtml(y)}" ${y === selectedYear ? "selected" : ""}>${escapeHtml(y)}</option>`)
+        .join("");
       const academyOpts = Object.keys(ACADEMIES_ZONES)
         .filter((a) => ACADEMIES_ZONES[a] !== "—")
         .map((a) => `<option value="${a}" ${appData.settings.academy === a ? "selected" : ""}>${a} (zone ${ACADEMIES_ZONES[a]})</option>`)
@@ -11419,6 +11597,11 @@
           <div class="cal-panel__setup">
             <div class="cal-panel__setup-title">Paramétrage</div>
             <div class="cal-panel__actions">
+              <label class="kpi-sub" for="sel-calendar-year" style="margin:0;flex:0 0 auto">Année scolaire</label>
+              <select id="sel-calendar-year" aria-label="Année scolaire">
+                ${yearOpts}
+              </select>
+              <label class="kpi-sub" for="sel-academy" style="margin:0;flex:0 0 auto">Académie</label>
               <select id="sel-academy" aria-label="Académie">
                 <option value="">— Choisir une académie —</option>
                 <optgroup label="Métropole">${academyOpts}</optgroup>
@@ -11427,7 +11610,7 @@
               <button type="button" class="btn btn-sm btn-primary" id="btn-apply-calendar">Appliquer le calendrier officiel</button>
               <button type="button" class="btn btn-sm btn-primary" id="btn-add-holiday">+ Événement</button>
             </div>
-            <p class="kpi-sub" style="margin:.55rem 0 0">${escapeHtml(zoneHint)} — En cliquant sur « Appliquer », vacances et jours fériés sont remplis selon education.gouv.fr.</p>
+            <p class="kpi-sub" style="margin:.55rem 0 0">${escapeHtml(zoneHint)} — Source : <a href="https://www.education.gouv.fr/calendrier-scolaire-87125" target="_blank" rel="noopener">education.gouv.fr</a> (jeu de données ouvert). Choisissez l'année scolaire puis l'académie, puis cliquez sur « Appliquer ».</p>
           </div>
           <details class="cal-panel__events">
             <summary>Événements du calendrier officiel (${holidaysCount})</summary>
@@ -14219,31 +14402,54 @@
           openSchoolTermReminderModal(b.getAttribute("data-id") || "", main);
         });
       });
+      // Met à jour la liste des années depuis data.education.gouv.fr (silencieux si hors-ligne).
+      fetchOfficialSchoolYears().then((years) => {
+        const selY = main.querySelector("#sel-calendar-year");
+        if (!selY || !years || !years.length) return;
+        const current = selY.value || schoolYearLabel();
+        const opts = years.slice();
+        if (current && !opts.includes(current)) opts.unshift(current);
+        selY.innerHTML = opts.map((y) => `<option value="${escapeHtml(y)}" ${y === current ? "selected" : ""}>${escapeHtml(y)}</option>`).join("");
+      });
+      main.querySelector("#sel-calendar-year")?.addEventListener("change", () => {
+        const y = main.querySelector("#sel-calendar-year")?.value || "";
+        if (/^\d{4}-\d{4}$/.test(y)) {
+          appData.settings.calendarSchoolYear = y;
+          saveData();
+        }
+      });
       main.querySelector("#btn-apply-calendar")?.addEventListener("click", async () => {
         const sel = main.querySelector("#sel-academy");
+        const yearSel = main.querySelector("#sel-calendar-year");
         if (!sel || !sel.value) { alert("Veuillez sélectionner une académie."); return; }
+        const annee = (yearSel && yearSel.value) || schoolYearLabel();
+        if (!/^\d{4}-\d{4}$/.test(annee)) { alert("Veuillez sélectionner une année scolaire."); return; }
         const academy = sel.value;
         const zone = ACADEMIES_ZONES[academy];
         if (!zone || zone === "—") { alert("Le calendrier automatique n'est pas disponible pour cette académie."); return; }
-        if (!confirm("Cela remplacera toutes les vacances / ponts actuels par le calendrier officiel (education.gouv.fr) pour l'année " + schoolYearLabel() + " — académie " + academy + ". Continuer ?")) return;
+        if (!confirm("Cela remplacera toutes les vacances / ponts actuels par le calendrier officiel (data.education.gouv.fr) pour l'année " + annee + " — académie " + academy + ". Continuer ?")) return;
         appData.settings.academy = academy;
         appData.settings.zone = zone;
+        appData.settings.calendarSchoolYear = annee;
         const btn = main.querySelector("#btn-apply-calendar");
         try {
           if (btn) { btn.setAttribute("disabled", "disabled"); btn.textContent = "Chargement…"; }
           try {
-            await applyOfficialCalendarFromEducationGouv(academy, zone);
+            await applyOfficialCalendarFromEducationGouv(academy, zone, annee);
           } catch (e) {
             console.warn("Fallback calendrier local:", e);
-            // Comportement fiable de l'ancienne version, avec dates corrigées.
-            applyOfficialCalendar(zone);
+            if (annee === "2025-2026") {
+              applyOfficialCalendar(zone, annee);
+            } else {
+              throw e;
+            }
           }
           saveData();
           render();
         } catch (e) {
           alert(e && e.message ? e.message : String(e));
         } finally {
-          if (btn) { btn.removeAttribute("disabled"); btn.textContent = "Appliquer"; }
+          if (btn) { btn.removeAttribute("disabled"); btn.textContent = "Appliquer le calendrier officiel"; }
         }
       });
       main.querySelector("#btn-submit-canc")?.addEventListener("click", () => {
