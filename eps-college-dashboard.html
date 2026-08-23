@@ -679,6 +679,280 @@
       margin-top: 1.25rem;
     }
     .cal-panel--visual .cal-panel__title { color: #6366f1; margin-bottom: 0.5rem; }
+
+    .team-coord-card { margin-bottom: 1rem; }
+    .team-coord-week-tabs {
+      display: flex;
+      gap: 0.4rem;
+      margin: 0.45rem 0 0.75rem;
+    }
+    .team-coord-week-tabs .btn {
+      flex: 1 1 0;
+      min-height: 44px;
+      font-weight: 700;
+    }
+    .team-coord-week-tabs .btn.is-active {
+      background: var(--accent);
+      color: #fff;
+      border-color: transparent;
+    }
+    .team-coord-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: center;
+      margin: 0 0 0.65rem;
+    }
+    .team-coord-me {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+      margin-bottom: 0.65rem;
+    }
+    .team-coord-me select {
+      flex: 1 1 10rem;
+      min-width: 0;
+      min-height: 42px;
+      padding: 0.4rem 0.55rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-strong);
+      background: var(--card);
+      color: var(--text);
+    }
+    .team-coord-teachers-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin: 0 0 0.75rem;
+    }
+    .team-coord-period-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin: 0 0 0.65rem;
+    }
+    .team-coord-period-tabs .btn {
+      min-height: 40px;
+      font-weight: 700;
+    }
+    .team-coord-period-tabs .btn.is-active {
+      background: color-mix(in srgb, #0d9488 85%, #000);
+      color: #fff;
+      border-color: transparent;
+    }
+    .team-coord-teacher-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.28rem 0.45rem 0.28rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .team-coord-teacher-chip.is-active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+    .team-coord-teacher-chip__name {
+      border: none;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-weight: 700;
+      padding: 0;
+      cursor: pointer;
+    }
+    .team-coord-teacher-cell {
+      cursor: pointer;
+    }
+    .team-coord-teacher-cell.is-active {
+      background: var(--accent-soft) !important;
+      color: var(--accent);
+    }
+    .team-coord-period-block {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.55rem 0.6rem;
+      margin-bottom: 0.5rem;
+      background: color-mix(in srgb, var(--card) 80%, transparent);
+    }
+    .team-coord-period-block h4 {
+      margin: 0 0 0.4rem;
+      font-size: 0.82rem;
+      color: var(--accent);
+    }
+    .team-coord-week-scope {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem 0.85rem;
+      margin-top: 0.25rem;
+    }
+    .team-coord-week-scope label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .team-coord-periods-host:empty::before {
+      content: "Choisissez un niveau pour afficher les périodes concernées.";
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+    .team-coord-teacher-chip .btn {
+      padding: 0.1rem 0.35rem;
+      font-size: 0.7rem;
+      min-height: 28px;
+    }
+    .team-coord-days {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(16rem, 1fr));
+      gap: 0.65rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 0.35rem;
+    }
+    .team-coord-day {
+      border: 1px solid var(--border-strong);
+      border-radius: 14px;
+      background: var(--surface);
+      min-width: 16rem;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .team-coord-day__title {
+      margin: 0;
+      padding: 0.55rem 0.65rem;
+      font-size: 0.92rem;
+      font-weight: 800;
+      background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+    .team-coord-day-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .team-coord-day-table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+      font-size: 0.74rem;
+    }
+    .team-coord-day-table th,
+    .team-coord-day-table td {
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      padding: 0;
+      vertical-align: top;
+    }
+    .team-coord-day-table th {
+      background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+      font-weight: 700;
+      text-align: center;
+      padding: 0.35rem 0.3rem;
+      white-space: nowrap;
+    }
+    .team-coord-day-table .team-coord-time-head {
+      min-width: 5.8rem;
+      line-height: 1.2;
+    }
+    .team-coord-day-table .team-coord-time-head .btn {
+      margin-top: 0.2rem;
+      padding: 0.1rem 0.3rem;
+      font-size: 0.65rem;
+    }
+    .team-coord-day-table .team-coord-teacher-cell {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: var(--surface);
+      min-width: 4.8rem;
+      max-width: 5.6rem;
+      padding: 0.4rem 0.35rem;
+      font-weight: 700;
+      text-align: left;
+    }
+    .team-coord-cell-btn {
+      display: block;
+      width: 100%;
+      min-height: 3.8rem;
+      padding: 0.35rem 0.3rem;
+      text-align: left;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font: inherit;
+      line-height: 1.25;
+      cursor: pointer;
+    }
+    .team-coord-cell-btn:active { background: var(--accent-soft); }
+    .team-coord-cell--empty .team-coord-cell-btn {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .team-coord-cell--conflict {
+      background: color-mix(in srgb, #f59e0b 18%, var(--surface));
+      box-shadow: inset 0 0 0 2px rgba(245, 158, 11, 0.55);
+    }
+    .team-coord-cell-line { display: block; }
+    .team-coord-cell-line--muted {
+      color: var(--text-muted);
+      font-size: 0.68rem;
+    }
+    .team-coord-conflicts {
+      margin: 0.65rem 0 0;
+      padding: 0.55rem 0.65rem;
+      border-radius: 10px;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      background: color-mix(in srgb, #f59e0b 12%, var(--surface));
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+    .team-coord-conflicts strong { color: #b45309; }
+    @media (max-width: 900px) {
+      .team-coord-days {
+        grid-template-columns: repeat(5, minmax(15.5rem, 1fr));
+      }
+    }
+    @media (max-width: 480px) {
+      .team-coord-cell-btn { min-height: 4.2rem; font-size: 0.74rem; }
+      .team-coord-day { min-width: 15rem; }
+    }
+
+    .dash-share-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.12rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.28rem 0.5rem;
+      border-radius: 10px;
+      background: color-mix(in srgb, #f59e0b 22%, transparent);
+      color: #b45309;
+      border: 1px solid rgba(245, 158, 11, 0.45);
+      max-width: 100%;
+      line-height: 1.3;
+      flex: 1 1 100%;
+      width: 100%;
+    }
+    .dash-share-badge__head {
+      font-weight: 800;
+    }
+    .dash-share-badge__who {
+      font-weight: 650;
+      opacity: 0.95;
+    }
+    [data-theme="light"] .dash-share-badge { color: #92400e; background: #fff7ed; border-color: #fdba74; }
+
     .cal-panel--visual .cal-scroll-area {
       margin-top: 0.15rem;
     }
@@ -4830,6 +5104,7 @@
       schoolCalendarEvents: [],
       schoolTermSchedule: { mode: "trimestre", terms: [] },
       association: { activities: [] },
+      teamCoordination: { teachers: [], timeSlots: [], cells: {} },
     };
 
     let currentView = "dashboard";
@@ -4846,6 +5121,10 @@
     let associationSettingsTab = "trainings";
     /** Paramétrage créneaux uniquement, depuis l'accueil AS (sans passer par Réglages). */
     let associationDashSetupActivityId = "";
+    /** Semaine A/B pour le tableau d'occupation établissement. */
+    let teamCoordWeekParity = "A";
+    let teamCoordPeriodId = "";
+    let teamCoordFilterTeacherId = "";
     /** Sous-onglet par activité sur l'accueil AS : planning | admin */
     const dashAsActivityPanelTab = {};
     /** Créneau sélectionné par activité (clé jour|début|fin) quand plusieurs créneaux. */
@@ -5138,6 +5417,375 @@
       const m = raw.match(/^(\d{1,2}):(\d{2})/);
       if (!m) return raw;
       return `${String(m[1]).padStart(2, "0")}:${m[2]}`;
+    }
+
+
+    function ensureTeamCoordination() {
+      if (!appData.teamCoordination || typeof appData.teamCoordination !== "object") {
+        appData.teamCoordination = { teachers: [], timeSlots: [], cells: {} };
+      }
+      const tc = appData.teamCoordination;
+      if (!Array.isArray(tc.teachers)) tc.teachers = [];
+      if (!Array.isArray(tc.timeSlots)) tc.timeSlots = [];
+      if (!tc.cells || typeof tc.cells !== "object") tc.cells = {};
+
+      // Migration ancienne structure (slots par jour) → timeSlots + cells jour/semaine
+      if (Array.isArray(tc.slots) && tc.slots.length) {
+        const byTime = new Map();
+        tc.slots.forEach((s) => {
+          if (!s) return;
+          const st = normalizeTimeHHMM(s.startTime || "");
+          const en = normalizeTimeHHMM(s.endTime || "");
+          if (!st || !en) return;
+          const tk = st + "|" + en;
+          if (!byTime.has(tk)) {
+            const id = uid();
+            byTime.set(tk, id);
+            tc.timeSlots.push({ id, startTime: st, endTime: en });
+          }
+          const timeId = byTime.get(tk);
+          const dayIndex = Number.isInteger(s.dayIndex) ? s.dayIndex : parseInt(s.dayIndex, 10);
+          if (!Number.isInteger(dayIndex)) return;
+          // Anciennes cellules teacher|oldSlotId → teacher|day|time|A et B
+          tc.teachers.forEach((t) => {
+            const oldKey = String(t.id) + "|" + String(s.id);
+            const oldCell = tc.cells[oldKey];
+            if (!oldCell) return;
+            ["A", "B"].forEach((w) => {
+              const nk = teamCellKey(t.id, dayIndex, timeId, w);
+              if (!tc.cells[nk]) tc.cells[nk] = { ...oldCell };
+            });
+            delete tc.cells[oldKey];
+          });
+        });
+        delete tc.slots;
+      }
+
+      tc.teachers.forEach((t) => {
+        if (t && !t.id) t.id = uid();
+        if (t) t.name = String(t.name || "").trim();
+      });
+      tc.timeSlots.forEach((s) => {
+        if (s && !s.id) s.id = uid();
+        if (s) {
+          s.startTime = normalizeTimeHHMM(s.startTime || "");
+          s.endTime = normalizeTimeHHMM(s.endTime || "");
+        }
+      });
+      tc.timeSlots.sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)));
+      if (teamCoordWeekParity !== "A" && teamCoordWeekParity !== "B") teamCoordWeekParity = "A";
+      return tc;
+    }
+
+    function weekParityForDate(dateOrIso) {
+      const d = typeof dateOrIso === "string" ? parseISODate(dateOrIso) : dateOrIso;
+      if (!d || Number.isNaN(d.getTime())) return "A";
+      return schoolWeekIndex(d) % 2 === 0 ? "A" : "B";
+    }
+
+    function teamCellKey(teacherId, dayIndex, timeSlotId, weekParity) {
+      return [teacherId || "", dayIndex, timeSlotId || "", weekParity || "A"].join("|");
+    }
+
+    function teamPeriodsSorted() {
+      return (appData.periods || [])
+        .slice()
+        .sort((a, b) => String(a.startDate || "").localeCompare(String(b.startDate || "")));
+    }
+
+    function ensureTeamCoordPeriodId() {
+      const periods = teamPeriodsSorted();
+      if (!periods.length) {
+        teamCoordPeriodId = "";
+        return "";
+      }
+      if (!teamCoordPeriodId || !periods.some((p) => p.id === teamCoordPeriodId)) {
+        teamCoordPeriodId = periods[0].id;
+      }
+      return teamCoordPeriodId;
+    }
+
+    function periodIdForDate(dateStr) {
+      const iso = coerceISODateString(dateStr) || String(dateStr || "");
+      if (!iso) return ensureTeamCoordPeriodId();
+      const hit = teamPeriodsSorted().find((p) => iso >= String(p.startDate || "") && iso <= String(p.endDate || ""));
+      return hit ? hit.id : ensureTeamCoordPeriodId();
+    }
+
+    function periodsForLevel(level) {
+      const lvl = String(level || "").trim();
+      if (!lvl) return [];
+      return teamPeriodsSorted().filter((p) => periodLevels(p).includes(lvl));
+    }
+
+    function periodAppliesToLevel(period, level) {
+      const lvl = String(level || "").trim();
+      if (!lvl || !period) return !lvl;
+      return periodLevels(period).includes(lvl);
+    }
+
+    function teamCellLevel(cell) {
+      const c = cell && typeof cell === "object" ? cell : {};
+      const lvl = String(c.level || "").trim();
+      if (lvl && CLASS_LEVELS.includes(lvl)) return lvl;
+      const inferred = inferClassLevel(c.className || "");
+      return CLASS_LEVELS.includes(inferred) ? inferred : "";
+    }
+
+    function teamCellsContentEqual(a, b) {
+      const na = normalizeTeamCell(a);
+      const nb = normalizeTeamCell(b);
+      return JSON.stringify(na) === JSON.stringify(nb);
+    }
+
+    function normalizeTeamCell(raw) {
+      const periods = teamPeriodsSorted();
+      const cell = { className: "", level: "", byPeriod: {} };
+      if (!raw || typeof raw !== "object") {
+        periods.forEach((p) => { cell.byPeriod[p.id] = { apsa: "", venue: "" }; });
+        return cell;
+      }
+      cell.className = String(raw.className || "").trim();
+      let level = String(raw.level || "").trim();
+      if (!CLASS_LEVELS.includes(level)) level = inferClassLevel(cell.className) || "";
+      if (!CLASS_LEVELS.includes(level)) level = "";
+      cell.level = level;
+      cell.byPeriod = {};
+      const legacyApsa = String(raw.apsa || "").trim();
+      const legacyVenue = String(raw.venue || "").trim();
+      const src = raw.byPeriod && typeof raw.byPeriod === "object" ? raw.byPeriod : null;
+      periods.forEach((p) => {
+        const from = src && src[p.id] ? src[p.id] : null;
+        cell.byPeriod[p.id] = {
+          apsa: String((from && from.apsa) || legacyApsa || "").trim(),
+          venue: String((from && from.venue) || legacyVenue || "").trim(),
+        };
+      });
+      if (src) {
+        Object.keys(src).forEach((pid) => {
+          if (cell.byPeriod[pid]) return;
+          cell.byPeriod[pid] = {
+            apsa: String((src[pid] && src[pid].apsa) || "").trim(),
+            venue: String((src[pid] && src[pid].venue) || "").trim(),
+          };
+        });
+      }
+      return cell;
+    }
+
+    function getTeamCell(teacherId, dayIndex, timeSlotId, weekParity) {
+      const tc = ensureTeamCoordination();
+      const raw = tc.cells[teamCellKey(teacherId, dayIndex, timeSlotId, weekParity || teamCoordWeekParity)];
+      return normalizeTeamCell(raw);
+    }
+
+    function teamCellPeriodView(cell, periodId) {
+      const c = normalizeTeamCell(cell);
+      const pid = periodId || ensureTeamCoordPeriodId();
+      const level = teamCellLevel(c);
+      const period = teamPeriodsSorted().find((p) => p.id === pid);
+      const applies = !period || !level || periodAppliesToLevel(period, level);
+      const part = applies && c.byPeriod && c.byPeriod[pid] ? c.byPeriod[pid] : { apsa: "", venue: "" };
+      return {
+        className: c.className || "",
+        level: level,
+        apsa: applies ? (part.apsa || "") : "",
+        venue: applies ? (part.venue || "") : "",
+        periodId: pid,
+        applies,
+      };
+    }
+
+    function setTeamCell(teacherId, dayIndex, timeSlotId, weekParity, data) {
+      const tc = ensureTeamCoordination();
+      const key = teamCellKey(teacherId, dayIndex, timeSlotId, weekParity);
+      const className = String((data && data.className) || "").trim();
+      let level = String((data && data.level) || "").trim();
+      if (!CLASS_LEVELS.includes(level)) level = inferClassLevel(className) || "";
+      if (!CLASS_LEVELS.includes(level)) level = "";
+      const byPeriod = {};
+      const src = data && data.byPeriod && typeof data.byPeriod === "object" ? data.byPeriod : {};
+      const relevant = level ? periodsForLevel(level) : teamPeriodsSorted();
+      relevant.forEach((p) => {
+        const part = src[p.id] || {};
+        byPeriod[p.id] = {
+          apsa: String(part.apsa || "").trim(),
+          venue: String(part.venue || "").trim(),
+        };
+      });
+      Object.keys(src).forEach((pid) => {
+        if (byPeriod[pid]) return;
+        byPeriod[pid] = {
+          apsa: String((src[pid] && src[pid].apsa) || "").trim(),
+          venue: String((src[pid] && src[pid].venue) || "").trim(),
+        };
+      });
+      const hasPeriodData = Object.values(byPeriod).some((p) => p.apsa || p.venue);
+      if (!className && !level && !hasPeriodData) {
+        delete tc.cells[key];
+        return;
+      }
+      tc.cells[key] = { className, level, byPeriod };
+    }
+
+    function normalizeVenueName(v) {
+      return String(v || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ");
+    }
+
+    function teamTimeLabel(slot) {
+      if (!slot) return "—";
+      return normalizeTimeHHMM(slot.startTime || "") + "–" + normalizeTimeHHMM(slot.endTime || "");
+    }
+
+    function teamCellIsFilled(cell, periodId) {
+      const view = teamCellPeriodView(cell, periodId);
+      if (periodId && view.applies === false) return false;
+      return !!(view.className || view.level || view.venue || view.apsa);
+    }
+
+    function teamCellHasAnyData(cell) {
+      const c = normalizeTeamCell(cell);
+      if (c.className || c.level) return true;
+      return Object.values(c.byPeriod || {}).some((p) => p && (p.apsa || p.venue));
+    }
+
+    function teamVenueConflictsAt(dayIndex, timeSlotId, weekParity, periodId) {
+      const tc = ensureTeamCoordination();
+      const pid = periodId || ensureTeamCoordPeriodId();
+      const byVenue = new Map();
+      tc.teachers.forEach((t) => {
+        const cell = getTeamCell(t.id, dayIndex, timeSlotId, weekParity);
+        const view = teamCellPeriodView(cell, pid);
+        if (view.applies === false) return;
+        const vKey = normalizeVenueName(view.venue);
+        if (!vKey || !teamCellIsFilled(cell, pid)) return;
+        if (!byVenue.has(vKey)) byVenue.set(vKey, []);
+        byVenue.get(vKey).push({ teacher: t, cell, view });
+      });
+      const conflicts = [];
+      byVenue.forEach((list) => {
+        if (list.length < 2) return;
+        conflicts.push({
+          venue: list[0].view.venue,
+          venueKey: normalizeVenueName(list[0].view.venue),
+          entries: list,
+        });
+      });
+      return conflicts;
+    }
+
+    function teamCellHasConflict(teacherId, dayIndex, timeSlotId, weekParity, periodId) {
+      const pid = periodId || ensureTeamCoordPeriodId();
+      const cell = getTeamCell(teacherId, dayIndex, timeSlotId, weekParity);
+      const view = teamCellPeriodView(cell, pid);
+      const vKey = normalizeVenueName(view.venue);
+      if (!vKey) return false;
+      return teamVenueConflictsAt(dayIndex, timeSlotId, weekParity, pid).some((c) => c.venueKey === vKey);
+    }
+
+    function listTeamCoordinationConflicts(weekParity, periodId) {
+      const tc = ensureTeamCoordination();
+      const w = weekParity || teamCoordWeekParity;
+      const pid = periodId || ensureTeamCoordPeriodId();
+      const period = teamPeriodsSorted().find((p) => p.id === pid);
+      const periodLabel = period ? period.name : "période";
+      const lines = [];
+      for (let dayIndex = 0; dayIndex < 5; dayIndex++) {
+        tc.timeSlots.forEach((ts) => {
+          teamVenueConflictsAt(dayIndex, ts.id, w, pid).forEach((c) => {
+            const who = c.entries
+              .map((e) => (e.teacher.name || "—") + (e.view.className ? " (" + e.view.className + ")" : ""))
+              .join(" · ");
+            lines.push(
+              periodLabel + " · Sem. " + w + " · " + (DOW[dayIndex] || "") + " " + teamTimeLabel(ts) + " — " + c.venue + " : " + who
+            );
+          });
+        });
+      }
+      return lines;
+    }
+
+    function sharedInstallationsForSession(session) {
+      if (!session || !session.date) return [];
+      const act = session.activityId ? activityById(session.activityId) : null;
+      const venueRaw = session.venue || (act && act.venue) || "";
+      const venueKey = normalizeVenueName(venueRaw);
+      if (!venueKey) return [];
+      const dayIndex = dayIndexMon0(parseISODate(session.date));
+      if (!Number.isInteger(dayIndex) || dayIndex > 4) return [];
+      const st = normalizeTimeHHMM(session.startTime || "");
+      const en = normalizeTimeHHMM(session.endTime || "");
+      if (!st || !en) return [];
+      const weekParity = weekParityForDate(session.date);
+      const periodId = periodIdForDate(session.date);
+      const tc = ensureTeamCoordination();
+      const myTeacherId = String((appData.settings && appData.settings.myCoordinationTeacherId) || "");
+      const myClass = (() => {
+        const cl = getClassById(session.classId);
+        return cl ? String(cl.name || "").trim().toLowerCase() : "";
+      })();
+      const partners = [];
+      const seen = new Set();
+      tc.timeSlots.forEach((ts) => {
+        const sst = normalizeTimeHHMM(ts.startTime || "");
+        const sen = normalizeTimeHHMM(ts.endTime || "");
+        if (!timeRangesOverlap(st, en, sst, sen)) return;
+        tc.teachers.forEach((t) => {
+          const cell = getTeamCell(t.id, dayIndex, ts.id, weekParity);
+          const view = teamCellPeriodView(cell, periodId);
+          if (view.applies === false) return;
+          if (normalizeVenueName(view.venue) !== venueKey) return;
+          if (!teamCellIsFilled(cell, periodId)) return;
+          if (myTeacherId && t.id === myTeacherId) return;
+          const cellClass = String(view.className || "").trim().toLowerCase();
+          if (myClass && cellClass && cellClass === myClass) return;
+          const key = t.id + "|" + cellClass + "|" + venueKey;
+          if (seen.has(key)) return;
+          seen.add(key);
+          partners.push({
+            teacherName: t.name || "—",
+            className: view.className || "",
+            apsa: view.apsa || "",
+            venue: view.venue || venueRaw || "",
+          });
+        });
+      });
+      return partners;
+    }
+
+    function sharedInstallationBadgeHtml(session) {
+      const partners = sharedInstallationsForSession(session);
+      if (!partners.length) return "";
+      const venue = partners.find((p) => p.venue)?.venue || "";
+      const whoHtml = partners
+        .map((p) => {
+          const parts = [];
+          parts.push(p.teacherName || "—");
+          parts.push(p.apsa ? p.apsa : "APSA non renseignée");
+          parts.push(p.className ? p.className : "classe non renseignée");
+          return `<span class="dash-share-badge__who">avec ${escapeHtml(parts[0])} · ${escapeHtml(parts[1])} · ${escapeHtml(parts[2])}</span>`;
+        })
+        .join("");
+      const title = partners
+        .map(
+          (p) =>
+            (p.teacherName || "—") +
+            " · " +
+            (p.apsa || "APSA ?") +
+            " · " +
+            (p.className || "classe ?") +
+            (p.venue ? " @ " + p.venue : "")
+        )
+        .join(" ; ");
+      const head = venue
+        ? `🤝 Installation partagée · ${escapeHtml(venue)}`
+        : `🤝 Installation partagée`;
+      return `<span class="dash-share-badge" title="${escapeHtml(title)}"><span class="dash-share-badge__head">${head}</span>${whoHtml}</span>`;
     }
 
     function holidayAppliesToSession(holiday, session) {
@@ -5438,6 +6086,8 @@
       (appData.periods || []).forEach((p) => syncActivitiesDatesFromPeriod(p));
       if (!Array.isArray(appData.venues)) appData.venues = [];
       if (appData.progEtabPdf === undefined) appData.progEtabPdf = null;
+      ensureTeamCoordination();
+      if (!appData.settings.myCoordinationTeacherId) appData.settings.myCoordinationTeacherId = "";
       if (!Array.isArray(appData.forgottenGear)) appData.forgottenGear = [];
       appData.classes.forEach((cl) => {
         if (!Array.isArray(cl.students)) cl.students = [];
@@ -8855,6 +9505,7 @@
           <span class="dash-session-class">${escapeHtml(cl ? cl.name : "—")}</span>
           <span style="font-size:.82rem;color:var(--text-muted)">${escapeHtml(s.venue || "")}</span>
           <span style="font-size:.82rem">${act ? escapeHtml(act.name) : "—"}${sessionNumBadge}</span>
+          ${sharedInstallationBadgeHtml(s)}
           ${statusHtml}
           ${motif ? `<span style="font-size:.78rem;color:var(--text-muted)">(${escapeHtml(motif)})</span>` : ""}
           ${hasSummary ? '<span style="font-size:.85rem" title="Résumé rédigé">📝</span>' : ""}
@@ -11498,14 +12149,462 @@
         else appData.activities.push({ id: uid(), ...payload });
       });
       regenerateSessions();
+      // Aligne le tableau d'occupation (ma ligne) si « Je suis » est défini
+      syncMyClassesToTeamCoordination({ silent: true });
       saveData();
       render();
     }
 
+    /**
+     * Remplit la ligne « Je suis » du tableau d'occupation à partir de
+     * Programmation de mes classes (activités + EDT), en croisant jour/horaire.
+     * Remplace les cases de ce professeur (les autres lignes ne sont pas touchées).
+     */
+    function syncMyClassesToTeamCoordination(opts) {
+      opts = opts || {};
+      const silent = !!opts.silent;
+      const myId = String((appData.settings && appData.settings.myCoordinationTeacherId) || "");
+      const tc = ensureTeamCoordination();
+      if (!myId) {
+        if (!silent) alert("Choisissez d'abord « Je suis » (votre nom dans le tableau d'occupation).");
+        return { ok: false, reason: "no-teacher", filled: 0, unmatched: 0 };
+      }
+      if (!tc.teachers.some((t) => t.id === myId)) {
+        if (!silent) alert("Votre profil enseignant est introuvable dans le tableau.");
+        return { ok: false, reason: "teacher-missing", filled: 0, unmatched: 0 };
+      }
+      if (!tc.timeSlots.length) {
+        if (!silent) alert("Ajoutez d'abord les créneaux horaires du tableau d'occupation.");
+        return { ok: false, reason: "no-slots", filled: 0, unmatched: 0 };
+      }
+
+      // Effacer uniquement ma ligne pour coller à la programmation actuelle
+      Object.keys(tc.cells).forEach((key) => {
+        if (key.split("|")[0] === myId) delete tc.cells[key];
+      });
+
+      // Accumulators: key teacher|day|slot|week -> { className, level, byPeriod }
+      const bucket = new Map();
+      let unmatched = 0;
+
+      (appData.classes || []).forEach((cl) => {
+        const level = classLevel(cl);
+        const className = String(cl.name || "").trim();
+        schedulesForClass(cl.id).forEach((sched) => {
+          const dayIndex = Number(sched.dayIndex);
+          if (!Number.isInteger(dayIndex) || dayIndex < 0 || dayIndex > 4) return;
+          const st = normalizeTimeHHMM(sched.startTime || "");
+          const en = normalizeTimeHHMM(sched.endTime || "");
+          if (!st || !en) return;
+          const weeks =
+            sched.weekParity === "A" ? ["A"] : sched.weekParity === "B" ? ["B"] : ["A", "B"];
+          const matchingTs = tc.timeSlots.filter((ts) =>
+            timeRangesOverlap(
+              st,
+              en,
+              normalizeTimeHHMM(ts.startTime || ""),
+              normalizeTimeHHMM(ts.endTime || "")
+            )
+          );
+          if (!matchingTs.length) {
+            unmatched += 1;
+            return;
+          }
+          const acts = (appData.activities || []).filter(
+            (a) =>
+              a.classId === cl.id &&
+              Array.isArray(a.dayIndices) &&
+              a.dayIndices.includes(dayIndex) &&
+              a.periodId
+          );
+          if (!acts.length) return;
+
+          const byPeriod = {};
+          acts.forEach((a) => {
+            byPeriod[a.periodId] = {
+              apsa: String(a.name || "").trim(),
+              venue: String(a.venue || "").trim(),
+            };
+          });
+          if (!Object.values(byPeriod).some((p) => p.apsa || p.venue)) return;
+
+          weeks.forEach((week) => {
+            matchingTs.forEach((ts) => {
+              const key = teamCellKey(myId, dayIndex, ts.id, week);
+              const prev = bucket.get(key) || { className: "", level: "", byPeriod: {} };
+              prev.className = className || prev.className;
+              prev.level = level || prev.level;
+              prev.byPeriod = Object.assign({}, prev.byPeriod, byPeriod);
+              bucket.set(key, prev);
+            });
+          });
+        });
+      });
+
+      bucket.forEach((payload, key) => {
+        const parts = key.split("|");
+        setTeamCell(parts[0], Number(parts[1]), parts[2], parts[3], payload);
+      });
+
+      const filled = bucket.size;
+      if (!silent) {
+        let msg =
+          filled > 0
+            ? "Synchronisation terminée : " + filled + " case(s) remplie(s) sur votre ligne."
+            : "Aucune case à remplir. Vérifiez la programmation de vos classes (APSA + créneaux EDT).";
+        if (unmatched > 0) {
+          msg +=
+            "\n\n" +
+            unmatched +
+            " créneau(x) EDT sans correspondance dans les horaires du tableau d'occupation (ajustez les créneaux horaires).";
+        }
+        alert(msg);
+      }
+      return { ok: true, filled, unmatched };
+    }
+
+    function renderTeamCoordinationHtml() {
+      const tc = ensureTeamCoordination();
+      const periods = teamPeriodsSorted();
+      const periodId = ensureTeamCoordPeriodId();
+      const period = periods.find((p) => p.id === periodId) || null;
+      const teachersAll = tc.teachers;
+      const filterId = teamCoordFilterTeacherId || "";
+      const teachers = filterId
+        ? teachersAll.filter((t) => t.id === filterId)
+        : teachersAll;
+      const timeSlots = tc.timeSlots;
+      const week = teamCoordWeekParity === "B" ? "B" : "A";
+      const myId = String((appData.settings && appData.settings.myCoordinationTeacherId) || "");
+      const teacherOpts = teachersAll
+        .map((t) => `<option value="${escapeHtml(t.id)}" ${t.id === myId ? "selected" : ""}>${escapeHtml(t.name || "—")}</option>`)
+        .join("");
+
+      const periodTabs = periods.length
+        ? `<div class="team-coord-period-tabs" role="tablist" aria-label="Période">
+            ${periods
+              .map(
+                (p) =>
+                  `<button type="button" class="btn btn-sm btn-ghost btn-team-period${p.id === periodId ? " is-active" : ""}" data-period-id="${escapeHtml(p.id)}">${escapeHtml(p.name || "Période")}</button>`
+              )
+              .join("")}
+          </div>`
+        : `<p class="kpi-sub" style="margin:0 0 .65rem;color:var(--danger)">Créez d'abord des périodes (Organisation EPS → Périodes) pour renseigner APSA et lieux par période.</p>`;
+
+      const chips = teachersAll.length
+        ? `<div class="team-coord-teachers-bar">
+            <button type="button" class="team-coord-teacher-chip${!filterId ? " is-active" : ""}" id="btn-team-filter-all" title="Voir tous les professeurs">Tous</button>
+            ${teachersAll
+              .map(
+                (t) => `<span class="team-coord-teacher-chip${filterId === t.id ? " is-active" : ""}">
+                  <button type="button" class="team-coord-teacher-chip__name btn-team-filter-teacher" data-id="${escapeHtml(t.id)}" title="Voir uniquement ${escapeHtml(t.name || "")}">${escapeHtml(t.name || "—")}</button>
+                  <button type="button" class="btn btn-sm btn-danger btn-team-del-teacher" data-id="${escapeHtml(t.id)}" title="Supprimer">✕</button>
+                </span>`
+              )
+              .join("")}
+          </div>`
+        : `<p class="kpi-sub" style="margin:0 0 .65rem">Aucun professeur. Utilisez « Ajouter tous les professeurs ».</p>`;
+
+      const conflictLines = periods.length ? listTeamCoordinationConflicts(week, periodId) : [];
+      const conflictHtml = !periods.length
+        ? ""
+        : conflictLines.length
+          ? `<div class="team-coord-conflicts"><strong>Partages — ${escapeHtml(period ? period.name : "")} · sem. ${week}</strong><br>${conflictLines
+              .map((l) => escapeHtml(l))
+              .join("<br>")}</div>`
+          : `<p class="kpi-sub" style="margin:.55rem 0 0">Aucun partage d'installation pour ${escapeHtml(period ? period.name : "cette période")} (semaine ${week}).</p>`;
+
+      let daysHtml = "";
+      if (!teachersAll.length || !timeSlots.length) {
+        daysHtml = `<p class="kpi-sub" style="margin:0">1) Ajoutez les professeurs · 2) Ajoutez les créneaux · 3) Choisissez la période · 4) Complétez les cases.</p>`;
+      } else if (!teachers.length) {
+        daysHtml = `<p class="kpi-sub" style="margin:0">Aucun professeur correspondant au filtre.</p>`;
+      } else {
+        daysHtml = `<div class="team-coord-days">${[0, 1, 2, 3, 4]
+          .map((dayIndex) => {
+            const head = timeSlots
+              .map(
+                (ts) => `<th class="team-coord-time-head">
+                  ${escapeHtml(teamTimeLabel(ts))}
+                  <div><button type="button" class="btn btn-sm btn-danger btn-team-del-timeslot" data-id="${escapeHtml(ts.id)}">Suppr.</button></div>
+                </th>`
+              )
+              .join("");
+            const rows = teachers
+              .map((t) => {
+                const cells = timeSlots
+                  .map((ts) => {
+                    const cell = getTeamCell(t.id, dayIndex, ts.id, week);
+                    const view = teamCellPeriodView(cell, periodId);
+                    const filled = teamCellIsFilled(cell, periodId);
+                    const conflict = periods.length
+                      ? teamCellHasConflict(t.id, dayIndex, ts.id, week, periodId)
+                      : false;
+                    const label = view.className || view.level || "—";
+                    const levelHint = view.className && view.level ? view.level : "";
+                    const inner = filled
+                      ? `<span class="team-coord-cell-line"><strong>${escapeHtml(label)}</strong>${levelHint ? ` <span class="team-coord-cell-line--muted">(${escapeHtml(levelHint)})</span>` : ""}</span>
+                         <span class="team-coord-cell-line team-coord-cell-line--muted">${escapeHtml(view.apsa || "—")}</span>
+                         <span class="team-coord-cell-line team-coord-cell-line--muted">${escapeHtml(view.venue || "—")}</span>`
+                      : `<span class="team-coord-cell-line">+</span>`;
+                    return `<td class="team-coord-cell${filled ? "" : " team-coord-cell--empty"}${conflict ? " team-coord-cell--conflict" : ""}">
+                      <button type="button" class="team-coord-cell-btn btn-team-edit-cell"
+                        data-teacher-id="${escapeHtml(t.id)}"
+                        data-day-index="${dayIndex}"
+                        data-timeslot-id="${escapeHtml(ts.id)}"
+                        data-week="${week}">${inner}</button>
+                    </td>`;
+                  })
+                  .join("");
+                return `<tr>
+                  <th class="team-coord-teacher-cell btn-team-filter-teacher${filterId === t.id ? " is-active" : ""}" scope="row" data-id="${escapeHtml(t.id)}" title="Filtrer sur ${escapeHtml(t.name || "")}">${escapeHtml(t.name || "—")}</th>
+                  ${cells}
+                </tr>`;
+              })
+              .join("");
+            return `<section class="team-coord-day">
+              <h4 class="team-coord-day__title">${escapeHtml(DOW[dayIndex])}</h4>
+              <div class="team-coord-day-scroll">
+                <table class="team-coord-day-table">
+                  <thead><tr><th>Prof</th>${head}</tr></thead>
+                  <tbody>${rows}</tbody>
+                </table>
+              </div>
+            </section>`;
+          })
+          .join("")}</div>`;
+      }
+
+      const filterHint = filterId
+        ? `<p class="kpi-sub" style="margin:0 0 .45rem">Filtre actif : un seul professeur. Cliquez sur <strong>Tous</strong> pour revenir à l'équipe.</p>`
+        : `<p class="kpi-sub" style="margin:0 0 .45rem">Cliquez sur un <strong>nom de professeur</strong> pour n'afficher que sa grille.</p>`;
+
+      return `<div class="card team-coord-card" style="border-left:4px solid #f59e0b">
+        <div class="card-header"><h3>Tableau d'occupation</h3></div>
+        <p class="kpi-sub" style="margin:0 0 .35rem">Jours Lun→Ven · créneaux en colonnes · lignes = professeurs. Chaque case : <strong>niveau</strong>, puis APSA/lieu selon les périodes de ce niveau (catalogue établissement).</p>
+        <div class="team-coord-week-tabs" role="tablist" aria-label="Semaine A ou B">
+          <button type="button" class="btn btn-sm btn-ghost btn-team-week${week === "A" ? " is-active" : ""}" data-week="A">Semaine A</button>
+          <button type="button" class="btn btn-sm btn-ghost btn-team-week${week === "B" ? " is-active" : ""}" data-week="B">Semaine B</button>
+        </div>
+        ${periodTabs}
+        <div class="team-coord-me">
+          <label class="kpi-sub" for="sel-my-coord-teacher" style="margin:0">Je suis</label>
+          <select id="sel-my-coord-teacher" aria-label="Mon profil enseignant">
+            <option value="">— Choisir mon nom —</option>
+            ${teacherOpts}
+          </select>
+        </div>
+        <div class="team-coord-toolbar">
+          <button type="button" class="btn btn-sm btn-primary" id="btn-team-add-teachers-bulk">+ Ajouter tous les professeurs</button>
+          <button type="button" class="btn btn-sm btn-primary" id="btn-team-add-timeslot">+ Créneau horaire</button>
+          <button type="button" class="btn btn-sm btn-ghost" id="btn-team-sync-from-classes" title="Remplit votre ligne à partir de Programmation de mes classes">↩ Importer ma programmation</button>
+        </div>
+        <p class="kpi-sub" style="margin:0 0 .55rem">Évitez la double saisie : après avoir rempli <strong>Programmation de mes classes</strong>, utilisez « Importer ma programmation » (ou laissez la synchro auto si « Je suis » est choisi). Les autres professeurs restent à saisir manuellement / à partager.</p>
+        ${filterHint}
+        ${chips}
+        ${daysHtml}
+        ${conflictHtml}
+      </div>`;
+    }
+
+    function openTeamCellEditModal(teacherId, dayIndex, timeSlotId, weekParity) {
+      const tc = ensureTeamCoordination();
+      const teacher = tc.teachers.find((t) => t.id === teacherId);
+      const ts = tc.timeSlots.find((s) => s.id === timeSlotId);
+      const day = Number(dayIndex);
+      const weekFromUi = weekParity === "B" ? "B" : "A";
+      if (!teacher || !ts || !Number.isInteger(day)) return;
+      if (!teamPeriodsSorted().length) {
+        alert("Créez d'abord des périodes dans Organisation EPS → Périodes.");
+        return;
+      }
+      const cellA = getTeamCell(teacherId, day, timeSlotId, "A");
+      const cellB = getTeamCell(teacherId, day, timeSlotId, "B");
+      const cell = weekFromUi === "B" ? cellB : cellA;
+      const bothSame =
+        teamCellHasAnyData(cellA) &&
+        teamCellHasAnyData(cellB) &&
+        teamCellsContentEqual(cellA, cellB);
+      const neitherFilled = !teamCellHasAnyData(cellA) && !teamCellHasAnyData(cellB);
+      const defaultScope = bothSame || neitherFilled ? "both" : weekFromUi;
+      const initialLevel = teamCellLevel(cell) || "";
+
+      const venueOpts = (name) =>
+        (appData.venues || [])
+          .map((v) => `<option value="${escapeHtml(v.name)}" ${v.name === name ? "selected" : ""}>${escapeHtml(v.name)}</option>`)
+          .join("");
+
+      function classOptionsForLevel(level, selectedName) {
+        const names = (appData.classes || [])
+          .filter((c) => !level || classLevel(c) === level)
+          .map((c) => c.name)
+          .filter(Boolean);
+        const opts = names.map((n) => `<option value="${escapeHtml(n)}"></option>`).join("");
+        if (selectedName && !names.includes(selectedName)) {
+          return `<option value="${escapeHtml(selectedName)}"></option>` + opts;
+        }
+        return opts;
+      }
+
+      function apsaOptionsForLevel(level, selected) {
+        const names = level ? levelActivityNames(level) : [];
+        let html = `<option value="">— APSA —</option>`;
+        names.forEach((n) => {
+          html += `<option value="${escapeHtml(n)}" ${n === selected ? "selected" : ""}>${escapeHtml(n)}</option>`;
+        });
+        if (selected && !names.includes(selected)) {
+          html += `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)} (hors catalogue)</option>`;
+        }
+        return html;
+      }
+
+      function buildPeriodBlocksHtml(level, sourceCell) {
+        const periods = periodsForLevel(level);
+        if (!level) {
+          return `<p class="kpi-sub" style="margin:0">Sélectionnez un niveau de classe pour afficher les périodes concernées.</p>`;
+        }
+        if (!periods.length) {
+          return `<p class="kpi-sub" style="margin:0;color:var(--danger)">Aucune période paramétrée pour le niveau ${escapeHtml(level)}. Ajoutez ce niveau dans Organisation EPS → Périodes.</p>`;
+        }
+        const apsaNames = levelActivityNames(level);
+        if (!apsaNames.length) {
+          // still show periods/venues; APSA select will be empty aside from legacy
+        }
+        return periods
+          .map((p) => {
+            const part = (sourceCell.byPeriod && sourceCell.byPeriod[p.id]) || { apsa: "", venue: "" };
+            const known = (appData.venues || []).some((v) => v.name === part.venue);
+            return `<div class="team-coord-period-block" data-period-id="${escapeHtml(p.id)}">
+              <h4>${escapeHtml(p.name || "Période")} <span class="kpi-sub">(${escapeHtml(fmtDateFr(p.startDate))} → ${escapeHtml(fmtDateFr(p.endDate))})</span></h4>
+              <div class="form-group" style="margin-bottom:.35rem">
+                <label>APSA</label>
+                <select class="f-team-period-apsa" data-period-id="${escapeHtml(p.id)}">${apsaOptionsForLevel(level, part.apsa || "")}</select>
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <label>Lieu de pratique</label>
+                <select class="f-team-period-venue" data-period-id="${escapeHtml(p.id)}">
+                  <option value="">— Choisir —</option>
+                  ${venueOpts(part.venue || "")}
+                  <option value="__other__" ${part.venue && !known ? "selected" : ""}>Autre (saisie)</option>
+                </select>
+                <input class="f-team-period-venue-other" data-period-id="${escapeHtml(p.id)}" placeholder="Nom du lieu" value="${escapeHtml(part.venue && !known ? part.venue : "")}" style="margin-top:.35rem;${part.venue && !known ? "" : "display:none"}" />
+              </div>
+            </div>`;
+          })
+          .join("");
+      }
+
+      const body = el(`<div>
+        <p class="kpi-sub" style="margin:0 0 .55rem"><strong>${escapeHtml(teacher.name || "—")}</strong> · ${escapeHtml(DOW[day] || "")} ${escapeHtml(teamTimeLabel(ts))}</p>
+        <div class="form-group">
+          <label>Appliquer à</label>
+          <div class="team-coord-week-scope" role="radiogroup" aria-label="Semaines">
+            <label><input type="radio" name="f-team-week-scope" value="both" ${defaultScope === "both" ? "checked" : ""} /> Toutes les semaines</label>
+            <label><input type="radio" name="f-team-week-scope" value="A" ${defaultScope === "A" ? "checked" : ""} /> Semaine A</label>
+            <label><input type="radio" name="f-team-week-scope" value="B" ${defaultScope === "B" ? "checked" : ""} /> Semaine B</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Niveau de classe</label>
+          <select id="f-team-level">
+            <option value="">— Choisir —</option>
+            ${levelOptionsHtml(initialLevel)}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Classe (optionnel)</label>
+          <input id="f-team-class" list="f-team-class-list" placeholder="ex. 6eA" value="${escapeHtml(cell.className)}" autocomplete="off" />
+          <datalist id="f-team-class-list">${classOptionsForLevel(initialLevel, cell.className)}</datalist>
+        </div>
+        <p class="kpi-sub" style="margin:.15rem 0 .45rem">Périodes du niveau · APSA du catalogue établissement</p>
+        <div class="team-coord-periods-host" id="f-team-periods-host">${buildPeriodBlocksHtml(initialLevel, cell)}</div>
+        <p class="kpi-sub" style="margin:.45rem 0 0">Laissez tout vide puis validez pour effacer la case (selon la portée choisie).</p>
+      </div>`);
+
+      const periodsHost = body.querySelector("#f-team-periods-host");
+      const levelSel = body.querySelector("#f-team-level");
+      const classInp = body.querySelector("#f-team-class");
+      const classList = body.querySelector("#f-team-class-list");
+
+      function wireVenueOthers(root) {
+        root.querySelectorAll(".f-team-period-venue").forEach((sel) => {
+          sel.addEventListener("change", () => {
+            const pid = sel.getAttribute("data-period-id");
+            const other = root.querySelector(`.f-team-period-venue-other[data-period-id="${pid}"]`);
+            if (other) other.style.display = sel.value === "__other__" ? "block" : "none";
+          });
+        });
+      }
+
+      function readVisiblePeriodFields() {
+        const byPeriod = {};
+        body.querySelectorAll(".f-team-period-apsa").forEach((sel) => {
+          const pid = sel.getAttribute("data-period-id");
+          if (!pid) return;
+          let venue = (body.querySelector(`.f-team-period-venue[data-period-id="${pid}"]`)?.value || "").trim();
+          if (venue === "__other__") {
+            venue = (body.querySelector(`.f-team-period-venue-other[data-period-id="${pid}"]`)?.value || "").trim();
+          }
+          byPeriod[pid] = { apsa: (sel.value || "").trim(), venue };
+        });
+        return byPeriod;
+      }
+
+      function refreshPeriodsForLevel() {
+        const level = levelSel.value || "";
+        const source = {
+          className: (classInp.value || "").trim(),
+          level,
+          byPeriod: Object.assign({}, cell.byPeriod || {}, readVisiblePeriodFields()),
+        };
+        periodsHost.innerHTML = buildPeriodBlocksHtml(level, normalizeTeamCell(source));
+        wireVenueOthers(periodsHost);
+        if (classList) classList.innerHTML = classOptionsForLevel(level, classInp.value.trim());
+      }
+
+      function collectFormData(requireLevel) {
+        const level = (levelSel.value || "").trim();
+        const className = (classInp.value || "").trim();
+        const visible = readVisiblePeriodFields();
+        const byPeriod = {};
+        periodsForLevel(level).forEach((p) => {
+          byPeriod[p.id] = visible[p.id] || { apsa: "", venue: "" };
+        });
+        const hasPeriodData = Object.values(byPeriod).some((p) => p.apsa || p.venue);
+        if (requireLevel && (className || hasPeriodData) && !level) {
+          alert("Indiquez le niveau de classe.");
+          return null;
+        }
+        return { className, level, byPeriod, hasPeriodData };
+      }
+
+      wireVenueOthers(periodsHost);
+      levelSel.addEventListener("change", refreshPeriodsForLevel);
+
+      openModal("Compléter la case", body, () => {
+        const data = collectFormData(true);
+        if (!data) return false;
+        const scope = (body.querySelector('input[name="f-team-week-scope"]:checked') || {}).value || weekFromUi;
+        const payload = { className: data.className, level: data.level, byPeriod: data.byPeriod };
+        if (scope === "both") {
+          setTeamCell(teacherId, day, timeSlotId, "A", payload);
+          setTeamCell(teacherId, day, timeSlotId, "B", payload);
+        } else if (scope === "B") {
+          setTeamCell(teacherId, day, timeSlotId, "B", payload);
+        } else {
+          setTeamCell(teacherId, day, timeSlotId, "A", payload);
+        }
+        saveData();
+        render();
+        return true;
+      });
+    }
+
     function viewProgEtabBody() {
       const hasDoc = appData.progEtabPdf && appData.progEtabPdf.length > 100;
-      return `<div class="card">
-        <div class="card-header"><h3>Programmation établissement</h3></div>
+      return `${renderTeamCoordinationHtml()}
+      <div class="card">
+        <div class="card-header"><h3>Document PDF</h3></div>
         <p class="kpi-sub" style="margin-bottom:.75rem">Déposez ici le document PDF de la programmation EPS de l'établissement. Il sera stocké dans le navigateur et consultable à tout moment.</p>
         <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem">
           <label class="btn btn-sm btn-primary" style="cursor:pointer">${hasDoc ? "Remplacer le PDF" : "Déposer un PDF"}<input type="file" id="inp-prog-pdf" accept="application/pdf" class="hidden" /></label>
@@ -12812,7 +13911,7 @@
             { id: "orgPeriodes",  icon: "📅", label: "Périodes",                          sub: "Définir les périodes de l'année" },
             { id: "orgApsa",      icon: "🏃", label: "APSA & séquences",                  sub: "Activités par classe et période" },
             { id: "orgLieux",     icon: "📍", label: "Lieux de pratique",                  sub: "Gymnase, stade, piscine…" },
-            { id: "orgProg",      icon: "📋", label: "Programmation de l'établissement",   sub: "Document PDF de référence" },
+            { id: "orgProg",      icon: "📋", label: "Programmation de l'établissement",   sub: "Occupation installations & PDF" },
           ];
           panel = `<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem">${ORG_CARDS.map((c) =>
             `<div class="kpi no-print" style="animation-delay:0.1s;min-width:200px;flex:1;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem 1rem" data-tools="${c.id}">
@@ -13755,6 +14854,149 @@
           render();
         }
       });
+
+      main.querySelectorAll(".btn-team-week").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          teamCoordWeekParity = btn.getAttribute("data-week") === "B" ? "B" : "A";
+          render();
+        });
+      });
+      main.querySelectorAll(".btn-team-period").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          teamCoordPeriodId = btn.getAttribute("data-period-id") || "";
+          render();
+        });
+      });
+      main.querySelector("#btn-team-filter-all")?.addEventListener("click", () => {
+        teamCoordFilterTeacherId = "";
+        render();
+      });
+      main.querySelectorAll(".btn-team-filter-teacher").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-id") || "";
+          teamCoordFilterTeacherId = teamCoordFilterTeacherId === id ? "" : id;
+          render();
+        });
+      });
+      main.querySelector("#sel-my-coord-teacher")?.addEventListener("change", (e) => {
+        if (!appData.settings) appData.settings = {};
+        appData.settings.myCoordinationTeacherId = e.target.value || "";
+        saveData();
+      });
+      main.querySelector("#btn-team-sync-from-classes")?.addEventListener("click", () => {
+        const myId = String((appData.settings && appData.settings.myCoordinationTeacherId) || "");
+        if (!myId) {
+          alert("Choisissez d'abord « Je suis » (votre nom).");
+          return;
+        }
+        if (!confirm("Remplacer votre ligne du tableau d'occupation par la Programmation de mes classes ?\n\nLes cases des autres professeurs ne seront pas modifiées.")) return;
+        const result = syncMyClassesToTeamCoordination({ silent: false });
+        if (result && result.ok) {
+          saveData();
+          render();
+        }
+      });
+      main.querySelector("#btn-team-add-teachers-bulk")?.addEventListener("click", () => {
+        const body = el(`<div>
+          <div class="form-group">
+            <label>Noms des professeurs (un par ligne)</label>
+            <textarea id="f-team-teachers-bulk" rows="8" placeholder="Mme Dupont&#10;M. Martin&#10;Mme Leroy" style="width:100%;min-height:9rem;padding:.55rem;border-radius:10px;border:1px solid var(--border-strong);background:var(--card);color:var(--text)"></textarea>
+          </div>
+          <p class="kpi-sub" style="margin:0">Les noms déjà présents ne seront pas dupliqués.</p>
+        </div>`);
+        openModal("Ajouter tous les professeurs", body, () => {
+          const raw = body.querySelector("#f-team-teachers-bulk")?.value || "";
+          const names = raw
+            .split(/\n|;|,/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+          if (!names.length) return false;
+          const tc = ensureTeamCoordination();
+          const existing = new Set(tc.teachers.map((t) => String(t.name || "").trim().toLowerCase()));
+          let added = 0;
+          names.forEach((name) => {
+            const key = name.toLowerCase();
+            if (existing.has(key)) return;
+            existing.add(key);
+            tc.teachers.push({ id: uid(), name });
+            added += 1;
+          });
+          if (!added) {
+            alert("Aucun nouveau professeur à ajouter.");
+            return false;
+          }
+          saveData();
+          render();
+          return true;
+        });
+      });
+      main.querySelector("#btn-team-add-timeslot")?.addEventListener("click", () => {
+        const body = el(`<div>
+          <div class="form-row">
+            <div class="form-group"><label>Début</label><input type="time" id="f-team-slot-start" value="10:15" /></div>
+            <div class="form-group"><label>Fin</label><input type="time" id="f-team-slot-end" value="11:10" /></div>
+          </div>
+          <p class="kpi-sub" style="margin:0">Ce créneau apparaît en colonne pour chaque jour (lun–ven), semaines A et B.</p>
+        </div>`);
+        openModal("Ajouter un créneau horaire", body, () => {
+          const startTime = normalizeTimeHHMM(body.querySelector("#f-team-slot-start")?.value || "");
+          const endTime = normalizeTimeHHMM(body.querySelector("#f-team-slot-end")?.value || "");
+          if (!startTime || !endTime || startTime >= endTime) {
+            alert("Vérifiez les horaires.");
+            return false;
+          }
+          const tc = ensureTeamCoordination();
+          if (tc.timeSlots.some((s) => s.startTime === startTime && s.endTime === endTime)) {
+            alert("Ce créneau existe déjà.");
+            return false;
+          }
+          tc.timeSlots.push({ id: uid(), startTime, endTime });
+          saveData();
+          render();
+          return true;
+        });
+      });
+      main.querySelectorAll(".btn-team-del-teacher").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-id");
+          if (!id || !confirm("Supprimer ce professeur et toutes ses cases (A et B) ?")) return;
+          const tc = ensureTeamCoordination();
+          tc.teachers = tc.teachers.filter((t) => t.id !== id);
+          Object.keys(tc.cells).forEach((k) => {
+            if (k.startsWith(id + "|")) delete tc.cells[k];
+          });
+          if (appData.settings && appData.settings.myCoordinationTeacherId === id) {
+            appData.settings.myCoordinationTeacherId = "";
+          }
+          saveData();
+          render();
+        });
+      });
+      main.querySelectorAll(".btn-team-del-timeslot").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-id");
+          if (!id || !confirm("Supprimer ce créneau horaire et ses cases ?")) return;
+          const tc = ensureTeamCoordination();
+          tc.timeSlots = tc.timeSlots.filter((s) => s.id !== id);
+          Object.keys(tc.cells).forEach((k) => {
+            const parts = k.split("|");
+            if (parts[2] === id) delete tc.cells[k];
+          });
+          saveData();
+          render();
+        });
+      });
+      main.querySelectorAll(".btn-team-edit-cell").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          openTeamCellEditModal(
+            btn.getAttribute("data-teacher-id"),
+            parseInt(btn.getAttribute("data-day-index"), 10),
+            btn.getAttribute("data-timeslot-id"),
+            btn.getAttribute("data-week")
+          );
+        });
+      });
+
       main.querySelector("#btn-add-venue")?.addEventListener("click", () => {
         const body = el(`<div>
           <div class="form-group"><label>Nom du lieu</label><input id="f-ven-name" placeholder="Gymnase A, Stade…" /></div>
