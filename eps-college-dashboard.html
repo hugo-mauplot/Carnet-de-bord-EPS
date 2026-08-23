@@ -703,6 +703,38 @@
       align-items: center;
       margin: 0 0 0.65rem;
     }
+    .team-coord-toolbar-row {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 0.45rem;
+      width: 100%;
+      margin: 0 0 0.45rem;
+    }
+    .team-coord-toolbar-row .btn {
+      flex: 1 1 0;
+      min-width: 0;
+      white-space: nowrap;
+    }
+    .team-coord-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      margin: 0 0 0.55rem;
+    }
+    .team-coord-filter-bar select {
+      flex: 1 1 12rem;
+      min-height: 40px;
+    }
+    .team-coord-teacher-cell .btn-team-del-teacher {
+      margin-top: 0.25rem;
+      padding: 0.1rem 0.35rem;
+      font-size: 0.68rem;
+      min-height: 26px;
+    }
+    .team-coord-week-tabs--above-table {
+      margin: 0.35rem 0 0.55rem;
+    }
     .team-coord-me {
       display: flex;
       flex-wrap: wrap;
@@ -768,7 +800,7 @@
       cursor: pointer;
     }
     .team-coord-teacher-cell {
-      cursor: pointer;
+      cursor: default;
     }
     .team-coord-teacher-cell.is-active {
       background: var(--accent-soft) !important;
@@ -12346,6 +12378,9 @@
       const teacherOpts = teachersAll
         .map((t) => `<option value="${escapeHtml(t.id)}" ${t.id === myId ? "selected" : ""}>${escapeHtml(t.name || "—")}</option>`)
         .join("");
+      const filterOpts = teachersAll
+        .map((t) => `<option value="${escapeHtml(t.id)}" ${t.id === filterId ? "selected" : ""}>${escapeHtml(t.name || "—")}</option>`)
+        .join("");
 
       const periodTabs = periods.length
         ? `<div class="team-coord-period-tabs" role="tablist" aria-label="Période">
@@ -12356,37 +12391,22 @@
               )
               .join("")}
           </div>`
-        : `<p class="kpi-sub" style="margin:0 0 .65rem;color:var(--danger)">Créez d'abord des périodes (Organisation EPS → Périodes) pour renseigner APSA et lieux par période.</p>`;
-
-      const chips = teachersAll.length
-        ? `<div class="team-coord-teachers-bar">
-            <button type="button" class="team-coord-teacher-chip${!filterId ? " is-active" : ""}" id="btn-team-filter-all" title="Voir tous les professeurs">Tous</button>
-            ${teachersAll
-              .map(
-                (t) => `<span class="team-coord-teacher-chip${filterId === t.id ? " is-active" : ""}">
-                  <button type="button" class="team-coord-teacher-chip__name btn-team-filter-teacher" data-id="${escapeHtml(t.id)}" title="Voir uniquement ${escapeHtml(t.name || "")}">${escapeHtml(t.name || "—")}</button>
-                  <button type="button" class="btn btn-sm btn-danger btn-team-del-teacher" data-id="${escapeHtml(t.id)}" title="Supprimer">✕</button>
-                </span>`
-              )
-              .join("")}
-          </div>`
-        : `<p class="kpi-sub" style="margin:0 0 .65rem">Aucun professeur. Utilisez « Ajouter tous les professeurs ».</p>`;
+        : "";
 
       const conflictLines = periods.length ? listTeamCoordinationConflicts(week, periodId) : [];
-      const conflictHtml = !periods.length
-        ? ""
-        : conflictLines.length
-          ? `<div class="team-coord-conflicts"><strong>Partages — ${escapeHtml(period ? period.name : "")} · sem. ${week}</strong><br>${conflictLines
-              .map((l) => escapeHtml(l))
-              .join("<br>")}</div>`
-          : `<p class="kpi-sub" style="margin:.55rem 0 0">Aucun partage d'installation pour ${escapeHtml(period ? period.name : "cette période")} (semaine ${week}).</p>`;
+      const conflictHtml = conflictLines.length
+        ? `<div class="team-coord-conflicts"><strong>Partages — ${escapeHtml(period ? period.name : "")} · sem. ${week}</strong><br>${conflictLines
+            .map((l) => escapeHtml(l))
+            .join("<br>")}</div>`
+        : "";
+
+      const weekTabs = `<div class="team-coord-week-tabs team-coord-week-tabs--above-table" role="tablist" aria-label="Semaine A ou B">
+          <button type="button" class="btn btn-sm btn-ghost btn-team-week${week === "A" ? " is-active" : ""}" data-week="A">Semaine A</button>
+          <button type="button" class="btn btn-sm btn-ghost btn-team-week${week === "B" ? " is-active" : ""}" data-week="B">Semaine B</button>
+        </div>`;
 
       let daysHtml = "";
-      if (!teachersAll.length || !timeSlots.length) {
-        daysHtml = `<p class="kpi-sub" style="margin:0">1) Ajoutez les professeurs · 2) Ajoutez les créneaux · 3) Choisissez la période · 4) Complétez les cases.</p>`;
-      } else if (!teachers.length) {
-        daysHtml = `<p class="kpi-sub" style="margin:0">Aucun professeur correspondant au filtre.</p>`;
-      } else {
+      if (teachersAll.length && timeSlots.length && teachers.length) {
         daysHtml = `<div class="team-coord-days">${[0, 1, 2, 3, 4]
           .map((dayIndex) => {
             const head = timeSlots
@@ -12424,7 +12444,10 @@
                   })
                   .join("");
                 return `<tr>
-                  <th class="team-coord-teacher-cell btn-team-filter-teacher${filterId === t.id ? " is-active" : ""}" scope="row" data-id="${escapeHtml(t.id)}" title="Filtrer sur ${escapeHtml(t.name || "")}">${escapeHtml(t.name || "—")}</th>
+                  <th class="team-coord-teacher-cell${filterId === t.id ? " is-active" : ""}" scope="row">
+                    ${escapeHtml(t.name || "—")}
+                    <div><button type="button" class="btn btn-sm btn-danger btn-team-del-teacher" data-id="${escapeHtml(t.id)}" title="Supprimer">Suppr.</button></div>
+                  </th>
                   ${cells}
                 </tr>`;
               })
@@ -12442,18 +12465,8 @@
           .join("")}</div>`;
       }
 
-      const filterHint = filterId
-        ? `<p class="kpi-sub" style="margin:0 0 .45rem">Filtre actif : un seul professeur. Cliquez sur <strong>Tous</strong> pour revenir à l'équipe.</p>`
-        : `<p class="kpi-sub" style="margin:0 0 .45rem">Cliquez sur un <strong>nom de professeur</strong> pour n'afficher que sa grille.</p>`;
-
       return `<div class="card team-coord-card" style="border-left:4px solid #f59e0b">
-        <div class="card-header"><h3>Tableau d'occupation</h3></div>
-        <p class="kpi-sub" style="margin:0 0 .35rem">Jours Lun→Ven · créneaux en colonnes · lignes = professeurs. Chaque case : <strong>niveau</strong>, puis APSA/lieu selon les périodes de ce niveau (catalogue établissement).</p>
-        <div class="team-coord-week-tabs" role="tablist" aria-label="Semaine A ou B">
-          <button type="button" class="btn btn-sm btn-ghost btn-team-week${week === "A" ? " is-active" : ""}" data-week="A">Semaine A</button>
-          <button type="button" class="btn btn-sm btn-ghost btn-team-week${week === "B" ? " is-active" : ""}" data-week="B">Semaine B</button>
-        </div>
-        ${periodTabs}
+        <div class="card-header"><h3>Planning professeurs</h3></div>
         <div class="team-coord-me">
           <label class="kpi-sub" for="sel-my-coord-teacher" style="margin:0">Je suis</label>
           <select id="sel-my-coord-teacher" aria-label="Mon profil enseignant">
@@ -12462,13 +12475,22 @@
           </select>
         </div>
         <div class="team-coord-toolbar">
-          <button type="button" class="btn btn-sm btn-primary" id="btn-team-add-teachers-bulk">+ Ajouter tous les professeurs</button>
-          <button type="button" class="btn btn-sm btn-primary" id="btn-team-add-timeslot">+ Créneau horaire</button>
+          <div class="team-coord-toolbar-row">
+            <button type="button" class="btn btn-sm btn-primary" id="btn-team-add-teachers-bulk">+ Ajouter professeurs</button>
+            <button type="button" class="btn btn-sm btn-primary" id="btn-team-add-timeslot">+ Créneaux horaires</button>
+          </div>
           <button type="button" class="btn btn-sm btn-ghost" id="btn-team-sync-from-classes" title="Remplit votre ligne à partir de Programmation de mes classes">↩ Importer ma programmation</button>
         </div>
         <p class="kpi-sub" style="margin:0 0 .55rem">Évitez la double saisie : après avoir rempli <strong>Programmation de mes classes</strong>, utilisez « Importer ma programmation » (ou laissez la synchro auto si « Je suis » est choisi). Les autres professeurs restent à saisir manuellement / à partager.</p>
-        ${filterHint}
-        ${chips}
+        ${periodTabs}
+        <div class="team-coord-filter-bar">
+          <label class="kpi-sub" for="sel-team-filter-teacher" style="margin:0">Afficher</label>
+          <select id="sel-team-filter-teacher" aria-label="Filtrer par professeur">
+            <option value="" ${!filterId ? "selected" : ""}>Tous les professeurs</option>
+            ${filterOpts}
+          </select>
+        </div>
+        ${weekTabs}
         ${daysHtml}
         ${conflictHtml}
       </div>`;
@@ -13892,7 +13914,7 @@
         </details>
 
         <details class="tutorial-section" id="tuto-etab">
-          <summary>Tableau d'occupation de l'établissement</summary>
+          <summary>Planning professeurs</summary>
           <div class="tutorial-section__body">
             <p>${goto("tools:orgProg", "Programmation de l'établissement")}</p>
             <ul>
@@ -14953,16 +14975,9 @@
           render();
         });
       });
-      main.querySelector("#btn-team-filter-all")?.addEventListener("click", () => {
-        teamCoordFilterTeacherId = "";
+      main.querySelector("#sel-team-filter-teacher")?.addEventListener("change", (e) => {
+        teamCoordFilterTeacherId = e.target.value || "";
         render();
-      });
-      main.querySelectorAll(".btn-team-filter-teacher").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const id = btn.getAttribute("data-id") || "";
-          teamCoordFilterTeacherId = teamCoordFilterTeacherId === id ? "" : id;
-          render();
-        });
       });
       main.querySelector("#sel-my-coord-teacher")?.addEventListener("change", (e) => {
         if (!appData.settings) appData.settings = {};
@@ -14975,7 +14990,7 @@
           alert("Choisissez d'abord « Je suis » (votre nom).");
           return;
         }
-        if (!confirm("Remplacer votre ligne du tableau d'occupation par la Programmation de mes classes ?\n\nLes cases des autres professeurs ne seront pas modifiées.")) return;
+        if (!confirm("Remplacer votre ligne du planning professeurs par la Programmation de mes classes ?\n\nLes cases des autres professeurs ne seront pas modifiées.")) return;
         const result = syncMyClassesToTeamCoordination({ silent: false });
         if (result && result.ok) {
           saveData();
@@ -14988,9 +15003,8 @@
             <label>Noms des professeurs (un par ligne)</label>
             <textarea id="f-team-teachers-bulk" rows="8" placeholder="Mme Dupont&#10;M. Martin&#10;Mme Leroy" style="width:100%;min-height:9rem;padding:.55rem;border-radius:10px;border:1px solid var(--border-strong);background:var(--card);color:var(--text)"></textarea>
           </div>
-          <p class="kpi-sub" style="margin:0">Les noms déjà présents ne seront pas dupliqués.</p>
         </div>`);
-        openModal("Ajouter tous les professeurs", body, () => {
+        openModal("Ajouter professeurs", body, () => {
           const raw = body.querySelector("#f-team-teachers-bulk")?.value || "";
           const names = raw
             .split(/\n|;|,/)
@@ -15018,32 +15032,53 @@
       });
       main.querySelector("#btn-team-add-timeslot")?.addEventListener("click", () => {
         const body = el(`<div>
-          <div class="form-row">
-            <div class="form-group"><label>Début</label><input type="time" id="f-team-slot-start" value="10:15" /></div>
-            <div class="form-group"><label>Fin</label><input type="time" id="f-team-slot-end" value="11:10" /></div>
+          <div class="form-group">
+            <label>Créneaux (un par ligne, format début–fin)</label>
+            <textarea id="f-team-slots-bulk" rows="8" placeholder="08:20-09:15&#10;09:25-10:20&#10;10:35-11:30&#10;13:50-14:45" style="width:100%;min-height:9rem;padding:.55rem;border-radius:10px;border:1px solid var(--border-strong);background:var(--card);color:var(--text)"></textarea>
           </div>
-          <p class="kpi-sub" style="margin:0">Ce créneau apparaît en colonne pour chaque jour (lun–ven), semaines A et B.</p>
         </div>`);
-        openModal("Ajouter un créneau horaire", body, () => {
-          const startTime = normalizeTimeHHMM(body.querySelector("#f-team-slot-start")?.value || "");
-          const endTime = normalizeTimeHHMM(body.querySelector("#f-team-slot-end")?.value || "");
-          if (!startTime || !endTime || startTime >= endTime) {
-            alert("Vérifiez les horaires.");
-            return false;
-          }
+        openModal("Créneaux horaires", body, () => {
+          const raw = body.querySelector("#f-team-slots-bulk")?.value || "";
+          const lines = raw
+            .split(/\n|;/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+          if (!lines.length) return false;
           const tc = ensureTeamCoordination();
-          if (tc.timeSlots.some((s) => s.startTime === startTime && s.endTime === endTime)) {
-            alert("Ce créneau existe déjà.");
+          const existing = new Set(tc.timeSlots.map((s) => s.startTime + "|" + s.endTime));
+          let added = 0;
+          let invalid = 0;
+          lines.forEach((line) => {
+            const m = line.match(/^(\d{1,2})\s*[:hH.]\s*(\d{2})\s*[-–—àa/\s]+\s*(\d{1,2})\s*[:hH.]\s*(\d{2})$/i);
+            if (!m) {
+              invalid += 1;
+              return;
+            }
+            const startTime = normalizeTimeHHMM(m[1] + ":" + m[2]);
+            const endTime = normalizeTimeHHMM(m[3] + ":" + m[4]);
+            if (!startTime || !endTime || startTime >= endTime) {
+              invalid += 1;
+              return;
+            }
+            const key = startTime + "|" + endTime;
+            if (existing.has(key)) return;
+            existing.add(key);
+            tc.timeSlots.push({ id: uid(), startTime, endTime });
+            added += 1;
+          });
+          tc.timeSlots.sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)));
+          if (!added) {
+            alert(invalid ? "Aucun créneau valide à ajouter. Ex. : 08:20-09:15" : "Ces créneaux existent déjà.");
             return false;
           }
-          tc.timeSlots.push({ id: uid(), startTime, endTime });
           saveData();
           render();
           return true;
         });
       });
       main.querySelectorAll(".btn-team-del-teacher").forEach((btn) => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
           const id = btn.getAttribute("data-id");
           if (!id || !confirm("Supprimer ce professeur et toutes ses cases (A et B) ?")) return;
           const tc = ensureTeamCoordination();
@@ -15054,6 +15089,7 @@
           if (appData.settings && appData.settings.myCoordinationTeacherId === id) {
             appData.settings.myCoordinationTeacherId = "";
           }
+          if (teamCoordFilterTeacherId === id) teamCoordFilterTeacherId = "";
           saveData();
           render();
         });
