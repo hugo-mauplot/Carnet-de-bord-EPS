@@ -941,7 +941,8 @@
       border: 1px solid rgba(245, 158, 11, 0.45);
       max-width: 100%;
       line-height: 1.3;
-      grid-column: 1 / -1;
+      flex: 1 1 100%;
+      width: 100%;
     }
     .dash-share-badge__head {
       font-weight: 800;
@@ -7495,9 +7496,20 @@
       orgLieux: "Lieux de pratique",
       orgProg: "Programmation",
       calendriers: "Calendriers",
+      calendarFull: "Calendrier visuel",
       backup: "Sauvegarde",
       tutorial: "Guide",
     };
+
+    /** Parent hiérarchique d'un panneau Réglages (sous-menus Organisation EPS, etc.). */
+    function getToolsParentPanel(panel) {
+      if (panel === "orgPeriodes" || panel === "orgApsa" || panel === "orgLieux" || panel === "orgProg") {
+        return "orgEPS";
+      }
+      if (panel === "calendarFull") return "calendriers";
+      if (panel && panel !== "home") return "home";
+      return null;
+    }
 
     function getNavSnapshot() {
       return {
@@ -7536,29 +7548,110 @@
     }
 
     function shouldShowNavBack() {
+      if (associationDashSetupActivityId && currentView === "dashboard:association") return true;
+      if (currentView === "tools" && toolsPanel === "association" && associationOpenActivityId) return true;
       return navHistory.length > 0 || isToolsSubpanel();
     }
 
+    /**
+     * Remonte à l'accueil des Réglages en retirant les sous-panels tools de l'historique,
+     * pour que le bouton retour ne rouvre pas le sous-menu qu'on vient de quitter.
+     */
+    function goToToolsHome() {
+      if (currentView === "tools" && (!toolsPanel || toolsPanel === "home") && !associationOpenActivityId) {
+        scrollPageToStart();
+        return;
+      }
+      if (currentView === "tools") {
+        while (navHistory.length) {
+          const top = navHistory[navHistory.length - 1];
+          if (top.view !== "tools") break;
+          navHistory.pop();
+          if (!top.toolsPanel || top.toolsPanel === "home") break;
+        }
+        associationOpenActivityId = "";
+        associationSettingsTab = "trainings";
+        toolsPanel = "home";
+        render();
+        scrollPageToStart();
+        return;
+      }
+      navigateTo("tools", "home");
+    }
+
+    function stepBackToolsHierarchy() {
+      if (currentView === "tools" && toolsPanel === "association" && associationOpenActivityId) {
+        associationOpenActivityId = "";
+        associationSettingsTab = "trainings";
+        render();
+        scrollPageToStart();
+        return true;
+      }
+      if (!isToolsSubpanel()) return false;
+      const parent = getToolsParentPanel(toolsPanel) || "home";
+      associationOpenActivityId = "";
+      associationSettingsTab = "trainings";
+      toolsPanel = parent;
+      render();
+      scrollPageToStart();
+      return true;
+    }
+
     function handleNavBack() {
+      if (associationDashSetupActivityId && currentView === "dashboard:association") {
+        cancelAssociationDashSetup();
+        render();
+        scrollPageToStart();
+        return;
+      }
       if (navHistory.length) {
         goBack();
         return;
       }
-      if (isToolsSubpanel()) {
-        toolsPanel = "home";
-        render();
-        scrollPageToStart();
+      stepBackToolsHierarchy();
+    }
+
+    function labelForNavSnapshot(snap) {
+      if (!snap) return "◀ Retour";
+      if (snap.view === "dashboard") return "◀ Accueil";
+      if (snap.view === "dashboard:association") return "◀ Association sportive";
+      if (snap.view === "calendar:visual") return "◀ Calendrier";
+      if (snap.view === "classes") return "◀ Classes";
+      if (snap.view === "tools") {
+        if (snap.toolsPanel === "association" && snap.associationOpenActivityId) {
+          const act = findAssociationActivity(snap.associationOpenActivityId);
+          if (act && act.name) return "◀ " + act.name;
+          return "◀ Association sportive";
+        }
+        const name = TOOLS_PANEL_LABELS[snap.toolsPanel || "home"];
+        if (name) return "◀ " + name;
+        return "◀ Réglages";
       }
+      if (snap.view && snap.view.startsWith("class:")) {
+        const cl = getClassById(snap.view.slice(6));
+        if (cl) return "◀ " + cl.name;
+      }
+      return "◀ Retour";
     }
 
     function getBackButtonLabel() {
+      if (associationDashSetupActivityId && currentView === "dashboard:association") {
+        return "◀ Association sportive";
+      }
       if (!navHistory.length) {
-        if (isToolsSubpanel()) return "◀ Réglages";
+        if (currentView === "tools" && toolsPanel === "association" && associationOpenActivityId) {
+          return "◀ Activités";
+        }
+        if (isToolsSubpanel()) {
+          const parent = getToolsParentPanel(toolsPanel);
+          if (parent === "orgEPS") return "◀ Organisation EPS";
+          if (parent === "calendriers") return "◀ Calendriers";
+          return "◀ Réglages";
+        }
         return "◀ Retour";
       }
       const prev = navHistory[navHistory.length - 1];
       const cur = getNavSnapshot();
-      if (prev.view === "dashboard:association") return "◀ Association sportive";
       if (
         cur.view === "tools" &&
         cur.toolsPanel === "association" &&
@@ -7569,22 +7662,7 @@
       ) {
         return "◀ Activités";
       }
-      if (prev.view === "tools" && prev.toolsPanel === "association" && prev.associationOpenActivityId) {
-        const act = findAssociationActivity(prev.associationOpenActivityId);
-        if (act && act.name) return "◀ " + act.name;
-      }
-      if (cur.view === "tools" && prev.view === "tools" && prev.toolsPanel) {
-        const name = TOOLS_PANEL_LABELS[prev.toolsPanel];
-        if (name) return "◀ " + name;
-      }
-      if (prev.view === "dashboard") return "◀ Accueil";
-      if (prev.view === "classes") return "◀ Classes";
-      if (prev.view === "tools") return "◀ Réglages";
-      if (prev.view.startsWith("class:")) {
-        const cl = getClassById(prev.view.slice(6));
-        if (cl) return "◀ " + cl.name;
-      }
-      return "◀ Retour";
+      return labelForNavSnapshot(prev);
     }
 
     function openToolsPanel(panel) {
@@ -7606,7 +7684,11 @@
         render();
         return;
       }
-      navigateTo("tools", "association");
+      // Arriver sur la liste AS puis ouvrir l'activité → le retour revient bien à la liste
+      if (!(currentView === "tools" && toolsPanel === "association")) {
+        navigateTo("tools", "association");
+      }
+      pushNavHistory();
       associationOpenActivityId = activityId;
       associationSettingsTab = tabId;
       render();
@@ -8319,7 +8401,7 @@
         btn.addEventListener("click", () => {
           document.getElementById("sidebar").classList.remove("open");
           const view = btn.getAttribute("data-view");
-          if (view === "tools") navigateTo("tools", "home");
+          if (view === "tools") goToToolsHome();
           else navigateTo(view);
         });
       });
@@ -8346,31 +8428,17 @@
         </button>`;
       nav.querySelector('[data-tab="home"]').onclick = () => {
         document.getElementById("sidebar")?.classList.remove("open");
-        const onHome =
-          currentView === "dashboard" ||
-          currentView === "dashboard:association" ||
-          currentView === "calendar:visual";
-        if (onHome) scrollPageToStart();
+        if (currentView === "dashboard") scrollPageToStart();
         else navigateTo("dashboard");
       };
       nav.querySelector('[data-tab="classes"]').onclick = () => {
         document.getElementById("sidebar")?.classList.remove("open");
-        if (currentView === "classes" || currentView.startsWith("class:")) scrollPageToStart();
+        if (currentView === "classes") scrollPageToStart();
         else navigateTo("classes");
       };
       nav.querySelector('[data-tab="settings"]').onclick = () => {
         document.getElementById("sidebar")?.classList.remove("open");
-        if (currentView === "tools") {
-          if (isToolsSubpanel()) {
-            toolsPanel = "home";
-            render();
-            scrollPageToStart();
-            return;
-          }
-          scrollPageToStart();
-          return;
-        }
-        navigateTo("tools");
+        goToToolsHome();
       };
     }
 
@@ -16085,7 +16153,10 @@
         cancelAssociationDashSetup();
       }
       const changed =
-        cur.view !== view || (view === "tools" && cur.view === "tools" && cur.toolsPanel !== nextPanel);
+        cur.view !== view ||
+        (view === "tools" &&
+          (cur.toolsPanel !== nextPanel ||
+            (cur.associationOpenActivityId && nextPanel !== "association")));
       if (!changed) {
         scrollPageToStart();
         return;
@@ -16093,7 +16164,10 @@
       if (changed) pushNavHistory();
       currentView = view;
       if (view === "tools") {
-        if (nextPanel === "association" && cur.toolsPanel !== "association") {
+        if (nextPanel !== "association") {
+          associationOpenActivityId = "";
+          associationSettingsTab = "trainings";
+        } else if (cur.toolsPanel !== "association") {
           associationOpenActivityId = "";
           associationSettingsTab = "trainings";
         }
@@ -16110,9 +16184,13 @@
       if (associationDashSetupActivityId && currentView === "dashboard:association") {
         cancelAssociationDashSetup();
         render();
+        scrollPageToStart();
         return;
       }
-      if (!navHistory.length) return;
+      if (!navHistory.length) {
+        stepBackToolsHierarchy();
+        return;
+      }
       const prev = navHistory.pop();
       applyNavSnapshot(prev);
       render();

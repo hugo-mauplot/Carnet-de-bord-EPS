@@ -7496,9 +7496,20 @@
       orgLieux: "Lieux de pratique",
       orgProg: "Programmation",
       calendriers: "Calendriers",
+      calendarFull: "Calendrier visuel",
       backup: "Sauvegarde",
       tutorial: "Guide",
     };
+
+    /** Parent hiérarchique d'un panneau Réglages (sous-menus Organisation EPS, etc.). */
+    function getToolsParentPanel(panel) {
+      if (panel === "orgPeriodes" || panel === "orgApsa" || panel === "orgLieux" || panel === "orgProg") {
+        return "orgEPS";
+      }
+      if (panel === "calendarFull") return "calendriers";
+      if (panel && panel !== "home") return "home";
+      return null;
+    }
 
     function getNavSnapshot() {
       return {
@@ -7537,29 +7548,110 @@
     }
 
     function shouldShowNavBack() {
+      if (associationDashSetupActivityId && currentView === "dashboard:association") return true;
+      if (currentView === "tools" && toolsPanel === "association" && associationOpenActivityId) return true;
       return navHistory.length > 0 || isToolsSubpanel();
     }
 
+    /**
+     * Remonte à l'accueil des Réglages en retirant les sous-panels tools de l'historique,
+     * pour que le bouton retour ne rouvre pas le sous-menu qu'on vient de quitter.
+     */
+    function goToToolsHome() {
+      if (currentView === "tools" && (!toolsPanel || toolsPanel === "home") && !associationOpenActivityId) {
+        scrollPageToStart();
+        return;
+      }
+      if (currentView === "tools") {
+        while (navHistory.length) {
+          const top = navHistory[navHistory.length - 1];
+          if (top.view !== "tools") break;
+          navHistory.pop();
+          if (!top.toolsPanel || top.toolsPanel === "home") break;
+        }
+        associationOpenActivityId = "";
+        associationSettingsTab = "trainings";
+        toolsPanel = "home";
+        render();
+        scrollPageToStart();
+        return;
+      }
+      navigateTo("tools", "home");
+    }
+
+    function stepBackToolsHierarchy() {
+      if (currentView === "tools" && toolsPanel === "association" && associationOpenActivityId) {
+        associationOpenActivityId = "";
+        associationSettingsTab = "trainings";
+        render();
+        scrollPageToStart();
+        return true;
+      }
+      if (!isToolsSubpanel()) return false;
+      const parent = getToolsParentPanel(toolsPanel) || "home";
+      associationOpenActivityId = "";
+      associationSettingsTab = "trainings";
+      toolsPanel = parent;
+      render();
+      scrollPageToStart();
+      return true;
+    }
+
     function handleNavBack() {
+      if (associationDashSetupActivityId && currentView === "dashboard:association") {
+        cancelAssociationDashSetup();
+        render();
+        scrollPageToStart();
+        return;
+      }
       if (navHistory.length) {
         goBack();
         return;
       }
-      if (isToolsSubpanel()) {
-        toolsPanel = "home";
-        render();
-        scrollPageToStart();
+      stepBackToolsHierarchy();
+    }
+
+    function labelForNavSnapshot(snap) {
+      if (!snap) return "◀ Retour";
+      if (snap.view === "dashboard") return "◀ Accueil";
+      if (snap.view === "dashboard:association") return "◀ Association sportive";
+      if (snap.view === "calendar:visual") return "◀ Calendrier";
+      if (snap.view === "classes") return "◀ Classes";
+      if (snap.view === "tools") {
+        if (snap.toolsPanel === "association" && snap.associationOpenActivityId) {
+          const act = findAssociationActivity(snap.associationOpenActivityId);
+          if (act && act.name) return "◀ " + act.name;
+          return "◀ Association sportive";
+        }
+        const name = TOOLS_PANEL_LABELS[snap.toolsPanel || "home"];
+        if (name) return "◀ " + name;
+        return "◀ Réglages";
       }
+      if (snap.view && snap.view.startsWith("class:")) {
+        const cl = getClassById(snap.view.slice(6));
+        if (cl) return "◀ " + cl.name;
+      }
+      return "◀ Retour";
     }
 
     function getBackButtonLabel() {
+      if (associationDashSetupActivityId && currentView === "dashboard:association") {
+        return "◀ Association sportive";
+      }
       if (!navHistory.length) {
-        if (isToolsSubpanel()) return "◀ Réglages";
+        if (currentView === "tools" && toolsPanel === "association" && associationOpenActivityId) {
+          return "◀ Activités";
+        }
+        if (isToolsSubpanel()) {
+          const parent = getToolsParentPanel(toolsPanel);
+          if (parent === "orgEPS") return "◀ Organisation EPS";
+          if (parent === "calendriers") return "◀ Calendriers";
+          return "◀ Réglages";
+        }
         return "◀ Retour";
       }
       const prev = navHistory[navHistory.length - 1];
       const cur = getNavSnapshot();
-      if (prev.view === "dashboard:association") return "◀ Association sportive";
       if (
         cur.view === "tools" &&
         cur.toolsPanel === "association" &&
@@ -7570,22 +7662,7 @@
       ) {
         return "◀ Activités";
       }
-      if (prev.view === "tools" && prev.toolsPanel === "association" && prev.associationOpenActivityId) {
-        const act = findAssociationActivity(prev.associationOpenActivityId);
-        if (act && act.name) return "◀ " + act.name;
-      }
-      if (cur.view === "tools" && prev.view === "tools" && prev.toolsPanel) {
-        const name = TOOLS_PANEL_LABELS[prev.toolsPanel];
-        if (name) return "◀ " + name;
-      }
-      if (prev.view === "dashboard") return "◀ Accueil";
-      if (prev.view === "classes") return "◀ Classes";
-      if (prev.view === "tools") return "◀ Réglages";
-      if (prev.view.startsWith("class:")) {
-        const cl = getClassById(prev.view.slice(6));
-        if (cl) return "◀ " + cl.name;
-      }
-      return "◀ Retour";
+      return labelForNavSnapshot(prev);
     }
 
     function openToolsPanel(panel) {
@@ -7607,7 +7684,11 @@
         render();
         return;
       }
-      navigateTo("tools", "association");
+      // Arriver sur la liste AS puis ouvrir l'activité → le retour revient bien à la liste
+      if (!(currentView === "tools" && toolsPanel === "association")) {
+        navigateTo("tools", "association");
+      }
+      pushNavHistory();
       associationOpenActivityId = activityId;
       associationSettingsTab = tabId;
       render();
@@ -8320,7 +8401,7 @@
         btn.addEventListener("click", () => {
           document.getElementById("sidebar").classList.remove("open");
           const view = btn.getAttribute("data-view");
-          if (view === "tools") navigateTo("tools", "home");
+          if (view === "tools") goToToolsHome();
           else navigateTo(view);
         });
       });
@@ -8347,31 +8428,17 @@
         </button>`;
       nav.querySelector('[data-tab="home"]').onclick = () => {
         document.getElementById("sidebar")?.classList.remove("open");
-        const onHome =
-          currentView === "dashboard" ||
-          currentView === "dashboard:association" ||
-          currentView === "calendar:visual";
-        if (onHome) scrollPageToStart();
+        if (currentView === "dashboard") scrollPageToStart();
         else navigateTo("dashboard");
       };
       nav.querySelector('[data-tab="classes"]').onclick = () => {
         document.getElementById("sidebar")?.classList.remove("open");
-        if (currentView === "classes" || currentView.startsWith("class:")) scrollPageToStart();
+        if (currentView === "classes") scrollPageToStart();
         else navigateTo("classes");
       };
       nav.querySelector('[data-tab="settings"]').onclick = () => {
         document.getElementById("sidebar")?.classList.remove("open");
-        if (currentView === "tools") {
-          if (isToolsSubpanel()) {
-            toolsPanel = "home";
-            render();
-            scrollPageToStart();
-            return;
-          }
-          scrollPageToStart();
-          return;
-        }
-        navigateTo("tools");
+        goToToolsHome();
       };
     }
 
@@ -13793,16 +13860,16 @@
       return `<div class="tutorial-guide">
         <div class="tutorial-hero">
           <h2>Guide rapide</h2>
-          <p class="kpi-sub" style="margin:0;line-height:1.55">Tout est enregistré automatiquement. Exportez une copie JSON de temps en temps pour ne rien perdre.</p>
+          <p class="kpi-sub" style="margin:0;line-height:1.55">Tout est enregistré automatiquement. Exportez une copie JSON de temps en temps pour ne rien perdre. Le bouton <strong>◀ Retour</strong> remonte à l'écran précédent (menus et sous-menus).</p>
         </div>
 
         <details class="tutorial-section" id="tuto-principe" open>
           <summary>Les 3 écrans à retenir</summary>
           <div class="tutorial-section__body">
             <ul>
-              <li><strong>Accueil ⌂</strong> — votre journée : date, cours, rappels, association sportive.</li>
-              <li><strong>Classes 📚</strong> — suivi d'une classe (séances, dispenses, oublis).</li>
-              <li><strong>Réglages ⚙</strong> — configuration (une fois par an). ${goto("tools:home", "Ouvrir Réglages")}</li>
+              <li><strong>Accueil ⌂</strong> — journée : date, cours, rappels, bandeau association sportive, calendrier.</li>
+              <li><strong>Classes 📚</strong> — suivi d'une classe (séances, dispenses, oublis, participation).</li>
+              <li><strong>Réglages ⚙</strong> — configuration de l'année et de l'établissement. ${goto("tools:home", "Ouvrir Réglages")}</li>
             </ul>
             <p>iPhone : barre du bas · Ordinateur : menu à gauche.</p>
           </div>
@@ -13813,13 +13880,28 @@
           <div class="tutorial-section__body">
             <p>Dans l'ordre ci-dessous. Les séances se créent <strong>toutes seules</strong> à chaque enregistrement.</p>
             <ol class="tutorial-steps">
-              <li><strong>Année scolaire</strong> — dates début / fin. ${goto("tools:backup", "Sauvegarde")}</li>
-              <li><strong>Classes + élèves</strong> — chaque classe, puis ⚙️ pour les prénoms. ${goto("tools:classes", "Mes classes")}</li>
-              <li><strong>Périodes</strong> — P1, P2, P3… ${goto("tools:orgPeriodes", "Périodes")}</li>
-              <li><strong>Emploi du temps</strong> — créneaux par classe. ${goto("tools:classes", "Mes classes")}</li>
-              <li><strong>APSA</strong> — activités et jours. ${goto("tools:orgApsa", "APSA")}</li>
-              <li><strong>Calendrier</strong> — vacances / fériés. ${goto("tools:calendriers", "Calendriers")}</li>
+              <li><strong>Année scolaire</strong> — dates début / fin (et thème clair/sombre). ${goto("tools:backup", "Sauvegarde")}</li>
+              <li><strong>Classes + élèves</strong> — niveau, EDT (semaines A/B si besoin), liste d'élèves. ${goto("tools:classes", "Mes classes")}</li>
+              <li><strong>Périodes</strong> — P1, P2… et <strong>niveaux</strong> concernés par chacune. ${goto("tools:orgPeriodes", "Périodes")}</li>
+              <li><strong>APSA programmées dans l'établissement</strong> — catalogue par niveau et CA. ${goto("tools:orgApsa", "APSA")}</li>
+              <li><strong>Programmation de mes classes</strong> — pour chaque classe / période / créneau : APSA + installation. ${goto("tools:orgApsa", "Programmation")}</li>
+              <li><strong>Lieux de pratique</strong> — gymnase, stade… ${goto("tools:orgLieux", "Lieux")}</li>
+              <li><strong>Calendriers</strong> — vacances, fériés, calendrier officiel (académie), événements établissement. ${goto("tools:calendriers", "Calendriers")}</li>
             </ol>
+          </div>
+        </details>
+
+        <details class="tutorial-section" id="tuto-etab">
+          <summary>Tableau d'occupation de l'établissement</summary>
+          <div class="tutorial-section__body">
+            <p>${goto("tools:orgProg", "Programmation de l'établissement")}</p>
+            <ul>
+              <li>Ajoutez les <strong>professeurs</strong> et les <strong>créneaux horaires</strong> communs (Lun→Ven, semaines A/B).</li>
+              <li>Choisissez <strong>Je suis</strong> (votre nom) : bouton <strong>Importer ma programmation</strong> remplit votre ligne depuis « Programmation de mes classes » (évite la double saisie).</li>
+              <li>Chaque case : <strong>niveau</strong>, puis APSA (liste du catalogue) et lieu <strong>par période</strong> ; portée Toutes / Semaine A / Semaine B.</li>
+              <li>Cliquez un <strong>nom de professeur</strong> pour n'afficher que sa grille.</li>
+              <li>Les cases orange signalent un <strong>partage d'installation</strong> au même créneau.</li>
+            </ul>
           </div>
         </details>
 
@@ -13831,6 +13913,8 @@
               <li><strong>?</strong> à gauche — ce guide · <strong>🔔</strong> à droite — rappel.</li>
               <li><strong>Date</strong> — touchez-la pour choisir un jour ; ◀ ▶ pour hier / demain.</li>
               <li><strong>Cours du jour</strong> — touchez un cours : appel, résumé, dispense, oubli, PDF.</li>
+              <li><strong>🤝 Installation partagée</strong> — si un collègue est au même lieu : nom du professeur, APSA et classe.</li>
+              <li>Bandeau <strong>Association sportive</strong> — aperçu de la semaine ; touchez pour le détail (entraînements / compétitions).</li>
               <li>📝 résumé · 📄 PDF · <em>3P 1A</em> = 3 présents, 1 retard, 1 absent.</li>
             </ul>
           </div>
@@ -13841,9 +13925,10 @@
           <div class="tutorial-section__body">
             <p>${goto("classes", "Classes")} · ${goto("tools:association", "Association sportive")}</p>
             <ul>
-              <li>Cliquez une séance pour l'appel et le résumé.</li>
+              <li>Filtrez par <strong>période</strong> ; cliquez une séance pour l'appel et le résumé.</li>
               <li><strong>Annuler</strong> une séance à venir (pluie, gymnase…).</li>
               <li>Dispenses et oublis : tableaux en haut de la page classe.</li>
+              <li><strong>AS</strong> : activités, créneaux, élèves, compétitions (réglages) ; suivi aussi depuis l'Accueil.</li>
             </ul>
           </div>
         </details>
@@ -13855,6 +13940,7 @@
             <ul>
               <li><strong>Export JSON</strong> — copie à garder (mail, iCloud…).</li>
               <li><strong>Import JSON</strong> — restaure sur un autre appareil.</li>
+              <li><strong>Thème</strong> — clair / sombre depuis l'écran Réglages.</li>
             </ul>
             <div class="tutorial-tip"><strong>iPhone :</strong> bandeau jaune = exportez souvent. Ajoutez l'app à l'écran d'accueil (Safari → Partager).</div>
           </div>
@@ -16086,7 +16172,10 @@
         cancelAssociationDashSetup();
       }
       const changed =
-        cur.view !== view || (view === "tools" && cur.view === "tools" && cur.toolsPanel !== nextPanel);
+        cur.view !== view ||
+        (view === "tools" &&
+          (cur.toolsPanel !== nextPanel ||
+            (cur.associationOpenActivityId && nextPanel !== "association")));
       if (!changed) {
         scrollPageToStart();
         return;
@@ -16094,7 +16183,10 @@
       if (changed) pushNavHistory();
       currentView = view;
       if (view === "tools") {
-        if (nextPanel === "association" && cur.toolsPanel !== "association") {
+        if (nextPanel !== "association") {
+          associationOpenActivityId = "";
+          associationSettingsTab = "trainings";
+        } else if (cur.toolsPanel !== "association") {
           associationOpenActivityId = "";
           associationSettingsTab = "trainings";
         }
@@ -16111,9 +16203,13 @@
       if (associationDashSetupActivityId && currentView === "dashboard:association") {
         cancelAssociationDashSetup();
         render();
+        scrollPageToStart();
         return;
       }
-      if (!navHistory.length) return;
+      if (!navHistory.length) {
+        stepBackToolsHierarchy();
+        return;
+      }
       const prev = navHistory.pop();
       applyNavSnapshot(prev);
       render();
