@@ -12391,7 +12391,7 @@
               )
               .join("")}
           </div>`
-        : "";
+        : `<p class="kpi-sub" style="margin:0 0 .65rem;color:var(--danger)">Créez d'abord des périodes (Organisation EPS → Périodes) pour renseigner APSA et lieux par période.</p>`;
 
       const conflictLines = periods.length ? listTeamCoordinationConflicts(week, periodId) : [];
       const conflictHtml = conflictLines.length
@@ -15031,31 +15031,59 @@
         });
       });
       main.querySelector("#btn-team-add-timeslot")?.addEventListener("click", () => {
-        const body = el(`<div>
-          <div class="form-group">
-            <label>Créneaux (un par ligne, format début–fin)</label>
-            <textarea id="f-team-slots-bulk" rows="8" placeholder="08:20-09:15&#10;09:25-10:20&#10;10:35-11:30&#10;13:50-14:45" style="width:100%;min-height:9rem;padding:.55rem;border-radius:10px;border:1px solid var(--border-strong);background:var(--card);color:var(--text)"></textarea>
+        const timeOptionsHtml = (selected) => {
+          const opts = [];
+          for (let h = 7; h <= 18; h++) {
+            for (let m = 0; m < 60; m += 5) {
+              if (h === 18 && m > 0) break;
+              const v = String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
+              opts.push(`<option value="${v}"${v === selected ? " selected" : ""}>${v}</option>`);
+            }
+          }
+          return opts.join("");
+        };
+        const rowHtml = (startDef, endDef) => `<div class="team-coord-slot-row form-row" style="align-items:flex-end;margin-bottom:.45rem">
+          <div class="form-group" style="margin:0;flex:1">
+            <label>Début</label>
+            <select class="f-team-slot-start">${timeOptionsHtml(startDef)}</select>
           </div>
+          <div class="form-group" style="margin:0;flex:1">
+            <label>Fin</label>
+            <select class="f-team-slot-end">${timeOptionsHtml(endDef)}</select>
+          </div>
+          <button type="button" class="btn btn-sm btn-danger btn-team-slot-row-del" title="Retirer" style="min-height:40px">✕</button>
+        </div>`;
+        const body = el(`<div>
+          <div id="f-team-slots-rows">
+            ${rowHtml("08:20", "09:15")}
+            ${rowHtml("09:25", "10:20")}
+            ${rowHtml("10:35", "11:30")}
+            ${rowHtml("13:50", "14:45")}
+          </div>
+          <button type="button" class="btn btn-sm btn-ghost" id="btn-team-slot-row-add" style="margin-top:.25rem">+ Ajouter un créneau</button>
         </div>`);
+        const rowsRoot = body.querySelector("#f-team-slots-rows");
+        const wireRowDel = () => {
+          rowsRoot.querySelectorAll(".btn-team-slot-row-del").forEach((btn) => {
+            btn.onclick = () => {
+              if (rowsRoot.querySelectorAll(".team-coord-slot-row").length <= 1) return;
+              btn.closest(".team-coord-slot-row")?.remove();
+            };
+          });
+        };
+        wireRowDel();
+        body.querySelector("#btn-team-slot-row-add")?.addEventListener("click", () => {
+          rowsRoot.insertAdjacentHTML("beforeend", rowHtml("08:00", "09:00"));
+          wireRowDel();
+        });
         openModal("Créneaux horaires", body, () => {
-          const raw = body.querySelector("#f-team-slots-bulk")?.value || "";
-          const lines = raw
-            .split(/\n|;/)
-            .map((s) => s.trim())
-            .filter(Boolean);
-          if (!lines.length) return false;
           const tc = ensureTeamCoordination();
           const existing = new Set(tc.timeSlots.map((s) => s.startTime + "|" + s.endTime));
           let added = 0;
           let invalid = 0;
-          lines.forEach((line) => {
-            const m = line.match(/^(\d{1,2})\s*[:hH.]\s*(\d{2})\s*[-–—àa/\s]+\s*(\d{1,2})\s*[:hH.]\s*(\d{2})$/i);
-            if (!m) {
-              invalid += 1;
-              return;
-            }
-            const startTime = normalizeTimeHHMM(m[1] + ":" + m[2]);
-            const endTime = normalizeTimeHHMM(m[3] + ":" + m[4]);
+          rowsRoot.querySelectorAll(".team-coord-slot-row").forEach((row) => {
+            const startTime = normalizeTimeHHMM(row.querySelector(".f-team-slot-start")?.value || "");
+            const endTime = normalizeTimeHHMM(row.querySelector(".f-team-slot-end")?.value || "");
             if (!startTime || !endTime || startTime >= endTime) {
               invalid += 1;
               return;
@@ -15068,7 +15096,7 @@
           });
           tc.timeSlots.sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)));
           if (!added) {
-            alert(invalid ? "Aucun créneau valide à ajouter. Ex. : 08:20-09:15" : "Ces créneaux existent déjà.");
+            alert(invalid ? "Vérifiez les horaires (début avant fin)." : "Ces créneaux existent déjà.");
             return false;
           }
           saveData();
