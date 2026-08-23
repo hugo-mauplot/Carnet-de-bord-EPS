@@ -15031,25 +15031,14 @@
         });
       });
       main.querySelector("#btn-team-add-timeslot")?.addEventListener("click", () => {
-        const timeOptionsHtml = (selected) => {
-          const opts = [];
-          for (let h = 7; h <= 18; h++) {
-            for (let m = 0; m < 60; m += 5) {
-              if (h === 18 && m > 0) break;
-              const v = String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
-              opts.push(`<option value="${v}"${v === selected ? " selected" : ""}>${v}</option>`);
-            }
-          }
-          return opts.join("");
-        };
         const rowHtml = (startDef, endDef) => `<div class="team-coord-slot-row form-row" style="align-items:flex-end;margin-bottom:.45rem">
           <div class="form-group" style="margin:0;flex:1">
             <label>Début</label>
-            <select class="f-team-slot-start">${timeOptionsHtml(startDef)}</select>
+            <input type="time" class="f-team-slot-start" value="${escapeHtml(startDef)}" />
           </div>
           <div class="form-group" style="margin:0;flex:1">
             <label>Fin</label>
-            <select class="f-team-slot-end">${timeOptionsHtml(endDef)}</select>
+            <input type="time" class="f-team-slot-end" value="${escapeHtml(endDef)}" />
           </div>
           <button type="button" class="btn btn-sm btn-danger btn-team-slot-row-del" title="Retirer" style="min-height:40px">✕</button>
         </div>`;
