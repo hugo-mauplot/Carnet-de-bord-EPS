@@ -963,14 +963,17 @@
       font-size: 0.68rem;
       font-weight: 650;
       line-height: 1.35;
-      border-radius: 7px;
-      padding: 0.12rem 0.3rem;
-      margin: 0.08rem 0;
-      border: 1px solid transparent;
+      padding: 0.08rem 0;
+      margin: 0.04rem 0;
+      background: transparent;
+      border: none;
     }
     .team-coord-occupant-line--conflict {
-      border-color: rgba(245, 158, 11, 0.72);
-      box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.3);
+      padding: 0.1rem 0.32rem;
+      border-radius: 7px;
+      border: 1.5px solid #f59e0b;
+      box-shadow: none;
+      background: transparent;
     }
     .team-coord-occupants-empty {
       color: var(--text-muted);
@@ -5876,19 +5879,23 @@
       return resolveTeamCoordPeriodId(teamCoordPeriodId);
     }
 
-    function teamSlotOccupants(dayIndex, timeSlotId, weekParity, periodId) {
+    function teamSlotOccupants(dayIndex, timeSlotId, weekParity, periodId, dateStr) {
       const tc = ensureTeamCoordination();
-      const pid = periodId || ensureTeamCoordPeriodId();
       const list = [];
       tc.teachers.forEach((t) => {
         const cell = getTeamCell(t.id, dayIndex, timeSlotId, weekParity);
+        const level = teamCellLevel(cell);
+        const pid = dateStr
+          ? periodIdForDateAndLevel(dateStr, level)
+          : (periodId || periodIdForDateAndLevel(fmtISODate(new Date()), level) || ensureTeamCoordPeriodId());
+        if (!pid) return;
         const view = teamCellPeriodView(cell, pid);
         if (view.applies === false || !teamCellIsFilled(cell, pid)) return;
         list.push({
           teacherId: t.id,
           teacherName: t.name || "—",
           className: view.className || "",
-          level: view.level || teamCellLevel(cell),
+          level: view.level || level,
           apsa: view.apsa || "",
           venue: view.venue || "",
         });
@@ -5900,11 +5907,25 @@
       return [o.teacherName || "—", o.className || "—", o.apsa || "—", o.venue || "—"].join(" — ");
     }
 
-    function periodIdForDate(dateStr) {
+    function periodsCoveringDate(dateStr) {
       const iso = coerceISODateString(dateStr) || String(dateStr || "");
-      if (!iso) return ensureTeamCoordPeriodId();
-      const hit = teamPeriodsSorted().find((p) => iso >= String(p.startDate || "") && iso <= String(p.endDate || ""));
-      return hit ? hit.id : ensureTeamCoordPeriodId();
+      if (!iso) return [];
+      return teamPeriodsSorted().filter((p) => iso >= String(p.startDate || "") && iso <= String(p.endDate || ""));
+    }
+
+    function periodIdForDateAndLevel(dateStr, level) {
+      const covering = periodsCoveringDate(dateStr);
+      if (!covering.length) return "";
+      const lvl = String(level || "").trim();
+      if (lvl) {
+        const hit = covering.find((p) => periodAppliesToLevel(p, lvl));
+        if (hit) return hit.id;
+      }
+      return covering[0].id;
+    }
+
+    function periodIdForDate(dateStr) {
+      return periodIdForDateAndLevel(dateStr, "") || ensureTeamCoordPeriodId();
     }
 
     function periodsForLevel(level) {
@@ -6049,12 +6070,16 @@
       return Object.values(c.byPeriod || {}).some((p) => p && (p.apsa || p.venue));
     }
 
-    function teamVenueConflictsAt(dayIndex, timeSlotId, weekParity, periodId) {
+    function teamVenueConflictsAt(dayIndex, timeSlotId, weekParity, periodId, dateStr) {
       const tc = ensureTeamCoordination();
-      const pid = periodId || ensureTeamCoordPeriodId();
       const byVenue = new Map();
       tc.teachers.forEach((t) => {
         const cell = getTeamCell(t.id, dayIndex, timeSlotId, weekParity);
+        const level = teamCellLevel(cell);
+        const pid = dateStr
+          ? periodIdForDateAndLevel(dateStr, level)
+          : (periodId || periodIdForDateAndLevel(fmtISODate(new Date()), level) || ensureTeamCoordPeriodId());
+        if (!pid) return;
         const view = teamCellPeriodView(cell, pid);
         if (view.applies === false) return;
         const vKey = normalizeVenueName(view.venue);
@@ -6074,18 +6099,21 @@
       return conflicts;
     }
 
-    function teamCellHasConflict(teacherId, dayIndex, timeSlotId, weekParity, periodId) {
-      const pid = periodId || ensureTeamCoordPeriodId();
+    function teamCellHasConflict(teacherId, dayIndex, timeSlotId, weekParity, periodId, dateStr) {
       const cell = getTeamCell(teacherId, dayIndex, timeSlotId, weekParity);
+      const level = teamCellLevel(cell);
+      const pid = dateStr
+        ? periodIdForDateAndLevel(dateStr, level)
+        : (periodId || periodIdForDateAndLevel(fmtISODate(new Date()), level) || ensureTeamCoordPeriodId());
       const view = teamCellPeriodView(cell, pid);
       const vKey = normalizeVenueName(view.venue);
       if (!vKey) return false;
-      return teamVenueConflictsAt(dayIndex, timeSlotId, weekParity, pid).some((c) => c.venueKey === vKey);
+      return teamVenueConflictsAt(dayIndex, timeSlotId, weekParity, pid, dateStr).some((c) => c.venueKey === vKey);
     }
 
-    function teamConflictTeacherIds(dayIndex, timeSlotId, weekParity, periodId) {
+    function teamConflictTeacherIds(dayIndex, timeSlotId, weekParity, periodId, dateStr) {
       const out = new Set();
-      teamVenueConflictsAt(dayIndex, timeSlotId, weekParity, periodId).forEach((c) => {
+      teamVenueConflictsAt(dayIndex, timeSlotId, weekParity, periodId, dateStr).forEach((c) => {
         c.entries.forEach((entry) => {
           if (entry && entry.teacher && entry.teacher.id) out.add(entry.teacher.id);
         });
@@ -6127,7 +6155,6 @@
       const en = normalizeTimeHHMM(session.endTime || "");
       if (!st || !en) return [];
       const weekParity = weekParityForDate(session.date);
-      const periodId = periodIdForDate(session.date);
       const tc = ensureTeamCoordination();
       const myTeacherId = String((appData.settings && appData.settings.myCoordinationTeacherId) || "");
       const myClass = (() => {
@@ -6142,10 +6169,12 @@
         if (!timeRangesOverlap(st, en, sst, sen)) return;
         tc.teachers.forEach((t) => {
           const cell = getTeamCell(t.id, dayIndex, ts.id, weekParity);
-          const view = teamCellPeriodView(cell, periodId);
+          const pid = periodIdForDateAndLevel(session.date, teamCellLevel(cell));
+          if (!pid) return;
+          const view = teamCellPeriodView(cell, pid);
           if (view.applies === false) return;
           if (normalizeVenueName(view.venue) !== venueKey) return;
-          if (!teamCellIsFilled(cell, periodId)) return;
+          if (!teamCellIsFilled(cell, pid)) return;
           if (myTeacherId && t.id === myTeacherId) return;
           const cellClass = String(view.className || "").trim().toLowerCase();
           if (myClass && cellClass && cellClass === myClass) return;
@@ -12835,10 +12864,9 @@
             const rows = timeSlots
               .map((ts) => {
                 const dayISO = teamCoordDateForDayIndex(dayIndex);
-                const periodId = periodIdForDate(dayISO);
-                let occupants = teamSlotOccupants(dayIndex, ts.id, week, periodId);
+                let occupants = teamSlotOccupants(dayIndex, ts.id, week, "", dayISO);
                 if (filterId) occupants = occupants.filter((o) => o.teacherId === filterId);
-                const conflictTeacherIds = teamConflictTeacherIds(dayIndex, ts.id, week, periodId);
+                const conflictTeacherIds = teamConflictTeacherIds(dayIndex, ts.id, week, "", dayISO);
                 const lines = occupants.length
                   ? occupants
                       .map((o) => {
@@ -12847,7 +12875,7 @@
                           : formatTeamOccupantLine(o);
                         const teacherColor = teamTeacherColor(o.teacherId);
                         const lineClass = conflictTeacherIds.has(o.teacherId) ? " team-coord-occupant-line--conflict" : "";
-                        return `<span class="team-coord-occupant-line${lineClass}" style="background:${escapeHtml(alphaColor(teacherColor, 0.14))};border-color:${conflictTeacherIds.has(o.teacherId) ? "rgba(245, 158, 11, 0.72)" : escapeHtml(alphaColor(teacherColor, 0.32))};color:${escapeHtml(teacherColor)}">${escapeHtml(line)}</span>`;
+                        return `<span class="team-coord-occupant-line${lineClass}" style="color:${escapeHtml(teacherColor)}">${escapeHtml(line)}</span>`;
                       })
                       .join("")
                   : `<span class="team-coord-occupants-empty">${filterId ? "+ Ajouter un cours" : "+ Ajouter des professeurs"}</span>`;
@@ -12917,10 +12945,8 @@
       const day = Number(dayIndex);
       const weekFromUi = weekParity === "B" ? "B" : "A";
       const contextDateIso = coerceISODateString(dateIso) || teamCoordDateForDayIndex(day) || fmtISODate(new Date());
-      const periodId = periodIdForDate(contextDateIso);
-      const period = teamPeriodsSorted().find((p) => p.id === periodId);
       if (!ts || !Number.isInteger(day)) return;
-      if (!period) {
+      if (!teamPeriodsSorted().length) {
         alert("Créez d'abord des périodes dans Organisation EPS → Périodes.");
         return;
       }
@@ -12929,8 +12955,8 @@
         return;
       }
 
-      const occupantsA = teamSlotOccupants(day, ts.id, "A", periodId);
-      const occupantsB = teamSlotOccupants(day, ts.id, "B", periodId);
+      const occupantsA = teamSlotOccupants(day, ts.id, "A", "", contextDateIso);
+      const occupantsB = teamSlotOccupants(day, ts.id, "B", "", contextDateIso);
       const byTeacher = new Map();
       occupantsA.forEach((o) => {
         const raw = normalizeTeamCell(getTeamCell(o.teacherId, day, ts.id, "A"));
@@ -13059,13 +13085,13 @@
               <input class="f-occ-class" list="f-occ-class-list" value="${escapeHtml(o.className || "")}" placeholder="ex. 6eA" autocomplete="off" />
             </div>
           </div>
-          ${periodFieldsHtml(level, o.byPeriod || (o.apsa || o.venue ? { [periodId]: { apsa: o.apsa || "", venue: o.venue || "" } } : {}))}
+          ${periodFieldsHtml(level, o.byPeriod || (o.apsa || o.venue ? { [periodIdForDateAndLevel(contextDateIso, level)]: { apsa: o.apsa || "", venue: o.venue || "" } } : {}))}
           <button type="button" class="btn btn-sm btn-danger btn-occ-remove">Retirer</button>
         </div>`;
       }
 
       const body = el(`<div>
-        <p class="kpi-sub" style="margin:0 0 .55rem"><strong>${escapeHtml(DOW[day] || "")}</strong> · ${escapeHtml(fmtDateFr(contextDateIso))} · ${escapeHtml(teamTimeLabel(ts))} · période du jour : ${escapeHtml(period ? period.name : "—")}</p>
+        <p class="kpi-sub" style="margin:0 0 .55rem"><strong>${escapeHtml(DOW[day] || "")}</strong> · ${escapeHtml(fmtDateFr(contextDateIso))} · ${escapeHtml(teamTimeLabel(ts))} · APSA et lieu selon les périodes de chaque niveau</p>
         <datalist id="f-occ-class-list">${classDatalist}</datalist>
         <div id="f-occ-list">${(initial.length ? initial : [{ teacherId: filterId || tc.teachers[0].id, className: "", level: "", byPeriod: {}, weekScope: "both" }]).map(occupantRowHtmlFixed).join("")}</div>
         <button type="button" class="btn btn-sm btn-ghost" id="btn-occ-add" style="margin-top:.25rem">+ Ajouter un professeur</button>
@@ -14451,9 +14477,9 @@
               <li>Les jours sont <strong>côte à côte</strong> : faites glisser horizontalement pour passer de lundi à vendredi. Le nom du jour est centré en en-tête.</li>
               <li>Tableau : colonne <strong>Créneau</strong> + colonne <strong>Cours</strong>. Chaque professeur garde sa <strong>couleur</strong> pour repérer rapidement sa présence.</li>
               <li>Cliquez une case pour ajouter les professeurs du créneau ; pour chacun : classe, niveau, puis <strong>APSA + lieu pour chaque période</strong> du niveau choisi, avec <strong>Toutes / Sem. A / Sem. B</strong>.</li>
-              <li>Filtre <strong>Semaine</strong> : la semaine en cours est affichée par défaut, avec la bonne alternance A/B selon la date du jour. Filtre <strong>Professeur</strong> : Tous = équipe ; un nom = planning personnel. La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
+              <li>Filtre <strong>Semaine</strong> : la semaine en cours est affichée par défaut. Pour chaque professeur, l'app utilise la <strong>période de son niveau</strong> (ex. 6e et 5e peuvent avoir des dates différentes). Filtre <strong>Professeur</strong> : Tous = équipe ; un nom = planning personnel. La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
               <li><strong>Je suis</strong> + <strong>Importer ma programmation</strong> : remplit votre ligne depuis « Programmation de mes classes ».</li>
-              <li>Si une installation est partagée, seules les lignes concernées sont <strong>encadrées en orange</strong> ; l'information reste visible aussi sur l'Accueil (🤝).</li>
+              <li>Chaque professeur s'affiche dans <strong>sa couleur</strong> (sans encadré). Si une installation est partagée, seules les lignes concernées sont <strong>encadrées en orange</strong> ; l'information reste visible aussi sur l'Accueil (🤝).</li>
             </ul>
           </div>
         </details>
