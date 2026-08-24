@@ -681,7 +681,44 @@
     [data-theme="light"] .cal-panel__actions input[type="date"] {
       color-scheme: light;
     }
-    .cal-panel--visual {
+    .cal-panel__year-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .cal-panel__year-field {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.28rem;
+    }
+    .cal-panel__year-field label {
+      margin: 0;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+    .cal-panel__year-field input[type="date"] {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      font-size: 0.9rem;
+      padding: 0.45rem 0.6rem;
+      min-height: 2.5rem;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      background: var(--card);
+      color-scheme: dark;
+      box-sizing: border-box;
+    }
+    [data-theme="light"] .cal-panel__year-field input[type="date"] {
+      color-scheme: light;
+    }
+    .cal-panel__year-fields .cal-panel__action-btns {
+      flex: 0 0 auto;
+      width: 100%;
+    }
       border-left: 5px solid #a5b4fc;
       background: linear-gradient(165deg, rgba(165, 180, 252, 0.14) 0%, var(--surface) 38%);
       padding: 0.75rem;
@@ -827,10 +864,12 @@
     .team-coord-day-v2-table th {
       font-size: 0.62rem;
       text-transform: uppercase;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.02em;
       color: var(--text-muted);
       background: color-mix(in srgb, var(--card) 70%, transparent);
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: clip;
     }
     .team-coord-day-v2-table thead tr:nth-child(2) th {
       text-align: center;
@@ -842,13 +881,17 @@
       text-transform: none;
       text-align: center;
       color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .team-coord-day-v2-table .team-coord-col-slot {
-      width: 3.35rem;
+      width: 4.4rem;
+      min-width: 4.4rem;
     }
     .team-coord-day-v2-table .team-coord-slot-time {
-      width: 3.35rem;
-      max-width: 3.5rem;
+      width: 4.4rem;
+      min-width: 4.4rem;
+      max-width: 4.5rem;
       padding: 0.2rem 0.18rem;
       font-weight: 800;
       font-size: 0.62rem;
@@ -1137,11 +1180,6 @@
     @media (max-width: 900px) {
       .team-coord-days {
         grid-template-columns: repeat(5, minmax(15.5rem, 1fr));
-      }
-      .team-coord-day-v2-table .team-coord-slot-time,
-      .team-coord-day-v2-table .team-coord-col-slot {
-        width: 2.95rem;
-        max-width: 3.1rem;
       }
       .team-coord-occupant-line {
         font-size: 0.62rem;
@@ -4466,10 +4504,6 @@
       }
       .cal-panel__actions > label {
         display: none; /* labels implied by selects; keeps one-line denser */
-      }
-      .cal-panel--year .cal-panel__actions > label {
-        display: block;
-        flex: 0 0 auto;
       }
       .cal-panel__action-btns {
         flex: 1 1 100%;
@@ -12679,9 +12713,7 @@
           <button type="button" class="btn btn-sm btn-ghost btn-team-week${week === "B" ? " is-active" : ""}" data-week="B">Semaine B</button>
         </div>`;
 
-      const col2Title = filterTeacher
-        ? `Cours — ${escapeHtml(filterTeacher.name || "—")} (classe — APSA — lieu)`
-        : "Professeurs (Nom — classe — APSA — lieu)";
+      const col2Title = "Cours";
 
       let daysHtml = "";
       if (timeSlots.length) {
@@ -13223,11 +13255,15 @@
           <h3 class="cal-panel__title">📆 Année scolaire</h3>
           <div class="cal-panel__setup">
             <div class="cal-panel__setup-title">Paramétrage</div>
-            <div class="cal-panel__actions">
-              <label class="kpi-sub" for="set-start" style="margin:0;flex:0 0 auto">Début</label>
-              <input type="date" id="set-start" value="${appData.settings.schoolYearStart}" aria-label="Début de l'année scolaire" />
-              <label class="kpi-sub" for="set-end" style="margin:0;flex:0 0 auto">Fin</label>
-              <input type="date" id="set-end" value="${appData.settings.schoolYearEnd}" aria-label="Fin de l'année scolaire" />
+            <div class="cal-panel__year-fields">
+              <div class="cal-panel__year-field">
+                <label class="kpi-sub" for="set-start">Début</label>
+                <input type="date" id="set-start" value="${appData.settings.schoolYearStart}" aria-label="Début de l'année scolaire" />
+              </div>
+              <div class="cal-panel__year-field">
+                <label class="kpi-sub" for="set-end">Fin</label>
+                <input type="date" id="set-end" value="${appData.settings.schoolYearEnd}" aria-label="Fin de l'année scolaire" />
+              </div>
               <div class="cal-panel__action-btns">
                 <button type="button" class="btn btn-sm btn-primary btn-compact-label" id="btn-save-settings" title="Enregistrer les dates et régénérer les séances">Enregistrer &amp; régénérer</button>
               </div>
@@ -14241,7 +14277,7 @@
             <ul>
               <li>Ajoutez les <strong>professeurs</strong> et les <strong>créneaux horaires</strong> (Début/Fin comme pour les classes).</li>
               <li>Les jours sont <strong>côte à côte</strong> : faites glisser horizontalement pour passer de lundi à vendredi. Le nom du jour est centré en en-tête.</li>
-              <li>Tableau : colonne <strong>Créneau</strong> (compacte) + colonne <strong>Professeurs</strong> (Nom — classe — APSA — lieu sur une seule ligne, sans troncature).</li>
+              <li>Tableau : colonne <strong>Créneau</strong> + colonne <strong>Cours</strong> (Nom — classe — APSA — lieu sur une seule ligne, sans troncature).</li>
               <li>Cliquez une case pour ajouter les professeurs du créneau ; pour chacun : APSA, classe, lieu, et <strong>Toutes / Sem. A / Sem. B</strong>.</li>
               <li>Filtre <strong>Période</strong> (par défaut : période du jour) et filtre <strong>Professeur</strong> (Tous = équipe ; un nom = planning personnel). La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
               <li><strong>Je suis</strong> + <strong>Importer ma programmation</strong> : remplit votre ligne depuis « Programmation de mes classes ».</li>
