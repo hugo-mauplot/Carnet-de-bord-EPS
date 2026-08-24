@@ -969,11 +969,12 @@
       border: none;
     }
     .team-coord-occupant-line--conflict {
-      padding: 0.1rem 0.32rem;
-      border-radius: 7px;
-      border: 1.5px solid #f59e0b;
-      box-shadow: none;
-      background: transparent;
+      color: inherit;
+    }
+    .team-coord-occupant-line__conflict-mark {
+      color: #f59e0b;
+      font-weight: 900;
+      margin-right: 0.24rem;
     }
     .team-coord-occupants-empty {
       color: var(--text-muted);
@@ -12875,7 +12876,10 @@
                           : formatTeamOccupantLine(o);
                         const teacherColor = teamTeacherColor(o.teacherId);
                         const lineClass = conflictTeacherIds.has(o.teacherId) ? " team-coord-occupant-line--conflict" : "";
-                        return `<span class="team-coord-occupant-line${lineClass}" style="color:${escapeHtml(teacherColor)}">${escapeHtml(line)}</span>`;
+                        const mark = conflictTeacherIds.has(o.teacherId)
+                          ? `<span class="team-coord-occupant-line__conflict-mark" aria-hidden="true">★</span>`
+                          : "";
+                        return `<span class="team-coord-occupant-line${lineClass}" style="color:${escapeHtml(teacherColor)}">${mark}${escapeHtml(line)}</span>`;
                       })
                       .join("")
                   : `<span class="team-coord-occupants-empty">${filterId ? "+ Ajouter un cours" : "+ Ajouter des professeurs"}</span>`;
@@ -12948,28 +12952,34 @@
 
       const occupantsA = teamSlotOccupants(day, ts.id, "A", "", contextDateIso);
       const occupantsB = teamSlotOccupants(day, ts.id, "B", "", contextDateIso);
-      const byTeacher = new Map();
+      const byTeacherA = new Map();
+      const byTeacherB = new Map();
       occupantsA.forEach((o) => {
         const raw = normalizeTeamCell(getTeamCell(o.teacherId, day, ts.id, "A"));
-        byTeacher.set(o.teacherId, { ...o, byPeriod: { ...(raw.byPeriod || {}) }, weekScope: "A" });
+        byTeacherA.set(o.teacherId, { ...o, byPeriod: { ...(raw.byPeriod || {}) }, weekScope: "A" });
       });
       occupantsB.forEach((o) => {
         const raw = normalizeTeamCell(getTeamCell(o.teacherId, day, ts.id, "B"));
-        if (byTeacher.has(o.teacherId)) {
-          const cur = byTeacher.get(o.teacherId);
-          cur.byPeriod = Object.assign({}, raw.byPeriod || {}, cur.byPeriod || {});
-          if (cur.className === o.className && cur.apsa === o.apsa && cur.venue === o.venue && cur.level === o.level) {
-            cur.weekScope = "both";
-          } else if (weekFromUi === "B") {
-            byTeacher.set(o.teacherId, { ...o, byPeriod: { ...(raw.byPeriod || {}) }, weekScope: "B" });
-          } else {
-            cur.weekScope = "A";
-          }
-        } else {
-          byTeacher.set(o.teacherId, { ...o, byPeriod: { ...(raw.byPeriod || {}) }, weekScope: "B" });
-        }
+        byTeacherB.set(o.teacherId, { ...o, byPeriod: { ...(raw.byPeriod || {}) }, weekScope: "B" });
       });
-      let initial = [...byTeacher.values()];
+      const teacherIds = new Set([...byTeacherA.keys(), ...byTeacherB.keys()]);
+      const sameTeacherPayload = (a, b) =>
+        !!a &&
+        !!b &&
+        a.className === b.className &&
+        (a.level || "") === (b.level || "") &&
+        JSON.stringify(a.byPeriod || {}) === JSON.stringify(b.byPeriod || {});
+      let initial = [];
+      teacherIds.forEach((teacherId) => {
+        const a = byTeacherA.get(teacherId) || null;
+        const b = byTeacherB.get(teacherId) || null;
+        if (a && b && sameTeacherPayload(a, b)) {
+          initial.push({ ...a, weekScope: "both" });
+          return;
+        }
+        if (a) initial.push(a);
+        if (b) initial.push(b);
+      });
       const filterId = teamCoordFilterTeacherId || "";
       if (filterId) {
         initial = initial.filter((o) => o.teacherId === filterId);
@@ -13165,7 +13175,7 @@
       openModal("Professeurs sur ce créneau", body, () => {
         const rows = [...listRoot.querySelectorAll(".team-coord-occ-row")];
         const entries = [];
-        const seenTeachers = new Set();
+        const seenScopes = new Set();
         for (const row of rows) {
           const teacherId = row.querySelector(".f-occ-teacher")?.value || "";
           if (!teacherId) continue;
@@ -13185,12 +13195,14 @@
           });
           const hasPeriodData = Object.values(byPeriod).some((p) => p && (p.apsa || p.venue));
           if (!className && !hasPeriodData) continue;
-          if (seenTeachers.has(teacherId)) {
-            alert("Un même professeur ne peut apparaître qu'une fois sur ce créneau.");
+          const weeks = weekScope === "both" ? ["A", "B"] : weekScope === "B" ? ["B"] : ["A"];
+          const overlapsExisting = weeks.some((w) => seenScopes.has(teacherId + "|" + w));
+          if (overlapsExisting) {
+            alert("Un même professeur ne peut pas être saisi deux fois sur la même semaine de ce créneau.");
             return false;
           }
-          seenTeachers.add(teacherId);
-          entries.push({ teacherId, className, level, byPeriod, weekScope });
+          weeks.forEach((w) => seenScopes.add(teacherId + "|" + w));
+          entries.push({ teacherId, className, level, byPeriod, weekScope, weeks });
         }
 
         const previously = new Set([
@@ -13204,11 +13216,10 @@
         });
 
         entries.forEach((e) => {
-          const weeks = e.weekScope === "both" ? ["A", "B"] : e.weekScope === "B" ? ["B"] : ["A"];
           ["A", "B"].forEach((w) => {
-            if (!weeks.includes(w)) setTeamCell(e.teacherId, day, ts.id, w, { className: "", level: "", byPeriod: {} });
+            if (!e.weeks.includes(w)) setTeamCell(e.teacherId, day, ts.id, w, { className: "", level: "", byPeriod: {} });
           });
-          weeks.forEach((w) => {
+          e.weeks.forEach((w) => {
             setTeamCell(e.teacherId, day, ts.id, w, {
               className: e.className,
               level: e.level,
@@ -14470,7 +14481,7 @@
               <li>Cliquez une case pour ajouter les professeurs du créneau ; pour chacun : classe, niveau, puis <strong>APSA + lieu pour chaque période</strong> du niveau choisi, avec <strong>Toutes / Sem. A / Sem. B</strong>.</li>
               <li>Filtre <strong>Semaine</strong> : la semaine en cours est affichée par défaut. Pour chaque professeur, l'app utilise la <strong>période de son niveau</strong> (ex. 6e et 5e peuvent avoir des dates différentes). Filtre <strong>Professeur</strong> : Tous = équipe ; un nom = planning personnel. La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
               <li><strong>Je suis</strong> + <strong>Importer ma programmation</strong> : remplit votre ligne depuis « Programmation de mes classes ».</li>
-              <li>Chaque professeur s'affiche dans <strong>sa couleur</strong> (sans encadré). Si une installation est partagée, seules les lignes concernées sont <strong>encadrées en orange</strong> ; l'information reste visible aussi sur l'Accueil (🤝).</li>
+              <li>Chaque professeur s'affiche dans <strong>sa couleur</strong> (sans encadré). Si une installation est partagée, les lignes concernées affichent une petite <strong>étoile</strong> au début ; l'information reste visible aussi sur l'Accueil (🤝).</li>
             </ul>
           </div>
         </details>
