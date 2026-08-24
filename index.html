@@ -772,8 +772,35 @@
       flex: 1 1 12rem;
       min-height: 40px;
     }
-    .team-coord-week-select {
-      min-width: min(22rem, 100%);
+    .team-coord-week-nav {
+      display: grid;
+      grid-template-columns: 2.2rem minmax(0, 1fr) 2.2rem;
+      align-items: center;
+      gap: 0.35rem;
+      width: 100%;
+      margin: 0 0 0.55rem;
+    }
+    .team-coord-week-nav__arrow {
+      width: 2.2rem;
+      height: 2.2rem;
+      min-width: 2.2rem;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      font-size: 1rem;
+      line-height: 1;
+    }
+    .team-coord-week-nav__label {
+      min-width: 0;
+      margin: 0;
+      text-align: center;
+      font-weight: 800;
+      font-size: 0.92rem;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .team-coord-filter-bar--teacher {
       flex-wrap: nowrap;
@@ -972,7 +999,7 @@
       color: inherit;
     }
     .team-coord-occupant-line__conflict-mark {
-      color: #f59e0b;
+      color: var(--shared-venue-color, #f59e0b);
       font-weight: 900;
       margin-right: 0.24rem;
     }
@@ -5805,6 +5832,14 @@
       return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
+    function teamSharedVenueColor(venueKey) {
+      const palette = ["#eab308", "#22c55e", "#06b6d4", "#a855f7", "#f97316", "#ef4444", "#14b8a6"];
+      const key = String(venueKey || "");
+      let hash = 0;
+      for (let i = 0; i < key.length; i += 1) hash = ((hash * 31) + key.charCodeAt(i)) >>> 0;
+      return palette[hash % palette.length];
+    }
+
     function mondayIsoForDate(dateOrIso) {
       const d = typeof dateOrIso === "string" ? parseISODate(dateOrIso) : dateOrIso;
       if (!d || Number.isNaN(d.getTime())) return "";
@@ -6112,11 +6147,12 @@
       return teamVenueConflictsAt(dayIndex, timeSlotId, weekParity, pid, dateStr).some((c) => c.venueKey === vKey);
     }
 
-    function teamConflictTeacherIds(dayIndex, timeSlotId, weekParity, periodId, dateStr) {
-      const out = new Set();
+    function teamConflictTeacherMarkers(dayIndex, timeSlotId, weekParity, periodId, dateStr) {
+      const out = new Map();
       teamVenueConflictsAt(dayIndex, timeSlotId, weekParity, periodId, dateStr).forEach((c) => {
+        const color = teamSharedVenueColor(c.venueKey);
         c.entries.forEach((entry) => {
-          if (entry && entry.teacher && entry.teacher.id) out.add(entry.teacher.id);
+          if (entry && entry.teacher && entry.teacher.id) out.set(entry.teacher.id, color);
         });
       });
       return out;
@@ -12833,18 +12869,10 @@
       const filterOpts = teachersAll
         .map((t) => `<option value="${escapeHtml(t.id)}" ${t.id === filterId ? "selected" : ""}>${escapeHtml(t.name || "—")}</option>`)
         .join("");
-      const weekSelect = `<div class="team-coord-filter-bar">
-          <label class="kpi-sub" for="sel-team-week" style="margin:0">Semaine</label>
-          <select id="sel-team-week" class="team-coord-week-select" aria-label="Filtrer par semaine">
-            ${teamCoordWeekOptions()
-              .map((mondayIso) => {
-                const mon = parseISODate(mondayIso);
-                const sun = mon ? fmtISODate(addDays(mon, 6)) : mondayIso;
-                const parity = weekParityForDate(mondayIso);
-                return `<option value="${escapeHtml(mondayIso)}" ${mondayIso === weekStartISO ? "selected" : ""}>${escapeHtml(fmtDateFr(mondayIso))} → ${escapeHtml(fmtDateFr(sun))} · Sem. ${parity}</option>`;
-              })
-              .join("")}
-          </select>
+      const weekSelect = `<div class="team-coord-week-nav" aria-label="Naviguer entre les semaines">
+          <button type="button" class="btn btn-sm btn-ghost team-coord-week-nav__arrow" id="btn-team-week-prev" aria-label="Semaine précédente">◀</button>
+          <p class="team-coord-week-nav__label" id="team-week-label">Semaine du ${escapeHtml(fmtDateFr(weekStartISO))} au ${escapeHtml(fmtDateFr(weekEndISO))} · sem. ${week}</p>
+          <button type="button" class="btn btn-sm btn-ghost team-coord-week-nav__arrow" id="btn-team-week-next" aria-label="Semaine suivante">▶</button>
         </div>`;
 
       const teacherFilter = `<div class="team-coord-filter-bar team-coord-filter-bar--teacher">
@@ -12867,7 +12895,7 @@
                 const dayISO = teamCoordDateForDayIndex(dayIndex);
                 let occupants = teamSlotOccupants(dayIndex, ts.id, week, "", dayISO);
                 if (filterId) occupants = occupants.filter((o) => o.teacherId === filterId);
-                const conflictTeacherIds = teamConflictTeacherIds(dayIndex, ts.id, week, "", dayISO);
+                const conflictTeacherMarkers = teamConflictTeacherMarkers(dayIndex, ts.id, week, "", dayISO);
                 const lines = occupants.length
                   ? occupants
                       .map((o) => {
@@ -12875,9 +12903,10 @@
                           ? [o.className || "—", o.apsa || "—", o.venue || "—"].join(" — ")
                           : formatTeamOccupantLine(o);
                         const teacherColor = teamTeacherColor(o.teacherId);
-                        const lineClass = conflictTeacherIds.has(o.teacherId) ? " team-coord-occupant-line--conflict" : "";
-                        const mark = conflictTeacherIds.has(o.teacherId)
-                          ? `<span class="team-coord-occupant-line__conflict-mark" aria-hidden="true">★</span>`
+                        const sharedColor = conflictTeacherMarkers.get(o.teacherId) || "";
+                        const lineClass = sharedColor ? " team-coord-occupant-line--conflict" : "";
+                        const mark = sharedColor
+                          ? `<span class="team-coord-occupant-line__conflict-mark" style="--shared-venue-color:${escapeHtml(sharedColor)}" aria-hidden="true">★</span>`
                           : "";
                         return `<span class="team-coord-occupant-line${lineClass}" style="color:${escapeHtml(teacherColor)}">${mark}${escapeHtml(line)}</span>`;
                       })
@@ -14479,9 +14508,9 @@
               <li>Les jours sont <strong>côte à côte</strong> : faites glisser horizontalement pour passer de lundi à vendredi. Le nom du jour est centré en en-tête.</li>
               <li>Tableau : colonne <strong>Créneau</strong> + colonne <strong>Cours</strong>. Chaque professeur garde sa <strong>couleur</strong> pour repérer rapidement sa présence.</li>
               <li>Cliquez une case pour ajouter les professeurs du créneau ; pour chacun : classe, niveau, puis <strong>APSA + lieu pour chaque période</strong> du niveau choisi, avec <strong>Toutes / Sem. A / Sem. B</strong>.</li>
-              <li>Filtre <strong>Semaine</strong> : la semaine en cours est affichée par défaut. Pour chaque professeur, l'app utilise la <strong>période de son niveau</strong> (ex. 6e et 5e peuvent avoir des dates différentes). Filtre <strong>Professeur</strong> : Tous = équipe ; un nom = planning personnel. La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
+              <li>Semaine affichée avec des <strong>flèches ◀ ▶</strong>, par défaut sur la semaine en cours. Pour chaque professeur, l'app utilise la <strong>période de son niveau</strong> (ex. 6e et 5e peuvent avoir des dates différentes). Filtre <strong>Professeur</strong> : Tous = équipe ; un nom = planning personnel. La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
               <li><strong>Je suis</strong> + <strong>Importer ma programmation</strong> : remplit votre ligne depuis « Programmation de mes classes ».</li>
-              <li>Chaque professeur s'affiche dans <strong>sa couleur</strong> (sans encadré). Si une installation est partagée, les lignes concernées affichent une petite <strong>étoile</strong> au début ; l'information reste visible aussi sur l'Accueil (🤝).</li>
+              <li>Chaque professeur s'affiche dans <strong>sa couleur</strong> (sans encadré). Si une installation est partagée, les lignes concernées affichent une petite <strong>étoile colorée</strong> au début ; même installation = même couleur d'étoile. L'information reste visible aussi sur l'Accueil (🤝).</li>
             </ul>
           </div>
         </details>
@@ -15522,11 +15551,15 @@
         }
       });
 
-      main.querySelector("#sel-team-week")?.addEventListener("change", (e) => {
-        teamCoordWeekStartISO = mondayIsoForDate(e.target.value || "") || mondayIsoForDate(new Date());
+      const shiftTeamWeek = (deltaDays) => {
+        const base = parseISODate(ensureTeamCoordWeekStartISO());
+        if (!base || Number.isNaN(base.getTime())) return;
+        teamCoordWeekStartISO = fmtISODate(addDays(base, deltaDays));
         teamCoordWeekParity = weekParityForDate(teamCoordWeekStartISO);
         render();
-      });
+      };
+      main.querySelector("#btn-team-week-prev")?.addEventListener("click", () => shiftTeamWeek(-7));
+      main.querySelector("#btn-team-week-next")?.addEventListener("click", () => shiftTeamWeek(7));
       main.querySelector("#sel-team-filter-teacher")?.addEventListener("change", (e) => {
         teamCoordFilterTeacherId = e.target.value || "";
         render();
