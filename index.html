@@ -885,11 +885,13 @@
       text-overflow: ellipsis;
     }
     .team-coord-day-v2-table .team-coord-col-slot {
-      width: 4.35rem;
+      width: 4.4rem;
+      min-width: 4.4rem;
     }
     .team-coord-day-v2-table .team-coord-slot-time {
-      width: 4.35rem;
-      max-width: 4.35rem;
+      width: 4.4rem;
+      min-width: 4.4rem;
+      max-width: 4.5rem;
       padding: 0.2rem 0.18rem;
       font-weight: 800;
       font-size: 0.62rem;
@@ -5374,8 +5376,9 @@
     /** Paramétrage créneaux uniquement, depuis l'accueil AS (sans passer par Réglages). */
     let associationDashSetupActivityId = "";
     /** Semaine A/B pour le tableau d'occupation établissement. */
-    let teamCoordWeekParity = "A";
-    let teamCoordPeriodId = "";
+    const TEAM_COORD_CURRENT_PERIOD = "__current__";
+    let teamCoordWeekParity = weekParityForDate(new Date());
+    let teamCoordPeriodId = TEAM_COORD_CURRENT_PERIOD;
     let teamCoordFilterTeacherId = "";
     /** Sous-onglet par activité sur l'accueil AS : planning | admin */
     const dashAsActivityPanelTab = {};
@@ -5745,18 +5748,29 @@
         .sort((a, b) => String(a.startDate || "").localeCompare(String(b.startDate || "")));
     }
 
+    function resolveTeamCoordPeriodId(selection) {
+      const periods = teamPeriodsSorted();
+      if (!periods.length) return "";
+      const selected = selection == null ? teamCoordPeriodId : selection;
+      if (!selected || selected === TEAM_COORD_CURRENT_PERIOD) {
+        const iso = fmtISODate(new Date());
+        const hit = periods.find((p) => iso >= String(p.startDate || "") && iso <= String(p.endDate || ""));
+        return hit ? hit.id : periods[0].id;
+      }
+      return periods.some((p) => p.id === selected) ? selected : periods[0].id;
+    }
+
     function ensureTeamCoordPeriodId() {
       const periods = teamPeriodsSorted();
       if (!periods.length) {
-        teamCoordPeriodId = "";
+        teamCoordPeriodId = TEAM_COORD_CURRENT_PERIOD;
         return "";
       }
-      if (!teamCoordPeriodId || !periods.some((p) => p.id === teamCoordPeriodId)) {
-        const iso = fmtISODate(new Date());
-        const hit = periods.find((p) => iso >= String(p.startDate || "") && iso <= String(p.endDate || ""));
-        teamCoordPeriodId = hit ? hit.id : periods[0].id;
+      if (!teamCoordPeriodId) teamCoordPeriodId = TEAM_COORD_CURRENT_PERIOD;
+      if (teamCoordPeriodId !== TEAM_COORD_CURRENT_PERIOD && !periods.some((p) => p.id === teamCoordPeriodId)) {
+        teamCoordPeriodId = TEAM_COORD_CURRENT_PERIOD;
       }
-      return teamCoordPeriodId;
+      return resolveTeamCoordPeriodId(teamCoordPeriodId);
     }
 
     function teamSlotOccupants(dayIndex, timeSlotId, weekParity, periodId) {
@@ -12661,7 +12675,7 @@
     function renderTeamCoordinationHtml() {
       const tc = ensureTeamCoordination();
       const periods = teamPeriodsSorted();
-      const periodId = ensureTeamCoordPeriodId();
+      const periodId = resolveTeamCoordPeriodId(teamCoordPeriodId);
       const period = periods.find((p) => p.id === periodId) || null;
       const teachersAll = tc.teachers;
       const filterId = teamCoordFilterTeacherId || "";
@@ -12680,10 +12694,11 @@
         ? `<div class="team-coord-filter-bar">
             <label class="kpi-sub" for="sel-team-period" style="margin:0">Période</label>
             <select id="sel-team-period" aria-label="Filtrer par période">
+              <option value="${TEAM_COORD_CURRENT_PERIOD}" ${teamCoordPeriodId === TEAM_COORD_CURRENT_PERIOD ? "selected" : ""}>Période actuelle${period ? ` (${escapeHtml(period.name || "—")})` : ""}</option>
               ${periods
                 .map(
                   (p) =>
-                    `<option value="${escapeHtml(p.id)}" ${p.id === periodId ? "selected" : ""}>${escapeHtml(p.name || "Période")} (${escapeHtml(fmtDateFr(p.startDate))} → ${escapeHtml(fmtDateFr(p.endDate))})</option>`
+                    `<option value="${escapeHtml(p.id)}" ${p.id === teamCoordPeriodId ? "selected" : ""}>${escapeHtml(p.name || "Période")} (${escapeHtml(fmtDateFr(p.startDate))} → ${escapeHtml(fmtDateFr(p.endDate))})</option>`
                 )
                 .join("")}
             </select>
@@ -12793,7 +12808,7 @@
       const ts = tc.timeSlots.find((s) => s.id === timeSlotId);
       const day = Number(dayIndex);
       const weekFromUi = weekParity === "B" ? "B" : "A";
-      const periodId = ensureTeamCoordPeriodId();
+      const periodId = resolveTeamCoordPeriodId(teamCoordPeriodId);
       const period = teamPeriodsSorted().find((p) => p.id === periodId);
       if (!ts || !Number.isInteger(day)) return;
       if (!period) {
@@ -12809,20 +12824,23 @@
       const occupantsB = teamSlotOccupants(day, ts.id, "B", periodId);
       const byTeacher = new Map();
       occupantsA.forEach((o) => {
-        byTeacher.set(o.teacherId, { ...o, weekScope: "A" });
+        const raw = normalizeTeamCell(getTeamCell(o.teacherId, day, ts.id, "A"));
+        byTeacher.set(o.teacherId, { ...o, byPeriod: { ...(raw.byPeriod || {}) }, weekScope: "A" });
       });
       occupantsB.forEach((o) => {
+        const raw = normalizeTeamCell(getTeamCell(o.teacherId, day, ts.id, "B"));
         if (byTeacher.has(o.teacherId)) {
           const cur = byTeacher.get(o.teacherId);
+          cur.byPeriod = Object.assign({}, raw.byPeriod || {}, cur.byPeriod || {});
           if (cur.className === o.className && cur.apsa === o.apsa && cur.venue === o.venue && cur.level === o.level) {
             cur.weekScope = "both";
           } else if (weekFromUi === "B") {
-            byTeacher.set(o.teacherId, { ...o, weekScope: "B" });
+            byTeacher.set(o.teacherId, { ...o, byPeriod: { ...(raw.byPeriod || {}) }, weekScope: "B" });
           } else {
             cur.weekScope = "A";
           }
         } else {
-          byTeacher.set(o.teacherId, { ...o, weekScope: "B" });
+          byTeacher.set(o.teacherId, { ...o, byPeriod: { ...(raw.byPeriod || {}) }, weekScope: "B" });
         }
       });
       let initial = [...byTeacher.values()];
@@ -12830,7 +12848,7 @@
       if (filterId) {
         initial = initial.filter((o) => o.teacherId === filterId);
         if (!initial.length) {
-          initial = [{ teacherId: filterId, className: "", level: "", apsa: "", venue: "", weekScope: "both" }];
+          initial = [{ teacherId: filterId, className: "", level: "", apsa: "", venue: "", byPeriod: {}, weekScope: "both" }];
         }
       }
 
@@ -12873,12 +12891,39 @@
         return html;
       }
 
+      function periodFieldsHtml(level, byPeriod) {
+        const relevant = level ? periodsForLevel(level) : [];
+        if (!relevant.length) {
+          return `<div class="team-coord-periods-host">
+            <p class="kpi-sub" style="margin:0">Choisissez un niveau pour afficher les périodes concernées.</p>
+          </div>`;
+        }
+        return `<div class="team-coord-periods-host">${relevant
+          .map((p) => {
+            const part = byPeriod && byPeriod[p.id] ? byPeriod[p.id] : {};
+            const venue = String(part.venue || "");
+            const known = (appData.venues || []).some((v) => v.name === venue);
+            return `<div class="team-coord-period-block" data-period-id="${escapeHtml(p.id)}">
+              <h4>${escapeHtml(p.name || "Période")} · ${escapeHtml(fmtDateFr(p.startDate))} → ${escapeHtml(fmtDateFr(p.endDate))}</h4>
+              <div class="form-group" style="margin-bottom:.35rem">
+                <label>APSA</label>
+                <select class="f-occ-period-apsa">${apsaOptions(level, String(part.apsa || ""))}</select>
+              </div>
+              <div class="form-group" style="margin:0">
+                <label>Lieu</label>
+                <select class="f-occ-period-venue">${venueOpts(venue)}</select>
+                <input class="f-occ-period-venue-other" placeholder="Nom du lieu" value="${escapeHtml(venue && !known ? venue : "")}" style="margin-top:.35rem;${venue && !known ? "" : "display:none"}" />
+              </div>
+            </div>`;
+          })
+          .join("")}</div>`;
+      }
+
       let occRowSeq = 0;
       function occupantRowHtmlFixed(o) {
         occRowSeq += 1;
         const uidRadio = "occweek" + occRowSeq;
         const level = o.level || inferClassLevel(o.className) || "";
-        const known = (appData.venues || []).some((v) => v.name === o.venue);
         const scope = o.weekScope === "A" || o.weekScope === "B" ? o.weekScope : "both";
         return `<div class="team-coord-occ-row">
           <div class="form-group" style="margin-bottom:.35rem">
@@ -12903,23 +12948,15 @@
               <input class="f-occ-class" list="f-occ-class-list" value="${escapeHtml(o.className || "")}" placeholder="ex. 6eA" autocomplete="off" />
             </div>
           </div>
-          <div class="form-group" style="margin-bottom:.35rem">
-            <label>APSA</label>
-            <select class="f-occ-apsa">${apsaOptions(level, o.apsa || "")}</select>
-          </div>
-          <div class="form-group" style="margin-bottom:.35rem">
-            <label>Lieu</label>
-            <select class="f-occ-venue">${venueOpts(o.venue || "")}</select>
-            <input class="f-occ-venue-other" placeholder="Nom du lieu" value="${escapeHtml(o.venue && !known ? o.venue : "")}" style="margin-top:.35rem;${o.venue && !known ? "" : "display:none"}" />
-          </div>
+          ${periodFieldsHtml(level, o.byPeriod || (o.apsa || o.venue ? { [periodId]: { apsa: o.apsa || "", venue: o.venue || "" } } : {}))}
           <button type="button" class="btn btn-sm btn-danger btn-occ-remove">Retirer</button>
         </div>`;
       }
 
       const body = el(`<div>
-        <p class="kpi-sub" style="margin:0 0 .55rem"><strong>${escapeHtml(DOW[day] || "")}</strong> · ${escapeHtml(teamTimeLabel(ts))} · ${escapeHtml(period.name || "Période")}</p>
+        <p class="kpi-sub" style="margin:0 0 .55rem"><strong>${escapeHtml(DOW[day] || "")}</strong> · ${escapeHtml(teamTimeLabel(ts))} · filtre : ${escapeHtml(period.name || "Période")} · renseignez ensuite les périodes du niveau choisi</p>
         <datalist id="f-occ-class-list">${classDatalist}</datalist>
-        <div id="f-occ-list">${(initial.length ? initial : [{ teacherId: filterId || tc.teachers[0].id, className: "", level: "", apsa: "", venue: "", weekScope: "both" }]).map(occupantRowHtmlFixed).join("")}</div>
+        <div id="f-occ-list">${(initial.length ? initial : [{ teacherId: filterId || tc.teachers[0].id, className: "", level: "", byPeriod: {}, weekScope: "both" }]).map(occupantRowHtmlFixed).join("")}</div>
         <button type="button" class="btn btn-sm btn-ghost" id="btn-occ-add" style="margin-top:.25rem">+ Ajouter un professeur</button>
       </div>`);
 
@@ -12928,32 +12965,46 @@
       function wireRow(row) {
         const levelSel = row.querySelector(".f-occ-level");
         const classInp = row.querySelector(".f-occ-class");
-        const apsaSel = row.querySelector(".f-occ-apsa");
-        const venueSel = row.querySelector(".f-occ-venue");
-        const venueOther = row.querySelector(".f-occ-venue-other");
-        const refreshApsa = () => {
-          const level = levelSel.value || inferClassLevel(classInp.value) || "";
-          const cur = apsaSel.value;
-          apsaSel.innerHTML = apsaOptions(level, cur);
+        const collectPeriodValues = () => {
+          const byPeriod = {};
+          row.querySelectorAll(".team-coord-period-block").forEach((block) => {
+            const pid = block.getAttribute("data-period-id") || "";
+            if (!pid) return;
+            const apsa = (block.querySelector(".f-occ-period-apsa")?.value || "").trim();
+            let venue = (block.querySelector(".f-occ-period-venue")?.value || "").trim();
+            if (venue === "__other__") venue = (block.querySelector(".f-occ-period-venue-other")?.value || "").trim();
+            byPeriod[pid] = { apsa, venue };
+          });
+          return byPeriod;
         };
-        levelSel.addEventListener("change", refreshApsa);
+        const wirePeriodVenueFields = () => {
+          row.querySelectorAll(".f-occ-period-venue").forEach((venueSel) => {
+            venueSel.addEventListener("change", () => {
+              const other = venueSel.closest(".form-group")?.querySelector(".f-occ-period-venue-other");
+              if (other) other.style.display = venueSel.value === "__other__" ? "block" : "none";
+            });
+          });
+        };
+        const refreshPeriods = () => {
+          const level = levelSel.value || inferClassLevel(classInp.value) || "";
+          const host = row.querySelector(".team-coord-periods-host");
+          if (host) host.outerHTML = periodFieldsHtml(level, collectPeriodValues());
+          wirePeriodVenueFields();
+        };
+        wirePeriodVenueFields();
+        levelSel.addEventListener("change", refreshPeriods);
         classInp.addEventListener("change", () => {
           if (!levelSel.value) {
             const inferred = inferClassLevel(classInp.value);
             if (inferred) levelSel.value = inferred;
           }
-          refreshApsa();
-        });
-        venueSel.addEventListener("change", () => {
-          venueOther.style.display = venueSel.value === "__other__" ? "block" : "none";
+          refreshPeriods();
         });
         row.querySelector(".btn-occ-remove")?.addEventListener("click", () => {
           if (listRoot.querySelectorAll(".team-coord-occ-row").length <= 1) {
             classInp.value = "";
-            apsaSel.value = "";
-            venueSel.value = "";
-            venueOther.value = "";
-            venueOther.style.display = "none";
+            levelSel.value = "";
+            refreshPeriods();
             return;
           }
           row.remove();
@@ -12968,8 +13019,7 @@
             teacherId: filterId || tc.teachers[0].id,
             className: "",
             level: "",
-            apsa: "",
-            venue: "",
+            byPeriod: {},
             weekScope: "both",
           })
         );
@@ -12987,16 +13037,24 @@
           const className = (row.querySelector(".f-occ-class")?.value || "").trim();
           let level = (row.querySelector(".f-occ-level")?.value || "").trim();
           if (!CLASS_LEVELS.includes(level)) level = inferClassLevel(className) || "";
-          const apsa = (row.querySelector(".f-occ-apsa")?.value || "").trim();
-          let venue = (row.querySelector(".f-occ-venue")?.value || "").trim();
-          if (venue === "__other__") venue = (row.querySelector(".f-occ-venue-other")?.value || "").trim();
-          if (!className && !apsa && !venue) continue;
+          const relevantPeriods = level ? periodsForLevel(level) : [];
+          const byPeriod = {};
+          relevantPeriods.forEach((p) => {
+            const block = [...row.querySelectorAll(".team-coord-period-block")].find((el) => (el.getAttribute("data-period-id") || "") === p.id);
+            if (!block) return;
+            const apsa = (block.querySelector(".f-occ-period-apsa")?.value || "").trim();
+            let venue = (block.querySelector(".f-occ-period-venue")?.value || "").trim();
+            if (venue === "__other__") venue = (block.querySelector(".f-occ-period-venue-other")?.value || "").trim();
+            byPeriod[p.id] = { apsa, venue };
+          });
+          const hasPeriodData = Object.values(byPeriod).some((p) => p && (p.apsa || p.venue));
+          if (!className && !hasPeriodData) continue;
           if (seenTeachers.has(teacherId)) {
             alert("Un même professeur ne peut apparaître qu'une fois sur ce créneau.");
             return false;
           }
           seenTeachers.add(teacherId);
-          entries.push({ teacherId, className, level, apsa, venue, weekScope });
+          entries.push({ teacherId, className, level, byPeriod, weekScope });
         }
 
         const previously = new Set([
@@ -13005,23 +13063,20 @@
         ]);
         entries.forEach((e) => previously.delete(e.teacherId));
         previously.forEach((tid) => {
-          clearTeamCellPeriod(tid, day, ts.id, "A", periodId);
-          clearTeamCellPeriod(tid, day, ts.id, "B", periodId);
+          setTeamCell(tid, day, ts.id, "A", { className: "", level: "", byPeriod: {} });
+          setTeamCell(tid, day, ts.id, "B", { className: "", level: "", byPeriod: {} });
         });
 
         entries.forEach((e) => {
           const weeks = e.weekScope === "both" ? ["A", "B"] : e.weekScope === "B" ? ["B"] : ["A"];
           ["A", "B"].forEach((w) => {
-            if (!weeks.includes(w)) clearTeamCellPeriod(e.teacherId, day, ts.id, w, periodId);
+            if (!weeks.includes(w)) setTeamCell(e.teacherId, day, ts.id, w, { className: "", level: "", byPeriod: {} });
           });
           weeks.forEach((w) => {
-            const cell = getTeamCell(e.teacherId, day, ts.id, w);
-            const byPeriod = Object.assign({}, cell.byPeriod || {});
-            byPeriod[periodId] = { apsa: e.apsa, venue: e.venue };
             setTeamCell(e.teacherId, day, ts.id, w, {
               className: e.className,
               level: e.level,
-              byPeriod,
+              byPeriod: e.byPeriod,
             });
           });
         });
@@ -14276,8 +14331,8 @@
               <li>Ajoutez les <strong>professeurs</strong> et les <strong>créneaux horaires</strong> (Début/Fin comme pour les classes).</li>
               <li>Les jours sont <strong>côte à côte</strong> : faites glisser horizontalement pour passer de lundi à vendredi. Le nom du jour est centré en en-tête.</li>
               <li>Tableau : colonne <strong>Créneau</strong> + colonne <strong>Cours</strong> (Nom — classe — APSA — lieu sur une seule ligne, sans troncature).</li>
-              <li>Cliquez une case pour ajouter les professeurs du créneau ; pour chacun : APSA, classe, lieu, et <strong>Toutes / Sem. A / Sem. B</strong>.</li>
-              <li>Filtre <strong>Période</strong> (par défaut : période du jour) et filtre <strong>Professeur</strong> (Tous = équipe ; un nom = planning personnel). La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
+              <li>Cliquez une case pour ajouter les professeurs du créneau ; pour chacun : classe, niveau, puis <strong>APSA + lieu pour chaque période</strong> du niveau choisi, avec <strong>Toutes / Sem. A / Sem. B</strong>.</li>
+              <li>Filtre <strong>Période</strong> : choisissez une période précise ou <strong>Période actuelle</strong> pour voir les créneaux à la date du jour. Cette vue est activée par défaut. Filtre <strong>Professeur</strong> : Tous = équipe ; un nom = planning personnel. La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
               <li><strong>Je suis</strong> + <strong>Importer ma programmation</strong> : remplit votre ligne depuis « Programmation de mes classes ».</li>
               <li>Partages d'installation signalés (orange) ; visibles aussi sur l'Accueil (🤝).</li>
             </ul>
@@ -15327,7 +15382,7 @@
         });
       });
       main.querySelector("#sel-team-period")?.addEventListener("change", (e) => {
-        teamCoordPeriodId = e.target.value || "";
+        teamCoordPeriodId = e.target.value || TEAM_COORD_CURRENT_PERIOD;
         render();
       });
       main.querySelector("#sel-team-filter-teacher")?.addEventListener("change", (e) => {
