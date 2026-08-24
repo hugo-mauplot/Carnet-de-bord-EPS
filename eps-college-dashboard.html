@@ -772,6 +772,9 @@
       flex: 1 1 12rem;
       min-height: 40px;
     }
+    .team-coord-week-select {
+      min-width: min(22rem, 100%);
+    }
     .team-coord-filter-bar--teacher {
       flex-wrap: nowrap;
       gap: 0.35rem;
@@ -904,6 +907,36 @@
     .team-coord-slot-time__end {
       display: block;
     }
+    .team-coord-slot-head {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.18rem;
+    }
+    .team-coord-slot-actions {
+      display: inline-flex;
+      gap: 0.2rem;
+    }
+    .team-coord-slot-action {
+      width: 1.1rem;
+      height: 1.1rem;
+      min-width: 1.1rem;
+      padding: 0;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: var(--card);
+      color: var(--text-muted);
+      font-size: 0.68rem;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+    .team-coord-slot-action--danger {
+      color: var(--danger);
+      border-color: color-mix(in srgb, var(--danger) 40%, var(--border));
+      background: color-mix(in srgb, var(--danger) 12%, var(--card));
+    }
     .team-coord-occupants-btn {
       display: block;
       width: max-content;
@@ -922,10 +955,6 @@
       border-color: var(--accent);
       background: var(--accent-soft);
     }
-    .team-coord-occupants-btn--conflict {
-      border-color: #f59e0b;
-      background: color-mix(in srgb, #f59e0b 14%, var(--card));
-    }
     .team-coord-occupant-line {
       display: block;
       white-space: nowrap;
@@ -934,6 +963,14 @@
       font-size: 0.68rem;
       font-weight: 650;
       line-height: 1.35;
+      border-radius: 7px;
+      padding: 0.12rem 0.3rem;
+      margin: 0.08rem 0;
+      border: 1px solid transparent;
+    }
+    .team-coord-occupant-line--conflict {
+      border-color: rgba(245, 158, 11, 0.72);
+      box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.3);
     }
     .team-coord-occupants-empty {
       color: var(--text-muted);
@@ -946,6 +983,11 @@
       padding: 0.55rem;
       margin-bottom: 0.5rem;
       background: color-mix(in srgb, var(--card) 85%, transparent);
+    }
+    .team-coord-occ-row--tinted {
+      border-color: var(--teacher-color, var(--border-strong));
+      background: color-mix(in srgb, var(--teacher-soft, rgba(37, 99, 235, 0.1)) 78%, var(--card));
+      box-shadow: inset 0 0 0 1px var(--teacher-soft, rgba(37, 99, 235, 0.14));
     }
     .team-coord-teachers-manage {
       display: flex;
@@ -5377,7 +5419,9 @@
     let associationDashSetupActivityId = "";
     /** Semaine A/B pour le tableau d'occupation établissement. */
     const TEAM_COORD_CURRENT_PERIOD = "__current__";
+    const TEAM_COORD_TEACHER_COLORS = ["#2563eb", "#7c3aed", "#dc2626", "#ea580c", "#0891b2", "#0f766e", "#65a30d", "#c026d3", "#4f46e5", "#b45309"];
     let teamCoordWeekParity = weekParityForDate(new Date());
+    let teamCoordWeekStartISO = "";
     let teamCoordPeriodId = TEAM_COORD_CURRENT_PERIOD;
     let teamCoordFilterTeacherId = "";
     /** Sous-onglet par activité sur l'accueil AS : planning | admin */
@@ -5718,7 +5762,10 @@
 
       tc.teachers.forEach((t) => {
         if (t && !t.id) t.id = uid();
-        if (t) t.name = String(t.name || "").trim();
+        if (t) {
+          t.name = String(t.name || "").trim();
+          if (!t.color) t.color = TEAM_COORD_TEACHER_COLORS[tc.teachers.indexOf(t) % TEAM_COORD_TEACHER_COLORS.length];
+        }
       });
       tc.timeSlots.forEach((s) => {
         if (s && !s.id) s.id = uid();
@@ -5728,7 +5775,7 @@
         }
       });
       tc.timeSlots.sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)));
-      if (teamCoordWeekParity !== "A" && teamCoordWeekParity !== "B") teamCoordWeekParity = "A";
+      if (teamCoordWeekParity !== "A" && teamCoordWeekParity !== "B") teamCoordWeekParity = weekParityForDate(new Date());
       return tc;
     }
 
@@ -5736,6 +5783,62 @@
       const d = typeof dateOrIso === "string" ? parseISODate(dateOrIso) : dateOrIso;
       if (!d || Number.isNaN(d.getTime())) return "A";
       return schoolWeekIndex(d) % 2 === 0 ? "A" : "B";
+    }
+
+    function teamTeacherColor(teacherId) {
+      const teacher = ensureTeamCoordination().teachers.find((t) => t.id === teacherId);
+      return teacher && teacher.color ? String(teacher.color) : TEAM_COORD_TEACHER_COLORS[0];
+    }
+
+    function alphaColor(hex, alpha) {
+      const raw = String(hex || "").trim();
+      const m = raw.match(/^#([0-9a-f]{6})$/i);
+      if (!m) return `rgba(37,99,235,${alpha})`;
+      const int = parseInt(m[1], 16);
+      const r = (int >> 16) & 255;
+      const g = (int >> 8) & 255;
+      const b = int & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function mondayIsoForDate(dateOrIso) {
+      const d = typeof dateOrIso === "string" ? parseISODate(dateOrIso) : dateOrIso;
+      if (!d || Number.isNaN(d.getTime())) return "";
+      return fmtISODate(addDays(d, -dayIndexMon0(d)));
+    }
+
+    function ensureTeamCoordWeekStartISO() {
+      const start = coerceISODateString(teamCoordWeekStartISO);
+      if (start) return mondayIsoForDate(start);
+      const today = fmtISODate(new Date());
+      teamCoordWeekStartISO = mondayIsoForDate(today);
+      return teamCoordWeekStartISO;
+    }
+
+    function teamCoordDateForDayIndex(dayIndex) {
+      const monday = parseISODate(ensureTeamCoordWeekStartISO());
+      if (!monday || Number.isNaN(monday.getTime())) return "";
+      return fmtISODate(addDays(monday, dayIndex));
+    }
+
+    function teamCoordWeekOptions() {
+      const start = parseISODate(appData.settings?.schoolYearStart || "");
+      const end = parseISODate(appData.settings?.schoolYearEnd || "");
+      const currentMonday = ensureTeamCoordWeekStartISO();
+      const list = [];
+      const seen = new Set();
+      if (start && end && !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
+        let cursor = addDays(start, -dayIndexMon0(start));
+        const endMonday = addDays(end, -dayIndexMon0(end));
+        while (cursor <= endMonday) {
+          const iso = fmtISODate(cursor);
+          seen.add(iso);
+          list.push(iso);
+          cursor = addDays(cursor, 7);
+        }
+      }
+      if (currentMonday && !seen.has(currentMonday)) list.push(currentMonday);
+      return list.sort((a, b) => a.localeCompare(b));
     }
 
     function teamCellKey(teacherId, dayIndex, timeSlotId, weekParity) {
@@ -5978,6 +6081,16 @@
       const vKey = normalizeVenueName(view.venue);
       if (!vKey) return false;
       return teamVenueConflictsAt(dayIndex, timeSlotId, weekParity, pid).some((c) => c.venueKey === vKey);
+    }
+
+    function teamConflictTeacherIds(dayIndex, timeSlotId, weekParity, periodId) {
+      const out = new Set();
+      teamVenueConflictsAt(dayIndex, timeSlotId, weekParity, periodId).forEach((c) => {
+        c.entries.forEach((entry) => {
+          if (entry && entry.teacher && entry.teacher.id) out.add(entry.teacher.id);
+        });
+      });
+      return out;
     }
 
     function listTeamCoordinationConflicts(weekParity, periodId) {
@@ -12674,14 +12787,15 @@
 
     function renderTeamCoordinationHtml() {
       const tc = ensureTeamCoordination();
-      const periods = teamPeriodsSorted();
-      const periodId = resolveTeamCoordPeriodId(teamCoordPeriodId);
-      const period = periods.find((p) => p.id === periodId) || null;
       const teachersAll = tc.teachers;
       const filterId = teamCoordFilterTeacherId || "";
       const filterTeacher = filterId ? teachersAll.find((t) => t.id === filterId) : null;
       const timeSlots = tc.timeSlots;
-      const week = teamCoordWeekParity === "B" ? "B" : "A";
+      const weekStartISO = ensureTeamCoordWeekStartISO();
+      const weekStart = parseISODate(weekStartISO);
+      const weekEndISO = weekStart ? fmtISODate(addDays(weekStart, 6)) : weekStartISO;
+      const week = weekParityForDate(weekStartISO) === "B" ? "B" : "A";
+      teamCoordWeekParity = week;
       const myId = String((appData.settings && appData.settings.myCoordinationTeacherId) || "");
       const teacherOpts = teachersAll
         .map((t) => `<option value="${escapeHtml(t.id)}" ${t.id === myId ? "selected" : ""}>${escapeHtml(t.name || "—")}</option>`)
@@ -12689,21 +12803,19 @@
       const filterOpts = teachersAll
         .map((t) => `<option value="${escapeHtml(t.id)}" ${t.id === filterId ? "selected" : ""}>${escapeHtml(t.name || "—")}</option>`)
         .join("");
-
-      const periodSelect = periods.length
-        ? `<div class="team-coord-filter-bar">
-            <label class="kpi-sub" for="sel-team-period" style="margin:0">Période</label>
-            <select id="sel-team-period" aria-label="Filtrer par période">
-              <option value="${TEAM_COORD_CURRENT_PERIOD}" ${teamCoordPeriodId === TEAM_COORD_CURRENT_PERIOD ? "selected" : ""}>Période actuelle${period ? ` (${escapeHtml(period.name || "—")})` : ""}</option>
-              ${periods
-                .map(
-                  (p) =>
-                    `<option value="${escapeHtml(p.id)}" ${p.id === teamCoordPeriodId ? "selected" : ""}>${escapeHtml(p.name || "Période")} (${escapeHtml(fmtDateFr(p.startDate))} → ${escapeHtml(fmtDateFr(p.endDate))})</option>`
-                )
-                .join("")}
-            </select>
-          </div>`
-        : `<p class="kpi-sub" style="margin:0 0 .65rem;color:var(--danger)">Créez d'abord des périodes (Organisation EPS → Périodes) pour renseigner APSA et lieux par période.</p>`;
+      const weekSelect = `<div class="team-coord-filter-bar">
+          <label class="kpi-sub" for="sel-team-week" style="margin:0">Semaine</label>
+          <select id="sel-team-week" class="team-coord-week-select" aria-label="Filtrer par semaine">
+            ${teamCoordWeekOptions()
+              .map((mondayIso) => {
+                const mon = parseISODate(mondayIso);
+                const sun = mon ? fmtISODate(addDays(mon, 6)) : mondayIso;
+                const parity = weekParityForDate(mondayIso);
+                return `<option value="${escapeHtml(mondayIso)}" ${mondayIso === weekStartISO ? "selected" : ""}>${escapeHtml(fmtDateFr(mondayIso))} → ${escapeHtml(fmtDateFr(sun))} · Sem. ${parity}</option>`;
+              })
+              .join("")}
+          </select>
+        </div>`;
 
       const teacherFilter = `<div class="team-coord-filter-bar team-coord-filter-bar--teacher">
           <label class="kpi-sub" for="sel-team-filter-teacher" style="margin:0">Professeur</label>
@@ -12714,18 +12826,6 @@
           <button type="button" class="btn-team-del-filtered-teacher" id="btn-team-del-filtered-teacher" ${filterId ? "" : "disabled"} title="Supprimer le professeur sélectionné" aria-label="Supprimer le professeur sélectionné">×</button>
         </div>`;
 
-      const conflictLines = periods.length ? listTeamCoordinationConflicts(week, periodId) : [];
-      const conflictHtml = conflictLines.length
-        ? `<div class="team-coord-conflicts"><strong>Partages — ${escapeHtml(period ? period.name : "")} · sem. ${week}</strong><br>${conflictLines
-            .map((l) => escapeHtml(l))
-            .join("<br>")}</div>`
-        : "";
-
-      const weekTabs = `<div class="team-coord-week-tabs team-coord-week-tabs--above-table" role="tablist" aria-label="Semaine A ou B">
-          <button type="button" class="btn btn-sm btn-ghost btn-team-week${week === "A" ? " is-active" : ""}" data-week="A">Semaine A</button>
-          <button type="button" class="btn btn-sm btn-ghost btn-team-week${week === "B" ? " is-active" : ""}" data-week="B">Semaine B</button>
-        </div>`;
-
       const col2Title = "Cours";
 
       let daysHtml = "";
@@ -12734,32 +12834,42 @@
           .map((dayIndex) => {
             const rows = timeSlots
               .map((ts) => {
-                let occupants = periods.length
-                  ? teamSlotOccupants(dayIndex, ts.id, week, periodId)
-                  : [];
+                const dayISO = teamCoordDateForDayIndex(dayIndex);
+                const periodId = periodIdForDate(dayISO);
+                let occupants = teamSlotOccupants(dayIndex, ts.id, week, periodId);
                 if (filterId) occupants = occupants.filter((o) => o.teacherId === filterId);
-                const hasConflict =
-                  !filterId &&
-                  occupants.some((o) => teamCellHasConflict(o.teacherId, dayIndex, ts.id, week, periodId));
+                const conflictTeacherIds = teamConflictTeacherIds(dayIndex, ts.id, week, periodId);
                 const lines = occupants.length
                   ? occupants
                       .map((o) => {
                         const line = filterId
                           ? [o.className || "—", o.apsa || "—", o.venue || "—"].join(" — ")
                           : formatTeamOccupantLine(o);
-                        return `<span class="team-coord-occupant-line">${escapeHtml(line)}</span>`;
+                        const teacherColor = teamTeacherColor(o.teacherId);
+                        const lineClass = conflictTeacherIds.has(o.teacherId) ? " team-coord-occupant-line--conflict" : "";
+                        return `<span class="team-coord-occupant-line${lineClass}" style="background:${escapeHtml(alphaColor(teacherColor, 0.14))};border-color:${conflictTeacherIds.has(o.teacherId) ? "rgba(245, 158, 11, 0.72)" : escapeHtml(alphaColor(teacherColor, 0.32))};color:${escapeHtml(teacherColor)}">${escapeHtml(line)}</span>`;
                       })
                       .join("")
                   : `<span class="team-coord-occupants-empty">${filterId ? "+ Ajouter un cours" : "+ Ajouter des professeurs"}</span>`;
                 const start = normalizeTimeHHMM(ts.startTime || "");
                 const end = normalizeTimeHHMM(ts.endTime || "");
                 return `<tr>
-                  <td class="team-coord-slot-time"><span class="team-coord-slot-time__start">${escapeHtml(start)}</span><span class="team-coord-slot-time__end">${escapeHtml(end)}</span></td>
+                  <td class="team-coord-slot-time">
+                    <div class="team-coord-slot-head">
+                      <span class="team-coord-slot-time__start">${escapeHtml(start)}</span>
+                      <span class="team-coord-slot-time__end">${escapeHtml(end)}</span>
+                      <span class="team-coord-slot-actions">
+                        <button type="button" class="team-coord-slot-action btn-team-edit-timeslot" data-id="${escapeHtml(ts.id)}" title="Modifier le créneau" aria-label="Modifier le créneau">✎</button>
+                        <button type="button" class="team-coord-slot-action team-coord-slot-action--danger btn-team-del-timeslot" data-id="${escapeHtml(ts.id)}" title="Supprimer le créneau" aria-label="Supprimer le créneau">×</button>
+                      </span>
+                    </div>
+                  </td>
                   <td>
-                    <button type="button" class="team-coord-occupants-btn btn-team-edit-slot${hasConflict ? " team-coord-occupants-btn--conflict" : ""}"
+                    <button type="button" class="team-coord-occupants-btn btn-team-edit-slot"
                       data-day-index="${dayIndex}"
                       data-timeslot-id="${escapeHtml(ts.id)}"
-                      data-week="${week}">${lines}</button>
+                      data-week="${week}"
+                      data-date-iso="${escapeHtml(dayISO)}">${lines}</button>
                   </td>
                 </tr>`;
               })
@@ -12796,19 +12906,18 @@
         </div>
         <p class="kpi-sub" style="margin:0 0 .55rem">Évitez la double saisie : après avoir rempli <strong>Programmation de mes classes</strong>, utilisez « Importer ma programmation » (ou laissez la synchro auto si « Je suis » est choisi). Les autres professeurs restent à saisir manuellement / à partager.</p>
         ${teacherFilter}
-        ${periodSelect}
-        ${weekTabs}
+        ${weekSelect}
         ${daysHtml}
-        ${conflictHtml}
       </div>`;
     }
 
-    function openTeamSlotOccupantsModal(dayIndex, timeSlotId, weekParity) {
+    function openTeamSlotOccupantsModal(dayIndex, timeSlotId, weekParity, dateIso) {
       const tc = ensureTeamCoordination();
       const ts = tc.timeSlots.find((s) => s.id === timeSlotId);
       const day = Number(dayIndex);
       const weekFromUi = weekParity === "B" ? "B" : "A";
-      const periodId = resolveTeamCoordPeriodId(teamCoordPeriodId);
+      const contextDateIso = coerceISODateString(dateIso) || teamCoordDateForDayIndex(day) || fmtISODate(new Date());
+      const periodId = periodIdForDate(contextDateIso);
       const period = teamPeriodsSorted().find((p) => p.id === periodId);
       if (!ts || !Number.isInteger(day)) return;
       if (!period) {
@@ -12925,10 +13034,12 @@
         const uidRadio = "occweek" + occRowSeq;
         const level = o.level || inferClassLevel(o.className) || "";
         const scope = o.weekScope === "A" || o.weekScope === "B" ? o.weekScope : "both";
-        return `<div class="team-coord-occ-row">
+        const teacherId = o.teacherId || tc.teachers[0].id;
+        const teacherColor = teamTeacherColor(teacherId);
+        return `<div class="team-coord-occ-row team-coord-occ-row--tinted" style="--teacher-color:${escapeHtml(teacherColor)};--teacher-soft:${escapeHtml(alphaColor(teacherColor, 0.16))}">
           <div class="form-group" style="margin-bottom:.35rem">
             <label>Professeur</label>
-            <select class="f-occ-teacher">${teacherSelectOpts(o.teacherId || tc.teachers[0].id)}</select>
+            <select class="f-occ-teacher">${teacherSelectOpts(teacherId)}</select>
           </div>
           <div class="form-group" style="margin-bottom:.35rem">
             <label>Semaines</label>
@@ -12954,7 +13065,7 @@
       }
 
       const body = el(`<div>
-        <p class="kpi-sub" style="margin:0 0 .55rem"><strong>${escapeHtml(DOW[day] || "")}</strong> · ${escapeHtml(teamTimeLabel(ts))} · filtre : ${escapeHtml(period.name || "Période")} · renseignez ensuite les périodes du niveau choisi</p>
+        <p class="kpi-sub" style="margin:0 0 .55rem"><strong>${escapeHtml(DOW[day] || "")}</strong> · ${escapeHtml(fmtDateFr(contextDateIso))} · ${escapeHtml(teamTimeLabel(ts))} · période du jour : ${escapeHtml(period ? period.name : "—")}</p>
         <datalist id="f-occ-class-list">${classDatalist}</datalist>
         <div id="f-occ-list">${(initial.length ? initial : [{ teacherId: filterId || tc.teachers[0].id, className: "", level: "", byPeriod: {}, weekScope: "both" }]).map(occupantRowHtmlFixed).join("")}</div>
         <button type="button" class="btn btn-sm btn-ghost" id="btn-occ-add" style="margin-top:.25rem">+ Ajouter un professeur</button>
@@ -12963,8 +13074,14 @@
       const listRoot = body.querySelector("#f-occ-list");
 
       function wireRow(row) {
+        const teacherSel = row.querySelector(".f-occ-teacher");
         const levelSel = row.querySelector(".f-occ-level");
         const classInp = row.querySelector(".f-occ-class");
+        const applyTeacherTint = () => {
+          const color = teamTeacherColor(teacherSel?.value || "");
+          row.style.setProperty("--teacher-color", color);
+          row.style.setProperty("--teacher-soft", alphaColor(color, 0.16));
+        };
         const collectPeriodValues = () => {
           const byPeriod = {};
           row.querySelectorAll(".team-coord-period-block").forEach((block) => {
@@ -12991,6 +13108,8 @@
           if (host) host.outerHTML = periodFieldsHtml(level, collectPeriodValues());
           wirePeriodVenueFields();
         };
+        teacherSel?.addEventListener("change", applyTeacherTint);
+        applyTeacherTint();
         wirePeriodVenueFields();
         levelSel.addEventListener("change", refreshPeriods);
         classInp.addEventListener("change", () => {
@@ -14328,13 +14447,13 @@
           <div class="tutorial-section__body">
             <p>${goto("tools:orgProg", "Programmation de l'établissement")}</p>
             <ul>
-              <li>Ajoutez les <strong>professeurs</strong> et les <strong>créneaux horaires</strong> (Début/Fin comme pour les classes).</li>
+              <li>Ajoutez les <strong>professeurs</strong> avec leur <strong>couleur</strong>, puis les <strong>créneaux horaires</strong> (modifiables / supprimables ensuite).</li>
               <li>Les jours sont <strong>côte à côte</strong> : faites glisser horizontalement pour passer de lundi à vendredi. Le nom du jour est centré en en-tête.</li>
-              <li>Tableau : colonne <strong>Créneau</strong> + colonne <strong>Cours</strong> (Nom — classe — APSA — lieu sur une seule ligne, sans troncature).</li>
+              <li>Tableau : colonne <strong>Créneau</strong> + colonne <strong>Cours</strong>. Chaque professeur garde sa <strong>couleur</strong> pour repérer rapidement sa présence.</li>
               <li>Cliquez une case pour ajouter les professeurs du créneau ; pour chacun : classe, niveau, puis <strong>APSA + lieu pour chaque période</strong> du niveau choisi, avec <strong>Toutes / Sem. A / Sem. B</strong>.</li>
-              <li>Filtre <strong>Période</strong> : choisissez une période précise ou <strong>Période actuelle</strong> pour voir les créneaux à la date du jour. Cette vue est activée par défaut. Filtre <strong>Professeur</strong> : Tous = équipe ; un nom = planning personnel. La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
+              <li>Filtre <strong>Semaine</strong> : la semaine en cours est affichée par défaut, avec la bonne alternance A/B selon la date du jour. Filtre <strong>Professeur</strong> : Tous = équipe ; un nom = planning personnel. La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
               <li><strong>Je suis</strong> + <strong>Importer ma programmation</strong> : remplit votre ligne depuis « Programmation de mes classes ».</li>
-              <li>Partages d'installation signalés (orange) ; visibles aussi sur l'Accueil (🤝).</li>
+              <li>Si une installation est partagée, seules les lignes concernées sont <strong>encadrées en orange</strong> ; l'information reste visible aussi sur l'Accueil (🤝).</li>
             </ul>
           </div>
         </details>
@@ -15375,14 +15494,9 @@
         }
       });
 
-      main.querySelectorAll(".btn-team-week").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          teamCoordWeekParity = btn.getAttribute("data-week") === "B" ? "B" : "A";
-          render();
-        });
-      });
-      main.querySelector("#sel-team-period")?.addEventListener("change", (e) => {
-        teamCoordPeriodId = e.target.value || TEAM_COORD_CURRENT_PERIOD;
+      main.querySelector("#sel-team-week")?.addEventListener("change", (e) => {
+        teamCoordWeekStartISO = mondayIsoForDate(e.target.value || "") || mondayIsoForDate(new Date());
+        teamCoordWeekParity = weekParityForDate(teamCoordWeekStartISO);
         render();
       });
       main.querySelector("#sel-team-filter-teacher")?.addEventListener("change", (e) => {
@@ -15425,27 +15539,50 @@
         }
       });
       main.querySelector("#btn-team-add-teachers-bulk")?.addEventListener("click", () => {
-        const body = el(`<div>
-          <div class="form-group">
-            <label>Noms des professeurs (un par ligne)</label>
-            <textarea id="f-team-teachers-bulk" rows="8" placeholder="Mme Dupont&#10;M. Martin&#10;Mme Leroy" style="width:100%;min-height:9rem;padding:.55rem;border-radius:10px;border:1px solid var(--border-strong);background:var(--card);color:var(--text)"></textarea>
+        const rowHtml = (name, color, id) => `<div class="team-teacher-row form-row" data-teacher-id="${escapeHtml(id || "")}" style="align-items:flex-end;margin-bottom:.45rem">
+          <div class="form-group" style="margin:0;flex:1">
+            <label>Nom</label>
+            <input class="f-team-teacher-name" value="${escapeHtml(name || "")}" placeholder="Mme Dupont" />
           </div>
+          <div class="form-group" style="margin:0;flex:0 0 5.5rem">
+            <label>Couleur</label>
+            <input type="color" class="f-team-teacher-color" value="${escapeHtml(color || TEAM_COORD_TEACHER_COLORS[0])}" style="width:100%;min-height:2.6rem;padding:.15rem" />
+          </div>
+          <button type="button" class="btn btn-sm btn-danger btn-team-teacher-row-del" title="Retirer" style="min-height:40px">✕</button>
+        </div>`;
+        const body = el(`<div>
+          <div id="f-team-teachers-rows">
+            ${rowHtml("", TEAM_COORD_TEACHER_COLORS[0], "")}
+          </div>
+          <button type="button" class="btn btn-sm btn-ghost" id="btn-team-teacher-row-add" style="margin-top:.25rem">+ Ajouter un professeur</button>
         </div>`);
+        const rowsRoot = body.querySelector("#f-team-teachers-rows");
+        const wireRowDel = () => {
+          rowsRoot.querySelectorAll(".btn-team-teacher-row-del").forEach((btn) => {
+            btn.onclick = () => {
+              if (rowsRoot.querySelectorAll(".team-teacher-row").length <= 1) return;
+              btn.closest(".team-teacher-row")?.remove();
+            };
+          });
+        };
+        wireRowDel();
+        body.querySelector("#btn-team-teacher-row-add")?.addEventListener("click", () => {
+          const idx = rowsRoot.querySelectorAll(".team-teacher-row").length;
+          rowsRoot.insertAdjacentHTML("beforeend", rowHtml("", TEAM_COORD_TEACHER_COLORS[idx % TEAM_COORD_TEACHER_COLORS.length], ""));
+          wireRowDel();
+        });
         openModal("Ajouter professeurs", body, () => {
-          const raw = body.querySelector("#f-team-teachers-bulk")?.value || "";
-          const names = raw
-            .split(/\n|;|,/)
-            .map((s) => s.trim())
-            .filter(Boolean);
-          if (!names.length) return false;
           const tc = ensureTeamCoordination();
           const existing = new Set(tc.teachers.map((t) => String(t.name || "").trim().toLowerCase()));
           let added = 0;
-          names.forEach((name) => {
+          rowsRoot.querySelectorAll(".team-teacher-row").forEach((row) => {
+            const name = (row.querySelector(".f-team-teacher-name")?.value || "").trim();
+            const color = (row.querySelector(".f-team-teacher-color")?.value || "").trim() || TEAM_COORD_TEACHER_COLORS[0];
+            if (!name) return;
             const key = name.toLowerCase();
             if (existing.has(key)) return;
             existing.add(key);
-            tc.teachers.push({ id: uid(), name });
+            tc.teachers.push({ id: uid(), name, color });
             added += 1;
           });
           if (!added) {
@@ -15457,8 +15594,9 @@
           return true;
         });
       });
-      main.querySelector("#btn-team-add-timeslot")?.addEventListener("click", () => {
-        const rowHtml = (startDef, endDef) => `<div class="team-coord-slot-row form-row" style="align-items:flex-end;margin-bottom:.45rem">
+      const openTeamTimeSlotsModal = () => {
+        const tc = ensureTeamCoordination();
+        const rowHtml = (startDef, endDef, slotId) => `<div class="team-coord-slot-row form-row" data-slot-id="${escapeHtml(slotId || "")}" style="align-items:flex-end;margin-bottom:.45rem">
           <div class="form-group" style="margin:0;flex:1">
             <label>Début</label>
             <input type="time" class="f-team-slot-start" value="${escapeHtml(startDef)}" />
@@ -15469,12 +15607,12 @@
           </div>
           <button type="button" class="btn btn-sm btn-danger btn-team-slot-row-del" title="Retirer" style="min-height:40px">✕</button>
         </div>`;
+        const existingRows = tc.timeSlots.length
+          ? tc.timeSlots.map((slot) => rowHtml(slot.startTime || "", slot.endTime || "", slot.id)).join("")
+          : [rowHtml("08:20", "09:15", ""), rowHtml("09:25", "10:20", ""), rowHtml("10:35", "11:30", ""), rowHtml("13:50", "14:45", "")].join("");
         const body = el(`<div>
           <div id="f-team-slots-rows">
-            ${rowHtml("08:20", "09:15")}
-            ${rowHtml("09:25", "10:20")}
-            ${rowHtml("10:35", "11:30")}
-            ${rowHtml("13:50", "14:45")}
+            ${existingRows}
           </div>
           <button type="button" class="btn btn-sm btn-ghost" id="btn-team-slot-row-add" style="margin-top:.25rem">+ Ajouter un créneau</button>
         </div>`);
@@ -15489,13 +15627,12 @@
         };
         wireRowDel();
         body.querySelector("#btn-team-slot-row-add")?.addEventListener("click", () => {
-          rowsRoot.insertAdjacentHTML("beforeend", rowHtml("08:00", "09:00"));
+          rowsRoot.insertAdjacentHTML("beforeend", rowHtml("08:00", "09:00", ""));
           wireRowDel();
         });
         openModal("Créneaux horaires", body, () => {
-          const tc = ensureTeamCoordination();
-          const existing = new Set(tc.timeSlots.map((s) => s.startTime + "|" + s.endTime));
-          let added = 0;
+          const nextSlots = [];
+          const seen = new Set();
           let invalid = 0;
           rowsRoot.querySelectorAll(".team-coord-slot-row").forEach((row) => {
             const startTime = normalizeTimeHHMM(row.querySelector(".f-team-slot-start")?.value || "");
@@ -15505,21 +15642,26 @@
               return;
             }
             const key = startTime + "|" + endTime;
-            if (existing.has(key)) return;
-            existing.add(key);
-            tc.timeSlots.push({ id: uid(), startTime, endTime });
-            added += 1;
+            if (seen.has(key)) return;
+            seen.add(key);
+            nextSlots.push({ id: row.getAttribute("data-slot-id") || uid(), startTime, endTime });
           });
-          tc.timeSlots.sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)));
-          if (!added) {
-            alert(invalid ? "Vérifiez les horaires (début avant fin)." : "Ces créneaux existent déjà.");
+          if (!nextSlots.length) {
+            alert(invalid ? "Vérifiez les horaires (début avant fin)." : "Ajoutez au moins un créneau.");
             return false;
           }
+          const validIds = new Set(nextSlots.map((s) => s.id));
+          tc.timeSlots = nextSlots.sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)));
+          Object.keys(tc.cells).forEach((k) => {
+            const parts = k.split("|");
+            if (!validIds.has(parts[2])) delete tc.cells[k];
+          });
           saveData();
           render();
           return true;
         });
-      });
+      };
+      main.querySelector("#btn-team-add-timeslot")?.addEventListener("click", openTeamTimeSlotsModal);
       main.querySelectorAll(".btn-team-del-timeslot").forEach((btn) => {
         btn.addEventListener("click", () => {
           const id = btn.getAttribute("data-id");
@@ -15539,9 +15681,13 @@
           openTeamSlotOccupantsModal(
             parseInt(btn.getAttribute("data-day-index"), 10),
             btn.getAttribute("data-timeslot-id"),
-            btn.getAttribute("data-week")
+            btn.getAttribute("data-week"),
+            btn.getAttribute("data-date-iso")
           );
         });
+      });
+      main.querySelectorAll(".btn-team-edit-timeslot").forEach((btn) => {
+        btn.addEventListener("click", openTeamTimeSlotsModal);
       });
 
       main.querySelector("#btn-add-venue")?.addEventListener("click", () => {
