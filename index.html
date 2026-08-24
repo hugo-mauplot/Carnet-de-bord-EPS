@@ -224,12 +224,12 @@
       min-width: 0;
       max-width: 100%;
       margin: 0;
-      font-size: clamp(0.78rem, 2.6vw + 0.45rem, 1.45rem);
+      font-size: clamp(0.92rem, 3.1vw + 0.52rem, 1.58rem);
       font-weight: 800;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.025em;
       color: var(--text);
       text-align: center;
-      line-height: 1.2;
+      line-height: 1.15;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -541,6 +541,12 @@
       border: 1px solid var(--border-strong);
       box-shadow: var(--shadow-sm);
     }
+    .cal-panel--year {
+      border-left: 5px solid #38bdf8;
+      background: linear-gradient(165deg, rgba(56, 189, 248, 0.16) 0%, var(--surface) 38%);
+    }
+    .cal-panel--year .cal-panel__title { color: #0284c7; }
+    [data-theme="light"] .cal-panel--year .cal-panel__title { color: #0369a1; }
     .cal-panel--official {
       border-left: 5px solid #2dd4bf;
       background: linear-gradient(165deg, rgba(45, 212, 191, 0.16) 0%, var(--surface) 38%);
@@ -654,7 +660,8 @@
       align-items: center;
       gap: 0.5rem;
     }
-    .cal-panel__actions select {
+    .cal-panel__actions select,
+    .cal-panel__actions input[type="date"] {
       font-size: 0.9rem;
       padding: 0.4rem 0.6rem;
       border: 1px solid var(--border-strong);
@@ -664,6 +671,15 @@
       max-width: 100%;
       color: var(--text);
       background: var(--card);
+    }
+    .cal-panel__actions input[type="date"] {
+      min-width: 9.5rem;
+      flex: 1 1 9.5rem;
+      min-height: 2.5rem;
+      color-scheme: dark;
+    }
+    [data-theme="light"] .cal-panel__actions input[type="date"] {
+      color-scheme: light;
     }
     .cal-panel--visual {
       border-left: 5px solid #a5b4fc;
@@ -719,6 +735,39 @@
       flex: 1 1 12rem;
       min-height: 40px;
     }
+    .team-coord-filter-bar--teacher {
+      flex-wrap: nowrap;
+      gap: 0.35rem;
+    }
+    .team-coord-filter-bar--teacher label {
+      flex: 0 0 auto;
+    }
+    .team-coord-filter-bar--teacher select {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .btn-team-del-filtered-teacher {
+      flex: 0 0 auto;
+      width: 2.25rem;
+      height: 2.25rem;
+      min-width: 2.25rem;
+      min-height: 2.25rem;
+      padding: 0;
+      border-radius: 10px;
+      border: 1px solid color-mix(in srgb, var(--danger) 42%, var(--border));
+      background: color-mix(in srgb, var(--danger) 12%, var(--card));
+      color: var(--danger);
+      font-size: 1.35rem;
+      font-weight: 650;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+    .btn-team-del-filtered-teacher:disabled {
+      opacity: 0.32;
+      cursor: not-allowed;
+    }
     .team-coord-teacher-cell .btn-team-del-teacher {
       margin-top: 0.25rem;
       padding: 0.1rem 0.35rem;
@@ -730,10 +779,22 @@
     }
     .team-coord-days-v2 {
       display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: stretch;
+      gap: 0.6rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: 0.05rem;
+      padding-bottom: 0.45rem;
     }
     .team-coord-day-v2 {
+      flex: 0 0 auto;
+      width: max-content;
+      max-width: none;
+      scroll-snap-align: start;
       border: 1px solid var(--border-strong);
       border-radius: 14px;
       background: var(--surface);
@@ -742,46 +803,75 @@
     }
     .team-coord-day-v2__title {
       margin: 0;
-      padding: 0.55rem 0.75rem;
-      font-size: 0.95rem;
+      padding: 0.45rem 0.5rem;
+      font-size: 0.92rem;
       font-weight: 800;
+      letter-spacing: 0.01em;
+      text-align: center;
+      text-transform: none;
+      color: var(--text);
       background: color-mix(in srgb, var(--accent) 12%, var(--surface));
       border-bottom: 1px solid var(--border);
     }
     .team-coord-day-v2-table {
       width: 100%;
       border-collapse: collapse;
-      table-layout: fixed;
+      table-layout: auto;
     }
     .team-coord-day-v2-table th,
     .team-coord-day-v2-table td {
       border-top: 1px solid var(--border);
-      padding: 0.45rem 0.55rem;
-      vertical-align: top;
+      padding: 0.28rem 0.32rem;
+      vertical-align: middle;
     }
     .team-coord-day-v2-table th {
-      font-size: 0.72rem;
+      font-size: 0.62rem;
       text-transform: uppercase;
       letter-spacing: 0.03em;
       color: var(--text-muted);
       background: color-mix(in srgb, var(--card) 70%, transparent);
+      white-space: nowrap;
+    }
+    .team-coord-day-v2-table thead tr:nth-child(2) th {
+      text-align: center;
+    }
+    .team-coord-day-v2-table th.team-coord-day-v2__title {
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      text-transform: none;
+      text-align: center;
+      color: var(--text);
+    }
+    .team-coord-day-v2-table .team-coord-col-slot {
+      width: 3.35rem;
     }
     .team-coord-day-v2-table .team-coord-slot-time {
-      width: 7.2rem;
+      width: 3.35rem;
+      max-width: 3.5rem;
+      padding: 0.2rem 0.18rem;
       font-weight: 800;
-      font-size: 0.82rem;
+      font-size: 0.62rem;
+      line-height: 1.15;
       white-space: nowrap;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .team-coord-slot-time__start,
+    .team-coord-slot-time__end {
+      display: block;
     }
     .team-coord-occupants-btn {
       display: block;
-      width: 100%;
+      width: max-content;
+      min-width: 100%;
       text-align: left;
       border: 1px dashed var(--border-strong);
-      border-radius: 10px;
+      border-radius: 8px;
       background: var(--card);
       color: var(--text);
-      padding: 0.45rem 0.55rem;
-      min-height: 3.2rem;
+      padding: 0.22rem 0.32rem;
+      min-height: 0;
       cursor: pointer;
       font: inherit;
     }
@@ -796,11 +886,11 @@
     .team-coord-occupant-line {
       display: block;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 0.8rem;
+      overflow: visible;
+      text-overflow: clip;
+      font-size: 0.68rem;
       font-weight: 650;
-      line-height: 1.45;
+      line-height: 1.35;
     }
     .team-coord-occupants-empty {
       color: var(--text-muted);
@@ -1048,10 +1138,25 @@
       .team-coord-days {
         grid-template-columns: repeat(5, minmax(15.5rem, 1fr));
       }
+      .team-coord-day-v2-table .team-coord-slot-time,
+      .team-coord-day-v2-table .team-coord-col-slot {
+        width: 2.95rem;
+        max-width: 3.1rem;
+      }
+      .team-coord-occupant-line {
+        font-size: 0.62rem;
+      }
     }
     @media (max-width: 480px) {
       .team-coord-cell-btn { min-height: 4.2rem; font-size: 0.74rem; }
       .team-coord-day { min-width: 15rem; }
+      .team-coord-day-v2-table .team-coord-slot-time {
+        font-size: 0.56rem;
+        padding: 0.16rem 0.1rem;
+      }
+      .team-coord-occupant-line {
+        font-size: 0.6rem;
+      }
     }
 
     .dash-share-badge {
@@ -1830,9 +1935,9 @@
         padding: 0.4rem 0.15rem;
       }
       .dash-date-label {
-        font-size: clamp(0.72rem, 3.1vw, 1.05rem);
-        line-height: 1.2;
-        padding: 0 0.1rem;
+        font-size: clamp(0.86rem, 3.9vw, 1.2rem);
+        line-height: 1.15;
+        padding: 0 0.08rem;
         white-space: nowrap;
       }
       .dash-date-nav__arrow {
@@ -4394,6 +4499,10 @@
       }
       .cal-panel__actions > label {
         display: none; /* labels implied by selects; keeps one-line denser */
+      }
+      .cal-panel--year .cal-panel__actions > label {
+        display: block;
+        flex: 0 0 auto;
       }
       .cal-panel__action-btns {
         flex: 1 1 100%;
@@ -7986,7 +8095,7 @@
       const parts = parseSchoolYearParts(annee);
       if (!parts || !appData.settings) return;
       appData.settings.calendarSchoolYear = annee;
-      // Aligne les bornes de l'année scolaire (modifiables ensuite dans Réglages → Sauvegarde).
+      // Aligne les bornes de l'année scolaire (modifiables ensuite dans Réglages → Calendriers).
       appData.settings.schoolYearStart = `${parts.y1}-09-01`;
       appData.settings.schoolYearEnd = `${parts.y2}-07-05`;
     }
@@ -12582,13 +12691,13 @@
           </div>`
         : `<p class="kpi-sub" style="margin:0 0 .65rem;color:var(--danger)">Créez d'abord des périodes (Organisation EPS → Périodes) pour renseigner APSA et lieux par période.</p>`;
 
-      const teacherFilter = `<div class="team-coord-filter-bar">
+      const teacherFilter = `<div class="team-coord-filter-bar team-coord-filter-bar--teacher">
           <label class="kpi-sub" for="sel-team-filter-teacher" style="margin:0">Professeur</label>
           <select id="sel-team-filter-teacher" aria-label="Filtrer par professeur">
             <option value="" ${!filterId ? "selected" : ""}>Tous les professeurs</option>
             ${filterOpts}
           </select>
-          <button type="button" class="btn btn-sm btn-danger" id="btn-team-del-filtered-teacher" ${filterId ? "" : "disabled"} title="Supprimer le professeur sélectionné">Supprimer</button>
+          <button type="button" class="btn-team-del-filtered-teacher" id="btn-team-del-filtered-teacher" ${filterId ? "" : "disabled"} title="Supprimer le professeur sélectionné" aria-label="Supprimer le professeur sélectionné">×</button>
         </div>`;
 
       const conflictLines = periods.length ? listTeamCoordinationConflicts(week, periodId) : [];
@@ -12630,8 +12739,10 @@
                       })
                       .join("")
                   : `<span class="team-coord-occupants-empty">${filterId ? "+ Ajouter un cours" : "+ Ajouter des professeurs"}</span>`;
+                const start = normalizeTimeHHMM(ts.startTime || "");
+                const end = normalizeTimeHHMM(ts.endTime || "");
                 return `<tr>
-                  <td class="team-coord-slot-time">${escapeHtml(teamTimeLabel(ts))}</td>
+                  <td class="team-coord-slot-time"><span class="team-coord-slot-time__start">${escapeHtml(start)}</span><span class="team-coord-slot-time__end">${escapeHtml(end)}</span></td>
                   <td>
                     <button type="button" class="team-coord-occupants-btn btn-team-edit-slot${hasConflict ? " team-coord-occupants-btn--conflict" : ""}"
                       data-day-index="${dayIndex}"
@@ -12641,10 +12752,13 @@
                 </tr>`;
               })
               .join("");
+            const dayHead = `${escapeHtml(DOW[dayIndex])}${filterTeacher ? ` · ${escapeHtml(filterTeacher.name || "")}` : ""}`;
             return `<section class="team-coord-day-v2">
-              <h4 class="team-coord-day-v2__title">${escapeHtml(DOW[dayIndex])}${filterTeacher ? ` · ${escapeHtml(filterTeacher.name || "")}` : ""}</h4>
               <table class="team-coord-day-v2-table">
-                <thead><tr><th>Créneau</th><th>${col2Title}</th></tr></thead>
+                <thead>
+                  <tr><th colspan="2" class="team-coord-day-v2__title">${dayHead}</th></tr>
+                  <tr><th class="team-coord-col-slot">Créneau</th><th>${col2Title}</th></tr>
+                </thead>
                 <tbody>${rows}</tbody>
               </table>
             </section>`;
@@ -13138,7 +13252,23 @@
       const holidaysCount = appData.holidays.length;
       const schoolEventsCount = (appData.schoolCalendarEvents || []).length;
       return (
-        `<section class="cal-panel cal-panel--official">
+        `<section class="cal-panel cal-panel--year">
+          <h3 class="cal-panel__title">📆 Année scolaire</h3>
+          <div class="cal-panel__setup">
+            <div class="cal-panel__setup-title">Paramétrage</div>
+            <div class="cal-panel__actions">
+              <label class="kpi-sub" for="set-start" style="margin:0;flex:0 0 auto">Début</label>
+              <input type="date" id="set-start" value="${appData.settings.schoolYearStart}" aria-label="Début de l'année scolaire" />
+              <label class="kpi-sub" for="set-end" style="margin:0;flex:0 0 auto">Fin</label>
+              <input type="date" id="set-end" value="${appData.settings.schoolYearEnd}" aria-label="Fin de l'année scolaire" />
+              <div class="cal-panel__action-btns">
+                <button type="button" class="btn btn-sm btn-primary btn-compact-label" id="btn-save-settings" title="Enregistrer les dates et régénérer les séances">Enregistrer &amp; régénérer</button>
+              </div>
+            </div>
+            <p class="kpi-sub" style="margin:.55rem 0 0">Cadre de l'année : les cours sont créés entre ces dates, et les semaines A/B partent de la rentrée. Enregistrer régénère le calendrier des séances.</p>
+          </div>
+        </section>
+        <section class="cal-panel cal-panel--official">
           <h3 class="cal-panel__title cal-panel__title--one-line" title="${escapeHtml(officialCalendarAcademyTitle())}">📅 ${escapeHtml(officialCalendarAcademyTitle())}</h3>
           <div class="cal-panel__setup">
             <div class="cal-panel__setup-title">Paramétrage</div>
@@ -13730,14 +13860,6 @@
           <p class="kpi-sub" style="margin-top:.65rem;font-size:.78rem;word-break:break-all;opacity:.95"><strong>Origine actuelle :</strong><br>${origin}</p>
         </div>
         <div class="card">
-          <h3>Année scolaire</h3>
-          <div class="form-row form-row--center-dates">
-            <div class="form-group"><label>Début</label><input type="date" id="set-start" value="${appData.settings.schoolYearStart}" /></div>
-            <div class="form-group"><label>Fin</label><input type="date" id="set-end" value="${appData.settings.schoolYearEnd}" /></div>
-          </div>
-          <button type="button" class="btn btn-primary" id="btn-save-settings">Enregistrer période & régénérer</button>
-        </div>
-        <div class="card">
           <p class="kpi-sub" style="line-height:1.5">Sauvegarde automatique dans ce navigateur pour cette origine (voir encadré ci-dessus). Pensez à exporter un fichier JSON avant de changer d’ordinateur, de navigateur ou de mode d’ouverture du fichier.</p>
           <div class="flex-row" style="margin-top:.75rem">
             <button type="button" class="btn btn-primary" id="btn-export">Export JSON</button>
@@ -14134,13 +14256,13 @@
           <div class="tutorial-section__body">
             <p>Dans l'ordre ci-dessous. Les séances se créent <strong>toutes seules</strong> à chaque enregistrement.</p>
             <ol class="tutorial-steps">
-              <li><strong>Année scolaire</strong> — dates début / fin (thème clair/sombre dans Réglages). ${goto("tools:backup", "Sauvegarde")}</li>
+              <li><strong>Année scolaire</strong> — dates de rentrée et de fin (première case de Calendriers). ${goto("tools:calendriers", "Calendriers")}</li>
               <li><strong>Classes + élèves</strong> — niveau, créneaux hebdomadaires (A/B), liste d'élèves. ${goto("tools:classes", "Mes classes")}</li>
               <li><strong>Périodes</strong> — P1, P2… et <strong>niveaux</strong> concernés. ${goto("tools:orgPeriodes", "Périodes")}</li>
               <li><strong>APSA programmées</strong> — catalogue par niveau et CA. ${goto("tools:orgApsa", "APSA")}</li>
               <li><strong>Programmation de mes classes</strong> — un sous-tableau <strong>par niveau</strong>, avec seulement les périodes de ce niveau ; APSA + lieu par créneau. ${goto("tools:orgApsa", "Programmation")}</li>
               <li><strong>Lieux de pratique</strong> — gymnase, stade… ${goto("tools:orgLieux", "Lieux")}</li>
-              <li><strong>Calendriers</strong> — vacances, fériés, calendrier officiel (académie), événements établissement. ${goto("tools:calendriers", "Calendriers")}</li>
+              <li><strong>Calendriers</strong> — année scolaire, vacances, fériés, calendrier officiel (académie), événements établissement. ${goto("tools:calendriers", "Calendriers")}</li>
             </ol>
           </div>
         </details>
@@ -14151,9 +14273,10 @@
             <p>${goto("tools:orgProg", "Programmation de l'établissement")}</p>
             <ul>
               <li>Ajoutez les <strong>professeurs</strong> et les <strong>créneaux horaires</strong> (Début/Fin comme pour les classes).</li>
-              <li>Tableau par jour : colonne <strong>Créneau</strong> + colonne <strong>Professeurs</strong> (Nom — classe — APSA — lieu).</li>
+              <li>Les jours sont <strong>côte à côte</strong> : faites glisser horizontalement pour passer de lundi à vendredi. Le nom du jour est centré en en-tête.</li>
+              <li>Tableau : colonne <strong>Créneau</strong> (compacte) + colonne <strong>Professeurs</strong> (Nom — classe — APSA — lieu sur une seule ligne, sans troncature).</li>
               <li>Cliquez une case pour ajouter les professeurs du créneau ; pour chacun : APSA, classe, lieu, et <strong>Toutes / Sem. A / Sem. B</strong>.</li>
-              <li>Filtre <strong>Période</strong> (par défaut : période du jour) et filtre <strong>Professeur</strong> (Tous = équipe ; un nom = planning personnel). Bouton Supprimer à côté du filtre.</li>
+              <li>Filtre <strong>Période</strong> (par défaut : période du jour) et filtre <strong>Professeur</strong> (Tous = équipe ; un nom = planning personnel). La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
               <li><strong>Je suis</strong> + <strong>Importer ma programmation</strong> : remplit votre ligne depuis « Programmation de mes classes ».</li>
               <li>Partages d'installation signalés (orange) ; visibles aussi sur l'Accueil (🤝).</li>
             </ul>
@@ -14165,7 +14288,7 @@
           <div class="tutorial-section__body">
             <p>${goto("dashboard", "Accueil")}</p>
             <ul>
-              <li><strong>?</strong> à gauche — ce guide · <strong>🔔</strong> à droite — rappel (la date reste sur une seule ligne au centre).</li>
+              <li><strong>?</strong> à gauche — ce guide · <strong>🔔</strong> à droite — rappel. La date (un peu plus grande) reste sur une seule ligne au centre, sans déplacer les boutons.</li>
               <li><strong>Date</strong> — touchez-la pour choisir un jour ; ◀ ▶ pour hier / demain.</li>
               <li><strong>Cours du jour</strong> — touchez un cours : appel, résumé, dispense, oubli, PDF.</li>
               <li><strong>🤝 Installation partagée</strong> — collègue au même lieu : professeur, APSA et classe.</li>
