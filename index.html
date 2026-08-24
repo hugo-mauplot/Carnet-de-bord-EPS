@@ -12882,16 +12882,7 @@
                 const start = normalizeTimeHHMM(ts.startTime || "");
                 const end = normalizeTimeHHMM(ts.endTime || "");
                 return `<tr>
-                  <td class="team-coord-slot-time">
-                    <div class="team-coord-slot-head">
-                      <span class="team-coord-slot-time__start">${escapeHtml(start)}</span>
-                      <span class="team-coord-slot-time__end">${escapeHtml(end)}</span>
-                      <span class="team-coord-slot-actions">
-                        <button type="button" class="team-coord-slot-action btn-team-edit-timeslot" data-id="${escapeHtml(ts.id)}" title="Modifier le créneau" aria-label="Modifier le créneau">✎</button>
-                        <button type="button" class="team-coord-slot-action team-coord-slot-action--danger btn-team-del-timeslot" data-id="${escapeHtml(ts.id)}" title="Supprimer le créneau" aria-label="Supprimer le créneau">×</button>
-                      </span>
-                    </div>
-                  </td>
+                  <td class="team-coord-slot-time"><span class="team-coord-slot-time__start">${escapeHtml(start)}</span><span class="team-coord-slot-time__end">${escapeHtml(end)}</span></td>
                   <td>
                     <button type="button" class="team-coord-occupants-btn btn-team-edit-slot"
                       data-day-index="${dayIndex}"
@@ -15688,20 +15679,6 @@
         });
       };
       main.querySelector("#btn-team-add-timeslot")?.addEventListener("click", openTeamTimeSlotsModal);
-      main.querySelectorAll(".btn-team-del-timeslot").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const id = btn.getAttribute("data-id");
-          if (!id || !confirm("Supprimer ce créneau horaire et ses cases ?")) return;
-          const tc = ensureTeamCoordination();
-          tc.timeSlots = tc.timeSlots.filter((s) => s.id !== id);
-          Object.keys(tc.cells).forEach((k) => {
-            const parts = k.split("|");
-            if (parts[2] === id) delete tc.cells[k];
-          });
-          saveData();
-          render();
-        });
-      });
       main.querySelectorAll(".btn-team-edit-slot").forEach((btn) => {
         btn.addEventListener("click", () => {
           openTeamSlotOccupantsModal(
@@ -15711,9 +15688,6 @@
             btn.getAttribute("data-date-iso")
           );
         });
-      });
-      main.querySelectorAll(".btn-team-edit-timeslot").forEach((btn) => {
-        btn.addEventListener("click", openTeamTimeSlotsModal);
       });
 
       main.querySelector("#btn-add-venue")?.addEventListener("click", () => {
