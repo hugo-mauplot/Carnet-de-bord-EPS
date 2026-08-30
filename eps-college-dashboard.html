@@ -1100,6 +1100,25 @@
       font-weight: 700;
       font-size: 0.9rem;
     }
+    .team-teacher-self-row__badge {
+      display: inline-block;
+      margin-left: 0.35rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      color: #0f766e;
+      background: color-mix(in srgb, #0d9488 16%, var(--surface));
+      border: 1px solid color-mix(in srgb, #0d9488 35%, var(--border));
+      vertical-align: middle;
+    }
+    .team-teacher-self-row__actions {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      margin-left: auto;
+    }
     .team-teacher-self-row__me {
       display: inline-flex;
       align-items: center;
@@ -1847,7 +1866,7 @@
     .dash-association-strip__recap {
       display: flex;
       flex-direction: column;
-      gap: 0.15rem;
+      gap: 0.35rem;
       font-size: 0.76rem;
       font-weight: 500;
       text-transform: none;
@@ -1860,6 +1879,36 @@
       line-height: 1.35;
       min-width: 0;
       max-width: 100%;
+    }
+    .dash-association-strip__activity {
+      display: block;
+      line-height: 1.4;
+      min-width: 0;
+      max-width: 100%;
+    }
+    .dash-association-strip__activity strong {
+      display: block;
+      color: color-mix(in srgb, #f59e0b 88%, var(--text));
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.12rem;
+    }
+    .dash-association-strip__day {
+      display: block;
+      padding-left: 0.15rem;
+      margin-top: 0.08rem;
+      line-height: 1.4;
+    }
+    .dash-association-strip__day-name {
+      font-weight: 700;
+      color: var(--text);
+    }
+    .dash-association-strip__slot-line {
+      display: block;
+      padding-left: 0.55rem;
+      color: var(--fg);
+      font-weight: 500;
     }
     .dash-association-strip__line strong {
       color: color-mix(in srgb, #f59e0b 88%, var(--text));
@@ -4159,6 +4208,95 @@
       background: var(--profile-color, var(--accent));
       border: 1.5px solid var(--card, var(--surface));
     }
+    .btn-profile.profile-gate-target {
+      position: relative;
+      z-index: 10060;
+      pointer-events: auto !important;
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--card);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent), 0 8px 24px rgba(0, 0, 0, 0.28);
+      animation: profile-gate-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes profile-gate-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    .profile-choice-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 10050;
+      background: transparent;
+      pointer-events: none;
+    }
+    .profile-choice-gate--import {
+      background: rgba(8, 12, 22, 0.72);
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+    }
+    .profile-choice-gate--import .profile-choice-gate__card {
+      position: relative;
+      left: auto !important;
+      top: auto !important;
+      width: min(22rem, 100%);
+      max-width: 22rem;
+    }
+    .profile-choice-gate__spotlight {
+      position: absolute;
+      border-radius: 999px;
+      box-shadow: 0 0 0 9999px rgba(8, 12, 22, 0.62);
+      pointer-events: none;
+    }
+    .profile-choice-gate__card {
+      position: absolute;
+      max-width: min(18.5rem, calc(100vw - 1.5rem));
+      padding: 0.85rem 1rem;
+      border-radius: 14px;
+      background: var(--card);
+      border: 1px solid var(--border-strong);
+      box-shadow: var(--shadow);
+      color: var(--text);
+      text-align: center;
+      pointer-events: auto;
+    }
+    .profile-choice-gate__title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
+    .profile-choice-gate__text {
+      margin: 0.4rem 0 0;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: var(--text-muted);
+    }
+    .profile-choice-gate__arrow {
+      position: absolute;
+      width: 2.4rem;
+      height: 2.4rem;
+      color: #fff;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+      pointer-events: none;
+      animation: profile-gate-arrow 1.1s ease-in-out infinite;
+    }
+    @keyframes profile-gate-arrow {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+    body.profile-gate-active .sidebar,
+    body.profile-gate-active .bottom-nav,
+    body.profile-gate-active #main {
+      pointer-events: none;
+    }
+    body.profile-gate-active #btn-dash-profile {
+      pointer-events: auto !important;
+    }
+    body.profile-gate-active #modal-root.open {
+      pointer-events: auto;
+    }
     .profile-picker-list {
       display: flex;
       flex-direction: column;
@@ -5758,24 +5896,86 @@
       }
     }
 
-    function exportJSON() {
+    const TEAM_SHARE_KIND = "eps-college-team-share";
+
+    function snapshotSharedAppDataForExport() {
       flushEstablishmentOverlayToProfile();
       const had = !!establishmentSharedBackup;
       if (establishmentSharedBackup) {
-        ESTABLISHMENT_OVERLAY_KEYS.forEach((k) => { appData[k] = establishmentSharedBackup[k]; });
-        if (establishmentSharedBackup.settingsSlice) Object.assign(appData.settings, establishmentSharedBackup.settingsSlice);
+        ESTABLISHMENT_OVERLAY_KEYS.forEach((k) => {
+          appData[k] = establishmentSharedBackup[k];
+        });
+        if (establishmentSharedBackup.settingsSlice) {
+          Object.assign(appData.settings, establishmentSharedBackup.settingsSlice);
+        }
       }
-      const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
+      const payload = JSON.parse(JSON.stringify(appData));
       if (had) {
         establishmentSharedBackup = null;
         establishmentOverlayTeacherId = "";
         applyProfileEstablishmentOverlay();
       }
+      return payload;
+    }
+
+    function downloadJsonFile(payload, filename) {
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `eps-backup-${fmtISODate(new Date())}.json`;
+      a.download = filename;
       a.click();
       URL.revokeObjectURL(a.href);
+    }
+
+    function exportJSON() {
+      const payload = snapshotSharedAppDataForExport();
+      delete payload.shareKind;
+      delete payload.sharedAt;
+      downloadJsonFile(payload, `eps-backup-${fmtISODate(new Date())}.json`);
+    }
+
+    /** Export pour les collègues : tous les réglages, sans profil lié — chacun choisit le sien à l’ouverture. */
+    function exportTeamJSON() {
+      const payload = snapshotSharedAppDataForExport();
+      if (!payload.settings || typeof payload.settings !== "object") payload.settings = {};
+      payload.settings.boundTeacherId = "";
+      payload.settings.myCoordinationTeacherId = "";
+      payload.shareKind = TEAM_SHARE_KIND;
+      payload.sharedAt = new Date().toISOString();
+      downloadJsonFile(payload, `eps-equipe-${fmtISODate(new Date())}.json`);
+      alert(
+        "Fichier d’équipe prêt.\n\nEnvoyez-le avec eps-college-dashboard.html.\nChaque collègue importe ce fichier puis choisit SON profil (les professeurs sont déjà inclus — pas besoin d’en créer)."
+      );
+    }
+
+    function afterFullDataImport(isTeamShare) {
+      if (!appData.settings || typeof appData.settings !== "object") appData.settings = {};
+      if (isTeamShare) {
+        appData.settings.boundTeacherId = "";
+        appData.settings.myCoordinationTeacherId = "";
+      }
+      migrateDataModel();
+      regenerateSessions();
+      saveData();
+      profileGateAllowOrgProg = false;
+      const hasTeachers = ensureTeamCoordination().teachers.length > 0;
+      if (needsInitialProfileChoice() && hasTeachers) {
+        currentView = "dashboard";
+        render();
+        alert(
+          isTeamShare
+            ? "Réglages de l’équipe importés.\nChoisissez maintenant votre profil professeur."
+            : "Import réussi.\nChoisissez maintenant votre profil professeur."
+        );
+        requestAnimationFrame(() => openProfilePickerModal());
+        return;
+      }
+      render();
+      alert(
+        hasTeachers
+          ? "Import réussi."
+          : "Import réussi, mais aucun professeur n’est dans ce fichier.\nAjoutez-en ou importez le fichier d’équipe complet."
+      );
     }
 
     function importJSONFile(file) {
@@ -5783,13 +5983,12 @@
       reader.onload = () => {
         try {
           const o = JSON.parse(reader.result);
+          const isTeamShare = o && o.shareKind === TEAM_SHARE_KIND;
           Object.keys(appData).forEach((k) => {
             if (o[k] !== undefined) appData[k] = o[k];
           });
-          regenerateSessions();
-          saveData();
-          render();
-          alert("Import réussi.");
+          if (o.shareKind !== undefined) appData.shareKind = o.shareKind;
+          afterFullDataImport(isTeamShare);
         } catch {
           alert("Fichier JSON invalide.");
         }
@@ -6134,7 +6333,7 @@
       return teacher && teacher.color ? String(teacher.color) : TEAM_COORD_TEACHER_COLORS[0];
     }
 
-    /** Profil actif = professeur choisi (même réglage que « Moi » / Programmation établissement). */
+    /** Profil actif = professeur consulté (filtre Accueil / classes). */
     function getActiveProfileTeacherId() {
       return String((appData.settings && appData.settings.myCoordinationTeacherId) || "");
     }
@@ -6143,6 +6342,31 @@
       const id = getActiveProfileTeacherId();
       if (!id) return null;
       return ensureTeamCoordination().teachers.find((t) => t.id === id) || null;
+    }
+
+    /** Identité de cet appareil / fichier : définie une seule fois via le bouton profil Accueil. */
+    function getBoundTeacherId() {
+      return String((appData.settings && appData.settings.boundTeacherId) || "");
+    }
+
+    function getBoundTeacher() {
+      const id = getBoundTeacherId();
+      if (!id) return null;
+      return ensureTeamCoordination().teachers.find((t) => t.id === id) || null;
+    }
+
+    /**
+     * Changer de profil consulté :
+     * - pas encore lié → oui (1er choix)
+     * - identité coordonnateur → oui (tous les profils)
+     * - sinon → non (profil verrouillé)
+     */
+    function canSwitchActiveProfile() {
+      const bound = getBoundTeacher();
+      if (!bound) return true;
+      if (isTeacherCoordinator(bound)) return true;
+      if (!establishmentHasCoordinator()) return true;
+      return false;
     }
 
     function isTeacherCoordinator(teacher) {
@@ -6175,8 +6399,9 @@
     }
 
     function usesPersonalEstablishmentSettings() {
-      const profile = getActiveProfileTeacher();
-      return !!(profile && establishmentHasCoordinator() && !isTeacherCoordinator(profile));
+      // Identité appareil (lié), pas le profil consulté : un coordonnateur qui consulte un collègue écrit toujours en partagé.
+      const bound = getBoundTeacher();
+      return !!(bound && establishmentHasCoordinator() && !isTeacherCoordinator(bound));
     }
 
     function writesSharedEstablishmentSettings() {
@@ -6213,13 +6438,14 @@
 
     function ensureActiveProfileEstablishmentFork() {
       if (!usesPersonalEstablishmentSettings()) return false;
-      const profile = getActiveProfileTeacher();
+      const boundId = getBoundTeacherId();
+      if (!boundId) return false;
       if (!appData.profileEstablishment || typeof appData.profileEstablishment !== "object") {
         appData.profileEstablishment = {};
       }
-      if (!appData.profileEstablishment[profile.id]) {
+      if (!appData.profileEstablishment[boundId]) {
         restoreSharedEstablishmentFromBackup();
-        appData.profileEstablishment[profile.id] = cloneSharedEstablishmentBundle();
+        appData.profileEstablishment[boundId] = cloneSharedEstablishmentBundle();
       }
       applyProfileEstablishmentOverlay();
       return true;
@@ -6270,8 +6496,8 @@
     function applyProfileEstablishmentOverlay() {
       restoreSharedEstablishmentFromBackup();
       if (!usesPersonalEstablishmentSettings()) return;
-      const profile = getActiveProfileTeacher();
-      const store = appData.profileEstablishment && appData.profileEstablishment[profile.id];
+      const boundId = getBoundTeacherId();
+      const store = appData.profileEstablishment && appData.profileEstablishment[boundId];
       if (!store) return;
       establishmentSharedBackup = {};
       ESTABLISHMENT_OVERLAY_KEYS.forEach((k) => {
@@ -6297,7 +6523,7 @@
       if (store.settingsSlice) {
         Object.assign(appData.settings, store.settingsSlice);
       }
-      establishmentOverlayTeacherId = profile.id;
+      establishmentOverlayTeacherId = boundId;
     }
 
     /** Avant toute écriture établissement : fork perso si non-coordonnateur. Toujours autorisé. */
@@ -6311,16 +6537,16 @@
     }
 
     function profileEstablishmentBannerHtml() {
+      if (isTeacherCoordinator(getBoundTeacher())) {
+        return `<div class="card no-print" style="border-left:4px solid #0d9488;margin-bottom:.75rem;padding:.65rem .85rem"><p class="kpi-sub" style="margin:0;line-height:1.45">Mode <strong>coordonnateur</strong> — vos réglages ici s’appliquent à <strong>tous les profils</strong>.</p></div>`;
+      }
       if (!usesPersonalEstablishmentSettings()) {
-        if (isTeacherCoordinator(getActiveProfileTeacher())) {
-          return `<div class="card no-print" style="border-left:4px solid #0d9488;margin-bottom:.75rem;padding:.65rem .85rem"><p class="kpi-sub" style="margin:0;line-height:1.45">Mode <strong>coordonnateur</strong> — vos réglages ici s’appliquent à <strong>tous les profils</strong>.</p></div>`;
-        }
         return "";
       }
       const hasFork =
-        !!(getActiveProfileTeacher() &&
+        !!(getBoundTeacherId() &&
           appData.profileEstablishment &&
-          appData.profileEstablishment[getActiveProfileTeacher().id]);
+          appData.profileEstablishment[getBoundTeacherId()]);
       return `<div class="card no-print" style="border-left:4px solid #f59e0b;margin-bottom:.75rem;padding:.65rem .85rem"><p class="kpi-sub" style="margin:0;line-height:1.45">Mode <strong>profil</strong> — vous pouvez tout régler ; ${
         hasFork
           ? "vos modifications restent <strong>uniquement sur votre profil</strong> (non partagées)."
@@ -6337,9 +6563,40 @@
       if (!appData.settings) appData.settings = {};
       const next = String(teacherId || "");
       const exists = !next || ensureTeamCoordination().teachers.some((t) => t.id === next);
-      appData.settings.myCoordinationTeacherId = exists ? next : "";
-      if (exists && next) {
-        syncTeamCoordinationToProfileClasses(next, { silent: true });
+      if (!exists) return;
+
+      // Premier choix : un professeur est obligatoire
+      if (needsInitialProfileChoice() && !next) {
+        alert("Choisissez un profil professeur pour continuer.");
+        return;
+      }
+
+      if (!canSwitchActiveProfile()) {
+        const boundId = getBoundTeacherId();
+        if (next !== boundId) {
+          alert(
+            "Votre profil est déjà défini. Vous ne pouvez consulter que votre propre profil.\nSeuls les coordonnateurs peuvent changer de profil."
+          );
+          return;
+        }
+      }
+
+      // Premier choix : lier l'identité de cet appareil / fichier
+      if (next && !getBoundTeacherId()) {
+        appData.settings.boundTeacherId = next;
+        profileGateAllowOrgProg = false;
+      }
+
+      // Non-coordonnateur lié : forcer le profil actif = identité
+      if (!canSwitchActiveProfile() && getBoundTeacherId()) {
+        appData.settings.myCoordinationTeacherId = getBoundTeacherId();
+      } else {
+        appData.settings.myCoordinationTeacherId = next;
+      }
+
+      const activeId = getActiveProfileTeacherId();
+      if (activeId) {
+        syncTeamCoordinationToProfileClasses(activeId, { silent: true });
       }
       applyProfileEstablishmentOverlay();
       saveData();
@@ -7449,6 +7706,18 @@
       }
       ensureTeamCoordination();
       if (!appData.settings.myCoordinationTeacherId) appData.settings.myCoordinationTeacherId = "";
+      if (!appData.settings.boundTeacherId) {
+        // Rétrocompat : profil déjà choisi = identité liée
+        appData.settings.boundTeacherId = String(appData.settings.myCoordinationTeacherId || "");
+      }
+      // Non-coordonnateur : ne jamais laisser consulter un autre profil
+      if (
+        appData.settings.boundTeacherId &&
+        !canSwitchActiveProfile() &&
+        appData.settings.myCoordinationTeacherId !== appData.settings.boundTeacherId
+      ) {
+        appData.settings.myCoordinationTeacherId = appData.settings.boundTeacherId;
+      }
       if (!Array.isArray(appData.forgottenGear)) appData.forgottenGear = [];
       appData.classes.forEach((cl) => {
         if (!Array.isArray(cl.students)) cl.students = [];
@@ -9966,7 +10235,7 @@
       const modalClass = "modal" + (options.wide ? " modal--wide" : "");
       const wrap = el(`<div class="${modalClass}">
         <div class="modal-header">
-          <button type="button" class="modal-close" aria-label="Fermer">×</button>
+          ${options.noDismiss ? "" : `<button type="button" class="modal-close" aria-label="Fermer">×</button>`}
           <h3 class="modal-title"></h3>
         </div>
         <div class="modal-body"></div>
@@ -9976,26 +10245,35 @@
       wrap.querySelector(".modal-body").appendChild(bodyNode);
       const foot = wrap.querySelector(".modal-footer");
       if (options.infoOnly) {
-        const bClose = el(`<button type="button" class="btn btn-primary">Fermer</button>`);
-        foot.append(bClose);
-        bClose.onclick = closeModal;
+        if (!options.noDismiss) {
+          const bClose = el(`<button type="button" class="btn btn-primary">Fermer</button>`);
+          foot.append(bClose);
+          bClose.onclick = closeModal;
+        } else {
+          foot.style.display = "none";
+        }
       } else {
         const bCancel = el(`<button type="button" class="btn btn-ghost">Annuler</button>`);
         const bOk = el(
           `<button type="button" class="btn ${options.confirmDanger ? "btn-danger" : "btn-primary"}"></button>`
         );
         bOk.textContent = options.confirmLabel || "Valider";
-        foot.append(bCancel, bOk);
-        bCancel.onclick = closeModal;
+        if (options.noDismiss) {
+          foot.append(bOk);
+        } else {
+          foot.append(bCancel, bOk);
+          bCancel.onclick = closeModal;
+        }
         bOk.onclick = () => {
           const keepOpen = onConfirm && onConfirm() === false;
           if (!keepOpen) closeModal();
         };
       }
-      wrap.querySelector(".modal-close").onclick = closeModal;
+      const closeBtn = wrap.querySelector(".modal-close");
+      if (closeBtn) closeBtn.onclick = closeModal;
       root.appendChild(wrap);
       root.onclick = (e) => {
-        if (e.target === root) closeModal();
+        if (e.target === root && !options.noDismiss) closeModal();
       };
     }
 
@@ -10909,16 +11187,78 @@
       </button>`;
     }
 
+    let profileGateAllowOrgProg = false;
+
+    function profileGateAllowedSetupPanels() {
+      return ["orgProg", "home", "orgEPS", "backup"];
+    }
+
+    /** Premier lancement : aucun profil lié à cet appareil / fichier. */
+    function needsInitialProfileChoice() {
+      return !getBoundTeacherId();
+    }
+
+    function profileGateAllowsCurrentView() {
+      if (!needsInitialProfileChoice()) return true;
+      if (currentView === "dashboard") return true;
+      if (
+        profileGateAllowOrgProg &&
+        currentView === "tools" &&
+        profileGateAllowedSetupPanels().includes(toolsPanel)
+      ) {
+        return true;
+      }
+      return false;
+    }
+
+    function openGateTeamImportPicker() {
+      let input = document.getElementById("inp-profile-gate-import");
+      if (!input) {
+        input = document.createElement("input");
+        input.type = "file";
+        input.id = "inp-profile-gate-import";
+        input.accept = "application/json,.json";
+        input.className = "hidden";
+        input.addEventListener("change", () => {
+          const f = input.files && input.files[0];
+          input.value = "";
+          if (f) importJSONFile(f);
+        });
+        document.body.appendChild(input);
+      }
+      input.click();
+    }
+
     function profileButtonHtml() {
       const teacher = getActiveProfileTeacher();
       const color = teacher ? teamTeacherColor(teacher.id) : "";
       const active = teacher ? " is-active" : "";
+      const awaitingProfile =
+        needsInitialProfileChoice() && ensureTeamCoordination().teachers.length > 0;
+      const gate = awaitingProfile ? " profile-gate-target" : "";
       const style = color ? ` style="--profile-color:${escapeHtml(color)}"` : "";
-      const title = teacher
-        ? `Profil : ${teacher.name || "Professeur"} — changer de profil`
-        : "Choisir un profil professeur";
-      const aria = teacher ? `Profil actif : ${teacher.name || "Professeur"}` : "Choisir un profil professeur";
-      return `<button type="button" class="btn-profile no-print${active}" id="btn-dash-profile"${style} title="${escapeHtml(title)}" aria-label="${escapeHtml(aria)}">
+      const canSwitch = canSwitchActiveProfile();
+      const title = awaitingProfile
+        ? "Choisir un profil professeur"
+        : needsInitialProfileChoice()
+          ? "Importez d’abord le fichier du coordonnateur"
+          : !teacher
+            ? "Choisir un profil professeur"
+            : canSwitch
+              ? `Profil : ${teacher.name || "Professeur"} — changer de profil`
+              : `Profil : ${teacher.name || "Professeur"} (verrouillé)`;
+      const aria = awaitingProfile
+        ? "Choisir un profil — obligatoire"
+        : needsInitialProfileChoice()
+          ? "Profil indisponible tant que le fichier d’équipe n’est pas importé"
+          : teacher
+            ? canSwitch
+              ? `Profil actif : ${teacher.name || "Professeur"}`
+              : `Profil verrouillé : ${teacher.name || "Professeur"}`
+            : "Choisir un profil professeur";
+      return `<button type="button" class="btn-profile no-print${active}${gate}" id="btn-dash-profile"${style} title="${escapeHtml(title)}" aria-label="${escapeHtml(aria)}" ${
+        teacher && !canSwitch ? 'data-profile-locked="1"' : ""
+      }>
         <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
         </svg>
@@ -10929,26 +11269,52 @@
     function openProfilePickerModal() {
       const tc = ensureTeamCoordination();
       const currentId = getActiveProfileTeacherId();
+      const firstChoice = needsInitialProfileChoice();
       if (!tc.teachers.length) {
+        if (firstChoice) {
+          alert(
+            "Aucun professeur dans l’application.\nImportez le fichier d’équipe reçu, ou ajoutez des professeurs dans Programmation de l’établissement."
+          );
+          openGateTeamImportPicker();
+          return;
+        }
         alert("Ajoutez d'abord des professeurs dans Réglages → Programmation de l'établissement.");
         return;
       }
-      const items = [
-        {
+      if (!canSwitchActiveProfile()) {
+        const bound = getBoundTeacher();
+        alert(
+          `Profil verrouillé : ${bound && bound.name ? bound.name : "votre profil"}.\nVous ne pouvez pas consulter les autres profils.\nSeuls les coordonnateurs peuvent changer de profil.`
+        );
+        return;
+      }
+      const items = [];
+      if (!firstChoice && isTeacherCoordinator(getBoundTeacher())) {
+        items.push({
           id: "",
           name: "Aucun (Mes classes)",
           sub: "Afficher vos données personnelles comme avant",
           color: "",
-        },
-        ...tc.teachers.map((t) => ({
+        });
+      }
+      tc.teachers.forEach((t) => {
+        items.push({
           id: t.id,
           name: t.name || "—",
-          sub: "Données de la Programmation de l'établissement",
+          sub: firstChoice
+            ? "Ce choix est définitif (sauf si vous êtes coordonnateur)"
+            : isTeacherCoordinator(t)
+              ? "Coordonnateur — peut consulter tous les profils"
+              : "Données de la Programmation de l'établissement",
           color: teamTeacherColor(t.id),
-        })),
-      ];
+        });
+      });
       const body = el(`<div>
-        <p class="kpi-sub" style="margin:0 0 .75rem;line-height:1.45">Un profil = un professeur. Ses <strong>classes et séances</strong> sont créées automatiquement depuis la Programmation de l'établissement. Il peut ensuite gérer élèves, appels, séances et son AS (présences / compétitions). Le paramétrage AS du coordonnateur reste visible pour tous.</p>
+        <p class="kpi-sub" style="margin:0 0 .75rem;line-height:1.45">${
+          firstChoice
+            ? "Choisissez <strong>votre</strong> profil professeur. Ce choix est <strong>définitif</strong> sur cet appareil : ensuite, seuls les <strong>coordonnateurs</strong> pourront consulter d'autres profils."
+            : "Coordonnateur : vous pouvez consulter n'importe quel profil. Les classes et séances affichées suivent le professeur sélectionné."
+        }</p>
         <div class="profile-picker-list" id="profile-picker-list">
           ${items
             .map(
@@ -10965,12 +11331,170 @@
       </div>`);
       body.querySelectorAll(".profile-picker-item").forEach((btn) => {
         btn.addEventListener("click", () => {
-          setActiveProfileTeacherId(btn.getAttribute("data-teacher-id") || "");
+          const id = btn.getAttribute("data-teacher-id") || "";
+          if (firstChoice && !id) return;
+          setActiveProfileTeacherId(id);
+          if (firstChoice && !getBoundTeacherId()) return;
+          profileGateAllowOrgProg = false;
           closeModal();
           render();
         });
       });
-      openModal("Profil professeur", body, () => true, { infoOnly: true });
+      openModal(firstChoice ? "Choisir votre profil" : "Profil professeur", body, () => true, {
+        infoOnly: true,
+        noDismiss: firstChoice,
+      });
+    }
+
+    function syncProfileChoiceGate() {
+      if (!needsInitialProfileChoice()) {
+        removeProfileChoiceGate();
+        return;
+      }
+      if (!profileGateAllowsCurrentView()) {
+        currentView = "dashboard";
+      }
+      // Pendant configuration coordonnateur / import via Réglages : pas de voile bloquant
+      if (
+        profileGateAllowOrgProg &&
+        currentView === "tools" &&
+        profileGateAllowedSetupPanels().includes(toolsPanel)
+      ) {
+        removeProfileChoiceGate();
+        let bar = document.getElementById("profile-choice-gate-bar");
+        if (!bar) {
+          bar = document.createElement("div");
+          bar.id = "profile-choice-gate-bar";
+          bar.className = "no-print";
+          bar.style.cssText =
+            "position:fixed;left:0;right:0;bottom:calc(var(--bottom-nav-h, 64px) + env(safe-area-inset-bottom, 0px));z-index:10040;padding:.65rem .85rem;background:color-mix(in srgb,#f59e0b 18%,var(--card));border-top:1px solid var(--border);text-align:center;font-size:.85rem;font-weight:600";
+          document.body.appendChild(bar);
+        }
+        const hasTeachers = ensureTeamCoordination().teachers.length > 0;
+        if (hasTeachers) {
+          bar.innerHTML = `Configuration prête — <button type="button" class="btn btn-sm btn-primary" id="btn-profile-gate-back">Choisir mon profil</button>`;
+        } else {
+          bar.innerHTML = `Mode coordonnateur : ajoutez les professeurs (cochez Coordonnateur EPS sur le vôtre), puis choisissez votre profil.`;
+        }
+        bar.querySelector("#btn-profile-gate-back")?.addEventListener("click", () => {
+          profileGateAllowOrgProg = false;
+          navigateTo("dashboard");
+          requestAnimationFrame(() => openProfilePickerModal());
+        });
+        return;
+      }
+      document.getElementById("profile-choice-gate-bar")?.remove();
+      document.body.classList.add("profile-gate-active");
+      let gate = document.getElementById("profile-choice-gate");
+      const hasTeachers = ensureTeamCoordination().teachers.length > 0;
+      if (!gate) {
+        gate = document.createElement("div");
+        gate.id = "profile-choice-gate";
+        gate.setAttribute("role", "dialog");
+        gate.setAttribute("aria-modal", "true");
+        gate.setAttribute("aria-labelledby", "profile-choice-gate-title");
+        document.body.appendChild(gate);
+      }
+
+      // Phase 1 — aucun professeur : importer le fichier du coordonnateur (ou configurer en coordonnateur)
+      if (!hasTeachers) {
+        gate.className = "profile-choice-gate profile-choice-gate--import no-print";
+        gate.innerHTML = `
+          <div class="profile-choice-gate__card">
+            <p class="profile-choice-gate__title" id="profile-choice-gate-title">Bienvenue</p>
+            <p class="profile-choice-gate__text">Importez le fichier transmis par le coordonnateur pour charger les réglages de l’établissement. Ensuite vous pourrez choisir votre profil.</p>
+            <div style="display:flex;flex-direction:column;gap:.45rem;margin-top:.75rem;align-items:stretch">
+              <button type="button" class="btn btn-sm btn-primary" id="btn-profile-gate-import">Importer le fichier transmis par le coordonnateur</button>
+              <button type="button" class="btn btn-sm btn-ghost" id="btn-profile-gate-coord-setup" style="border:1px solid var(--border);font-size:.78rem">Je suis le coordonnateur — configurer l’établissement</button>
+            </div>
+          </div>`;
+        gate.querySelector("#btn-profile-gate-import")?.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openGateTeamImportPicker();
+        });
+        gate.querySelector("#btn-profile-gate-coord-setup")?.addEventListener("click", (e) => {
+          e.stopPropagation();
+          profileGateAllowOrgProg = true;
+          navigateTo("tools", "orgProg");
+        });
+        document.querySelector("#btn-dash-profile")?.classList.remove("profile-gate-target");
+        return;
+      }
+
+      // Phase 2 — professeurs présents : flèche + choix de profil obligatoire
+      gate.className = "profile-choice-gate no-print";
+      gate.innerHTML = `
+        <div class="profile-choice-gate__spotlight" aria-hidden="true"></div>
+        <svg class="profile-choice-gate__arrow" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+          <path d="M5 12l1.41 1.41L11 8.83V20h2V8.83l4.59 4.58L19 12l-7-7-7 7z"/>
+        </svg>
+        <div class="profile-choice-gate__card">
+          <p class="profile-choice-gate__title" id="profile-choice-gate-title">Choisir un profil</p>
+          <p class="profile-choice-gate__text">Touchez l’icône profil indiquée par la flèche. Aucune autre action n’est possible avant ce choix — il est définitif (sauf pour les coordonnateurs).</p>
+          <button type="button" class="btn btn-sm btn-primary" id="btn-profile-gate-open" style="margin-top:.65rem">Choisir mon profil</button>
+        </div>`;
+      gate.querySelector("#btn-profile-gate-open")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openProfilePickerModal();
+      });
+      const btn = document.getElementById("btn-dash-profile");
+      if (btn) btn.classList.add("profile-gate-target");
+      positionProfileChoiceGate();
+      requestAnimationFrame(positionProfileChoiceGate);
+    }
+
+    function removeProfileChoiceGate() {
+      document.getElementById("profile-choice-gate")?.remove();
+      document.getElementById("profile-choice-gate-bar")?.remove();
+      document.body.classList.remove("profile-gate-active");
+      document.querySelector("#btn-dash-profile")?.classList.remove("profile-gate-target");
+    }
+
+    function positionProfileChoiceGate() {
+      const gate = document.getElementById("profile-choice-gate");
+      const btn = document.getElementById("btn-dash-profile");
+      if (!gate || !btn) return;
+      const card = gate.querySelector(".profile-choice-gate__card");
+      const arrow = gate.querySelector(".profile-choice-gate__arrow");
+      const spot = gate.querySelector(".profile-choice-gate__spotlight");
+      if (!card || !arrow) return;
+      const r = btn.getBoundingClientRect();
+      const pad = 12;
+      const spotPad = 8;
+      if (spot) {
+        spot.style.left = Math.max(0, r.left - spotPad) + "px";
+        spot.style.top = Math.max(0, r.top - spotPad) + "px";
+        spot.style.width = r.width + spotPad * 2 + "px";
+        spot.style.height = r.height + spotPad * 2 + "px";
+      }
+      const cardW = Math.min(296, window.innerWidth - 24);
+      let left = r.left + r.width / 2 - cardW / 2;
+      left = Math.max(pad, Math.min(left, window.innerWidth - cardW - pad));
+      let top = r.bottom + 40;
+      card.style.width = cardW + "px";
+      card.style.left = left + "px";
+      card.style.top = top + "px";
+      requestAnimationFrame(() => {
+        const ch = card.getBoundingClientRect();
+        if (ch.bottom > window.innerHeight - pad) {
+          top = Math.max(pad, r.top - ch.height - 40);
+          card.style.top = top + "px";
+        }
+        const cardRect = card.getBoundingClientRect();
+        const arrowSize = 38;
+        arrow.style.width = arrowSize + "px";
+        arrow.style.height = arrowSize + "px";
+        arrow.style.left = r.left + r.width / 2 - arrowSize / 2 + "px";
+        if (cardRect.top >= r.bottom) {
+          // Carte sous l’icône → flèche vers le haut
+          arrow.style.top = r.bottom + 6 + "px";
+          arrow.innerHTML = `<path d="M5 12l1.41 1.41L11 8.83V20h2V8.83l4.59 4.58L19 12l-7-7-7 7z"/>`;
+        } else {
+          // Carte au-dessus → flèche vers le bas
+          arrow.style.top = r.top - arrowSize - 6 + "px";
+          arrow.innerHTML = `<path d="M19 12l-1.41-1.41L13 15.17V4h-2v11.17l-4.59-4.58L5 12l7 7 7-7z"/>`;
+        }
+      });
     }
 
     function renderTopbar(title, extra = "") {
@@ -12434,6 +12958,8 @@
           activityId: meta.activityId || "",
           activityName: meta.activityName || "—",
           slotLabel,
+          startTime: meta.startTime || "",
+          endTime: meta.endTime || "",
           parts: [],
           partKeys: new Set(),
           coachLabels: new Set(),
@@ -12572,6 +13098,95 @@
             x.sortDayIndex - y.sortDayIndex ||
             String(x.sortTime).localeCompare(String(y.sortTime))
         );
+    }
+
+    function formatAssociationAbbrevList(abbrevs) {
+      const list = (abbrevs || []).filter(Boolean);
+      if (!list.length) return "—";
+      if (list.length === 1) return list[0];
+      if (list.length === 2) return `${list[0]} et ${list[1]}`;
+      return list.join("/");
+    }
+
+    /** Récap accueil : une entrée par activité, jours + créneaux synthétiques. */
+    function associationWeekRecapByActivity(rangeStart, rangeEnd) {
+      const flat = associationWeekRecapEntries(rangeStart, rangeEnd);
+      const byAct = new Map();
+      flat.forEach((g) => {
+        const aid = g.activityId || g.activityName || "—";
+        if (!byAct.has(aid)) {
+          byAct.set(aid, {
+            activityId: g.activityId || "",
+            activityName: g.activityName || "—",
+            sortName: g.sortName || g.activityName || "",
+            days: new Map(),
+          });
+        }
+        const act = byAct.get(aid);
+        const di = Number.isInteger(g.sortDayIndex) ? g.sortDayIndex : 99;
+        if (!act.days.has(di)) {
+          act.days.set(di, {
+            dayIndex: di,
+            dayLabel: DOW[di] || "Jour",
+            slots: [],
+          });
+        }
+        const clustersMap = new Map();
+        (g.parts || []).forEach((p) => {
+          const kind = p.kind === "competition" ? "competition" : "training";
+          const key = `${kind}|${p.cancelled ? 1 : 0}|${p.label || ""}`;
+          if (!clustersMap.has(key)) {
+            clustersMap.set(key, {
+              abbrevs: [],
+              label: p.label || "",
+              cancelled: !!p.cancelled,
+              kind,
+            });
+          }
+          const ab = p.abbrev || "—";
+          const cluster = clustersMap.get(key);
+          if (!cluster.abbrevs.includes(ab)) cluster.abbrevs.push(ab);
+        });
+        const clusters = [...clustersMap.values()]
+          .map((c) => {
+            c.abbrevs.sort((a, b) => String(a).localeCompare(String(b), "fr"));
+            return c;
+          })
+          .sort((a, b) => {
+            if (a.cancelled !== b.cancelled) return a.cancelled ? 1 : -1;
+            if (a.kind !== b.kind) return a.kind === "competition" ? 1 : -1;
+            return String(a.label).localeCompare(String(b.label), "fr");
+          });
+        if (!clusters.length) return;
+        act.days.get(di).slots.push({
+          startTime: g.startTime || g.sortTime || "",
+          endTime: g.endTime || "",
+          timeLabel: formatAssociationRecapSlotTime(g.startTime || "", g.endTime || ""),
+          clusters,
+          coachLabel: g.coachLabel || "",
+        });
+      });
+      return [...byAct.values()]
+        .map((act) => {
+          const days = [...act.days.values()]
+            .map((day) => {
+              day.slots.sort(
+                (a, b) =>
+                  String(a.startTime || "").localeCompare(String(b.startTime || "")) ||
+                  String(a.endTime || "").localeCompare(String(b.endTime || ""))
+              );
+              return day;
+            })
+            .sort((a, b) => a.dayIndex - b.dayIndex);
+          return {
+            activityId: act.activityId,
+            activityName: act.activityName,
+            sortName: act.sortName,
+            days,
+          };
+        })
+        .filter((act) => act.days.length)
+        .sort((a, b) => a.sortName.localeCompare(b.sortName, "fr"));
     }
 
     function associationEventKeyFromBtn(btn) {
@@ -13061,9 +13676,14 @@
       const strip = document.getElementById("dash-association-toggle");
       if (!strip) return;
       if (!isDashAssociationStripCompact()) {
-        strip.querySelectorAll(".dash-association-strip__head, .dash-association-strip__line").forEach((el) => {
-          el.style.fontSize = "";
-        });
+        strip
+          .querySelectorAll(
+            ".dash-association-strip__head, .dash-association-strip__line, .dash-association-strip__activity, .dash-association-strip__day, .dash-association-strip__slot-line"
+          )
+          .forEach((el) => {
+            el.style.fontSize = "";
+            el.style.whiteSpace = "";
+          });
         return;
       }
       const shrink = (el, minPx) => {
@@ -13079,7 +13699,10 @@
         }
       };
       shrink(strip.querySelector(".dash-association-strip__head"), 8);
-      strip.querySelectorAll(".dash-association-strip__line").forEach((line) => shrink(line, 7.5));
+      strip.querySelectorAll(".dash-association-strip__activity strong").forEach((el) => shrink(el, 7.5));
+      strip.querySelectorAll(".dash-association-strip__slot-line").forEach((line) => {
+        line.style.whiteSpace = "normal";
+      });
     }
 
     function dashAssociationHtml() {
@@ -13089,30 +13712,41 @@
       const weekLabel = isDashAssociationStripCompact()
         ? `Sem. ${w0}–${w1}`
         : `Semaine du ${w0} au ${w1}`;
-      const entries = associationWeekRecapEntries(week.start, week.end);
-      const recapHtml = entries.length
-        ? entries
-            .map((g) => {
-              const slotHtml = g.slotLabel
-                ? ` <span class="dash-association-strip__slot">(${escapeHtml(g.slotLabel)})</span>`
-                : "";
-              const coachHtml = g.coachLabel
-                ? `<span class="dash-association-strip__sep"> · </span><span class="dash-association-strip__meta">Enc. ${escapeHtml(
-                    g.coachLabel
-                  )}</span>`
-                : "";
-              const partsHtml = g.parts
-                .map((p, i) => {
-                  const sep =
-                    i > 0 ? '<span class="dash-association-strip__sep"> - </span>' : "";
-                  let snippetCls = " dash-association-strip__snippet";
-                  if (p.cancelled) snippetCls += " dash-association-strip__snippet--cancel";
-                  else if (p.kind === "competition")
-                    snippetCls += " dash-association-strip__snippet--competition";
-                  return `${sep}${escapeHtml(p.abbrev)} : <span class="${snippetCls.trim()}">${escapeHtml(p.label)}</span>`;
+      const activities = associationWeekRecapByActivity(week.start, week.end);
+      const recapHtml = activities.length
+        ? activities
+            .map((act) => {
+              const daysHtml = act.days
+                .map((day) => {
+                  const slotsHtml = day.slots
+                    .map((slot) => {
+                      const clustersHtml = slot.clusters
+                        .map((c, i) => {
+                          const sep =
+                            i > 0 ? '<span class="dash-association-strip__sep"> · </span>' : "";
+                          let snippetCls = "dash-association-strip__snippet";
+                          if (c.cancelled) snippetCls += " dash-association-strip__snippet--cancel";
+                          else if (c.kind === "competition")
+                            snippetCls += " dash-association-strip__snippet--competition";
+                          const groups = escapeHtml(formatAssociationAbbrevList(c.abbrevs));
+                          const time =
+                            i === 0 && slot.timeLabel
+                              ? ` <span class="dash-association-strip__slot">(${escapeHtml(slot.timeLabel)})</span>`
+                              : "";
+                          return `${sep}<span class="${snippetCls}">${groups} ${escapeHtml(c.label)}</span>${time}`;
+                        })
+                        .join("");
+                      return `<span class="dash-association-strip__slot-line">· ${clustersHtml}</span>`;
+                    })
+                    .join("");
+                  return `<span class="dash-association-strip__day"><span class="dash-association-strip__day-name">${escapeHtml(
+                    day.dayLabel
+                  )} :</span> ${slotsHtml}</span>`;
                 })
                 .join("");
-              return `<span class="dash-association-strip__line"><strong>${escapeHtml(g.activityName)}</strong>${slotHtml}<span class="dash-association-strip__sep"> - </span>${partsHtml}${coachHtml}</span>`;
+              return `<span class="dash-association-strip__activity"><strong>${escapeHtml(
+                act.activityName
+              )}</strong>${daysHtml}</span>`;
             })
             .join("")
         : '<span class="dash-association-strip__line kpi-sub">Aucune séance prévue cette semaine</span>';
@@ -14051,7 +14685,7 @@
       const weekEndISO = weekStart ? fmtISODate(addDays(weekStart, 6)) : weekStartISO;
       const week = weekParityForDate(weekStartISO) === "B" ? "B" : "A";
       teamCoordWeekParity = week;
-      const myId = String((appData.settings && appData.settings.myCoordinationTeacherId) || "");
+      const boundId = getBoundTeacherId();
       const filterOpts = teachersAll
         .map((t) => `<option value="${escapeHtml(t.id)}" ${t.id === filterId ? "selected" : ""}>${escapeHtml(t.name || "—")}</option>`)
         .join("");
@@ -14147,24 +14781,23 @@
           <h3>1 · Professeurs d'EPS de l'établissement</h3>
           <button type="button" class="btn btn-sm btn-primary" id="btn-team-add-teachers-bulk">+ Ajouter professeur</button>
         </div>
-        <p class="kpi-sub" style="margin:0">Cochez <strong>Moi</strong> pour votre profil. Cochez <strong>Coordonnateur</strong> pour que vos réglages établissement (AS, lieux, périodes, programmation, calendriers) s’appliquent à tous. Sans être coordonnateur, vous pouvez aussi régler ces écrans : ils resteront liés à votre seul profil.</p>
+        <p class="kpi-sub" style="margin:0">Le profil se choisit sur l’<strong>Accueil</strong> (bouton profil). Le statut <strong>Coordonnateur EPS</strong> se définit à la création ou via <strong>Modifier</strong>. Ensuite, seuls les coordonnateurs peuvent consulter d’autres profils.</p>
         ${
           teachersAll.length
             ? `<div class="team-teachers-self-list">${teachersAll
                 .map((t) => {
-                  const checked = t.id === myId;
                   const isCoord = !!t.isCoordinator;
+                  const isBound = t.id === boundId;
+                  const badges = [
+                    isCoord ? `<span class="team-teacher-self-row__badge">Coordonnateur</span>` : "",
+                    isBound ? ` <span class="kpi-sub">(profil de cet appareil)</span>` : "",
+                  ].join("");
                   return `<div class="team-teacher-self-row">
               <span class="team-teacher-self-row__swatch" style="background:${escapeHtml(t.color || "#64748b")}" aria-hidden="true"></span>
-              <span class="team-teacher-self-row__name">${escapeHtml(t.name || "—")}</span>
-              <label class="team-teacher-self-row__me">
-                <input type="checkbox" class="chk-my-coord-teacher" data-id="${escapeHtml(t.id)}" ${checked ? "checked" : ""} aria-label="Moi — ${escapeHtml(t.name || "")}" />
-                Moi
-              </label>
-              <label class="team-teacher-self-row__me">
-                <input type="checkbox" class="chk-teacher-coordinator" data-id="${escapeHtml(t.id)}" ${isCoord ? "checked" : ""} aria-label="Coordonnateur — ${escapeHtml(t.name || "")}" />
-                Coordonnateur
-              </label>
+              <span class="team-teacher-self-row__name">${escapeHtml(t.name || "—")}${badges}</span>
+              <span class="team-teacher-self-row__actions">
+                <button type="button" class="btn btn-sm btn-ghost btn-team-edit-teacher" data-id="${escapeHtml(t.id)}">Modifier</button>
+              </span>
             </div>`;
                 })
                 .join("")}</div>`
@@ -15470,10 +16103,22 @@
           </p>
           <p class="kpi-sub" style="margin-top:.65rem;font-size:.78rem;word-break:break-all;opacity:.95"><strong>Origine actuelle :</strong><br>${origin}</p>
         </div>
+        <div class="card" style="border-left:4px solid #16a34a">
+          <h3>Partager avec l’équipe</h3>
+          <p class="kpi-sub" style="line-height:1.5;margin-top:.35rem">
+            Après avoir paramétré l’établissement, utilisez <strong>Export pour l’équipe</strong> : le fichier contient tous les réglages et la liste des professeurs, <strong>sans</strong> votre profil personnel. Chaque collègue importe ce fichier puis choisit <em>son</em> profil — sans devoir recréer les professeurs.
+          </p>
+          <p class="kpi-sub" style="line-height:1.5;margin-top:.55rem">
+            <strong>Nouvelle version de l’app :</strong> ouvrez le nouveau fichier HTML → sur l’écran d’accueil cliquez <em>Je suis le coordonnateur — configurer l’établissement</em> (ou importez d’abord votre Export JSON perso / fichier d’équipe précédent), configurez, puis refaites un <strong>Export pour l’équipe</strong> à transmettre.
+          </p>
+          <div class="flex-row" style="margin-top:.75rem">
+            <button type="button" class="btn btn-primary" id="btn-export-team">Export pour l’équipe</button>
+          </div>
+        </div>
         <div class="card">
           <p class="kpi-sub" style="line-height:1.5">Sauvegarde automatique dans ce navigateur pour cette origine (voir encadré ci-dessus). Pensez à exporter un fichier JSON avant de changer d’ordinateur, de navigateur ou de mode d’ouverture du fichier.</p>
           <div class="flex-row" style="margin-top:.75rem">
-            <button type="button" class="btn btn-primary" id="btn-export">Export JSON</button>
+            <button type="button" class="btn btn-primary" id="btn-export">Export JSON (copie perso)</button>
             <label class="btn btn-ghost" style="border:1px solid var(--border);cursor:pointer">Import JSON<input type="file" id="inp-import" accept="application/json" class="hidden" /></label>
             <button type="button" class="btn btn-ghost" id="btn-seed-demo" style="border:1px solid var(--border)">Charger un jeu de test EPS</button>
             <button type="button" class="btn btn-danger" id="btn-reset">Reset données</button>
@@ -15889,14 +16534,14 @@
           <div class="tutorial-section__body">
             <p>${goto("tools:orgProg", "Programmation de l'établissement")}</p>
             <ul>
-              <li><strong>1 · Professeurs</strong> : ajoutez les professeurs (couleur), cochez <strong>Moi</strong> et éventuellement <strong>Coordonnateur</strong>.</li>
+              <li><strong>1 · Professeurs</strong> : ajoutez les professeurs (couleur, case <strong>Coordonnateur EPS</strong>) ; bouton <strong>Modifier</strong> pour changer nom, couleur ou statut. Le profil se choisit sur l’Accueil.</li>
               <li><strong>2 · Créneaux horaires</strong> : paramétrez les horaires communs des cours d'EPS.</li>
               <li><strong>3 · Programmation professeurs</strong> : tableau hebdomadaire ; sous le tableau, <strong>Consulter semaine A/B</strong> affiche le planning annuel du professeur sélectionné (APSA par période).</li>
               <li>Les jours sont <strong>côte à côte</strong> : faites glisser horizontalement pour passer de lundi à vendredi. Le nom du jour est centré en en-tête.</li>
               <li>Tableau : colonne <strong>Créneau</strong> + colonne <strong>Cours</strong>. Chaque professeur garde sa <strong>couleur</strong> pour repérer rapidement sa présence.</li>
               <li>Cliquez une case pour ajouter les professeurs du créneau ; pour chacun : classe, niveau, puis <strong>APSA + lieu pour chaque période</strong> du niveau choisi. Pour un cours différent en <strong>sem. A</strong> et <strong>sem. B</strong>, ajoutez <strong>deux lignes</strong> du même professeur (une par semaine).</li>
               <li>Semaine affichée avec des <strong>flèches ◀ ▶</strong> (dates sur une ligne, <strong>Semaine A</strong> ou <strong>B</strong> en dessous), par défaut sur la semaine en cours. Pour chaque professeur, l'app utilise la <strong>période de son niveau</strong> (ex. 6e et 5e peuvent avoir des dates différentes). Filtre <strong>Professeur</strong> : Tous = équipe ; un nom = planning personnel. La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
-              <li><strong>Moi</strong> + <strong>Coordonnateur</strong> : les réglages du coordonnateur (AS, lieux, périodes, prog. établissement, calendriers) s'appliquent à tous les profils. Un non-coordonnateur peut aussi régler ces écrans, mais uniquement pour son profil.</li>
+              <li><strong>Profil Accueil</strong> (une seule fois) lie cet appareil à un professeur. Ensuite, seuls les <strong>coordonnateurs</strong> peuvent consulter d'autres profils. Les réglages du coordonnateur (AS, lieux, périodes, prog. établissement, calendriers) s'appliquent à tous ; un non-coordonnateur peut aussi régler ces écrans, uniquement pour son profil.</li>
               <li>Chaque professeur s'affiche dans <strong>sa couleur</strong> (sans encadré). Si une installation est partagée, les lignes concernées affichent une petite <strong>étoile colorée</strong> au début ; même installation = même couleur d'étoile. L'information reste visible aussi sur l'Accueil (🤝).</li>
             </ul>
           </div>
@@ -16238,6 +16883,7 @@
       });
       main.querySelector("#btn-dash-reminder")?.addEventListener("click", openDashboardReminderModal);
       main.querySelector("#btn-dash-profile")?.addEventListener("click", openProfilePickerModal);
+      syncProfileChoiceGate();
       if (!main.dataset.reminderDismissWired) {
         main.dataset.reminderDismissWired = "1";
         main.addEventListener("click", (e) => {
@@ -17005,6 +17651,9 @@
         if (appData.settings && appData.settings.myCoordinationTeacherId === id) {
           appData.settings.myCoordinationTeacherId = "";
         }
+        if (appData.settings && appData.settings.boundTeacherId === id) {
+          appData.settings.boundTeacherId = "";
+        }
         teamCoordFilterTeacherId = "";
         // Purger aussi les cellules des copies profil
         Object.values(appData.profileEstablishment || {}).forEach((store) => {
@@ -17021,44 +17670,78 @@
         setActiveProfileTeacherId(e.target.value || "");
         render();
       });
-      main.querySelectorAll(".chk-my-coord-teacher").forEach((chk) => {
-        chk.addEventListener("change", (e) => {
-          const id = e.target.getAttribute("data-id") || "";
-          if (e.target.checked) {
-            setActiveProfileTeacherId(id);
-          } else if (getActiveProfileTeacherId() === id) {
-            setActiveProfileTeacherId("");
-          }
-          render();
-        });
-      });
-      main.querySelectorAll(".chk-teacher-coordinator").forEach((chk) => {
-        chk.addEventListener("change", (e) => {
-          const id = e.target.getAttribute("data-id") || "";
-          const anyCoord = establishmentHasCoordinator();
-          const me = getActiveProfileTeacher();
-          const amCoord = isTeacherCoordinator(me);
-          if (anyCoord && !amCoord) {
-            const tcNow = ensureTeamCoordination();
-            const tNow = tcNow.teachers.find((t) => t.id === id);
-            e.target.checked = !!(tNow && tNow.isCoordinator);
-            alert("Seul un coordonnateur peut modifier les cases « Coordonnateur ».");
-            return;
-          }
-          // Liste professeurs / flags coordonnateur = toujours partagés.
+      const canEditCoordinatorFlags = () => {
+        if (!establishmentHasCoordinator()) return true;
+        return isTeacherCoordinator(getBoundTeacher());
+      };
+
+      const openEditTeamTeacherModal = (teacherId) => {
+        restoreSharedEstablishmentFromBackup();
+        const tc = ensureTeamCoordination();
+        const teacher = tc.teachers.find((t) => t.id === teacherId);
+        if (!teacher) {
+          applyProfileEstablishmentOverlay();
+          return;
+        }
+        const canEditCoord = canEditCoordinatorFlags();
+        const body = el(`<div>
+          <div class="form-group"><label>Nom</label><input id="f-edit-teacher-name" value="${escapeHtml(teacher.name || "")}" placeholder="Mme Dupont" /></div>
+          <div class="form-group"><label>Couleur</label><input type="color" id="f-edit-teacher-color" value="${escapeHtml(teacher.color || TEAM_COORD_TEACHER_COLORS[0])}" style="width:100%;min-height:2.6rem;padding:.15rem" /></div>
+          <div class="form-group" style="margin:0">
+            <label style="display:inline-flex;align-items:center;gap:.4rem;cursor:${canEditCoord ? "pointer" : "not-allowed"};font-weight:600">
+              <input type="checkbox" id="f-edit-teacher-coord" ${teacher.isCoordinator ? "checked" : ""} ${canEditCoord ? "" : "disabled"} />
+              Coordonnateur EPS
+            </label>
+            ${
+              canEditCoord
+                ? `<p class="kpi-sub" style="margin:.35rem 0 0">Les réglages d’un coordonnateur (AS, lieux, périodes, programmation, calendriers) s’appliquent à tous les profils.</p>`
+                : `<p class="kpi-sub" style="margin:.35rem 0 0">Seul un coordonnateur peut modifier ce statut.</p>`
+            }
+          </div>
+        </div>`);
+        openModal("Modifier le professeur", body, () => {
           restoreSharedEstablishmentFromBackup();
-          const teacher = ensureTeamCoordination().teachers.find((t) => t.id === id);
-          if (!teacher) return;
-          teacher.isCoordinator = !!e.target.checked;
+          const t = ensureTeamCoordination().teachers.find((x) => x.id === teacherId);
+          if (!t) {
+            applyProfileEstablishmentOverlay();
+            return false;
+          }
+          const name = (body.querySelector("#f-edit-teacher-name")?.value || "").trim();
+          if (!name) {
+            alert("Indiquez un nom.");
+            return false;
+          }
+          const dup = ensureTeamCoordination().teachers.some(
+            (x) => x.id !== teacherId && String(x.name || "").trim().toLowerCase() === name.toLowerCase()
+          );
+          if (dup) {
+            alert("Un professeur porte déjà ce nom.");
+            return false;
+          }
+          t.name = name;
+          t.color =
+            (body.querySelector("#f-edit-teacher-color")?.value || "").trim() ||
+            TEAM_COORD_TEACHER_COLORS[0];
+          if (canEditCoordinatorFlags()) {
+            t.isCoordinator = !!body.querySelector("#f-edit-teacher-coord")?.checked;
+          }
           applyProfileEstablishmentOverlay();
           saveData();
           render();
+          return true;
+        });
+      };
+
+      main.querySelectorAll(".btn-team-edit-teacher").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          openEditTeamTeacherModal(btn.getAttribute("data-id") || "");
         });
       });
+
       main.querySelector("#btn-team-sync-from-classes")?.addEventListener("click", () => {
         const myId = String((appData.settings && appData.settings.myCoordinationTeacherId) || "");
         if (!myId) {
-          alert("Cochez d'abord « Moi » sur votre nom (case Professeurs d'EPS).");
+          alert("Choisissez d'abord votre profil sur l'Accueil (bouton profil).");
           return;
         }
         if (!confirm("Remplacer votre ligne du planning professeurs par la Programmation de mes classes ?\n\nLes cases des autres professeurs ne seront pas modifiées.")) return;
@@ -17070,20 +17753,30 @@
       });
       main.querySelector("#btn-team-add-teachers-bulk")?.addEventListener("click", () => {
         restoreSharedEstablishmentFromBackup();
-        const rowHtml = (name, color, id) => `<div class="team-teacher-row form-row" data-teacher-id="${escapeHtml(id || "")}" style="align-items:flex-end;margin-bottom:.45rem">
-          <div class="form-group" style="margin:0;flex:1">
-            <label>Nom</label>
-            <input class="f-team-teacher-name" value="${escapeHtml(name || "")}" placeholder="Mme Dupont" />
+        const canSetCoord = canEditCoordinatorFlags();
+        const rowHtml = (name, color, id, isCoord) => `<div class="team-teacher-row" data-teacher-id="${escapeHtml(id || "")}" style="border:1px solid var(--border);border-radius:10px;padding:.55rem .6rem;margin-bottom:.45rem">
+          <div class="form-row" style="align-items:flex-end;margin-bottom:.35rem">
+            <div class="form-group" style="margin:0;flex:1">
+              <label>Nom</label>
+              <input class="f-team-teacher-name" value="${escapeHtml(name || "")}" placeholder="Mme Dupont" />
+            </div>
+            <div class="form-group" style="margin:0;flex:0 0 5.5rem">
+              <label>Couleur</label>
+              <input type="color" class="f-team-teacher-color" value="${escapeHtml(color || TEAM_COORD_TEACHER_COLORS[0])}" style="width:100%;min-height:2.6rem;padding:.15rem" />
+            </div>
+            <button type="button" class="btn btn-sm btn-danger btn-team-teacher-row-del" title="Retirer" style="min-height:40px">✕</button>
           </div>
-          <div class="form-group" style="margin:0;flex:0 0 5.5rem">
-            <label>Couleur</label>
-            <input type="color" class="f-team-teacher-color" value="${escapeHtml(color || TEAM_COORD_TEACHER_COLORS[0])}" style="width:100%;min-height:2.6rem;padding:.15rem" />
-          </div>
-          <button type="button" class="btn btn-sm btn-danger btn-team-teacher-row-del" title="Retirer" style="min-height:40px">✕</button>
+          <label style="display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:600;cursor:${canSetCoord ? "pointer" : "not-allowed"}">
+            <input type="checkbox" class="f-team-teacher-coord" ${isCoord ? "checked" : ""} ${canSetCoord ? "" : "disabled"} />
+            Coordonnateur EPS
+          </label>
         </div>`;
         const body = el(`<div>
+          <p class="kpi-sub" style="margin:0 0 .55rem;line-height:1.45">Cochez <strong>Coordonnateur EPS</strong> pour les professeurs dont les réglages établissement s’appliquent à tous les profils.${
+            canSetCoord ? "" : " (seul un coordonnateur peut cocher cette case)"
+          }</p>
           <div id="f-team-teachers-rows">
-            ${rowHtml("", TEAM_COORD_TEACHER_COLORS[0], "")}
+            ${rowHtml("", TEAM_COORD_TEACHER_COLORS[0], "", false)}
           </div>
           <button type="button" class="btn btn-sm btn-ghost" id="btn-team-teacher-row-add" style="margin-top:.25rem">+ Ajouter un professeur</button>
         </div>`);
@@ -17099,7 +17792,10 @@
         wireRowDel();
         body.querySelector("#btn-team-teacher-row-add")?.addEventListener("click", () => {
           const idx = rowsRoot.querySelectorAll(".team-teacher-row").length;
-          rowsRoot.insertAdjacentHTML("beforeend", rowHtml("", TEAM_COORD_TEACHER_COLORS[idx % TEAM_COORD_TEACHER_COLORS.length], ""));
+          rowsRoot.insertAdjacentHTML(
+            "beforeend",
+            rowHtml("", TEAM_COORD_TEACHER_COLORS[idx % TEAM_COORD_TEACHER_COLORS.length], "", false)
+          );
           wireRowDel();
         });
         openModal("Ajouter professeurs", body, () => {
@@ -17107,14 +17803,16 @@
           const tc = ensureTeamCoordination();
           const existing = new Set(tc.teachers.map((t) => String(t.name || "").trim().toLowerCase()));
           let added = 0;
+          const allowCoord = canEditCoordinatorFlags();
           rowsRoot.querySelectorAll(".team-teacher-row").forEach((row) => {
             const name = (row.querySelector(".f-team-teacher-name")?.value || "").trim();
             const color = (row.querySelector(".f-team-teacher-color")?.value || "").trim() || TEAM_COORD_TEACHER_COLORS[0];
+            const isCoordinator = allowCoord && !!row.querySelector(".f-team-teacher-coord")?.checked;
             if (!name) return;
             const key = name.toLowerCase();
             if (existing.has(key)) return;
             existing.add(key);
-            tc.teachers.push({ id: uid(), name, color, isCoordinator: false });
+            tc.teachers.push({ id: uid(), name, color, isCoordinator });
             added += 1;
           });
           if (!added) {
@@ -17125,6 +17823,11 @@
           applyProfileEstablishmentOverlay();
           saveData();
           render();
+          if (needsInitialProfileChoice()) {
+            profileGateAllowOrgProg = false;
+            navigateTo("dashboard");
+            requestAnimationFrame(() => openProfilePickerModal());
+          }
           return true;
         });
       });
@@ -18083,9 +18786,11 @@
       wireCalendarEvents(main);
       main.querySelectorAll(".cal-scroll-area--tap-fullscreen").forEach(wireFullscreenCalendarArea);
       main.querySelector("#btn-export")?.addEventListener("click", exportJSON);
+      main.querySelector("#btn-export-team")?.addEventListener("click", exportTeamJSON);
       main.querySelector("#inp-import")?.addEventListener("change", (e) => {
         const f = e.target.files[0];
         if (f) importJSONFile(f);
+        e.target.value = "";
       });
       main.querySelector("#btn-export-as")?.addEventListener("click", exportAssociationJSON);
       main.querySelector("#inp-import-as")?.addEventListener("change", (e) => {
@@ -18341,6 +19046,18 @@
     }
 
     function navigateTo(view, panelId) {
+      if (needsInitialProfileChoice()) {
+        const nextPanel = view === "tools" ? (panelId || toolsPanel || "home") : toolsPanel;
+        const allowSetup =
+          profileGateAllowOrgProg &&
+          view === "tools" &&
+          profileGateAllowedSetupPanels().includes(nextPanel);
+        if (view !== "dashboard" && !allowSetup) {
+          alert("Choisissez d’abord un profil via l’icône en haut à gauche de l’accueil.");
+          view = "dashboard";
+          panelId = undefined;
+        }
+      }
       const nextPanel = view === "tools" ? (panelId || toolsPanel || "home") : toolsPanel;
       const cur = getNavSnapshot();
       if (cur.view === "dashboard:association" && view !== "dashboard:association" && associationDashSetupActivityId) {
@@ -18459,6 +19176,9 @@
 
     function render() {
       applyProfileEstablishmentOverlay();
+      if (needsInitialProfileChoice() && !profileGateAllowsCurrentView()) {
+        currentView = "dashboard";
+      }
       if (currentView === "dashboard:association") captureDashAsExpandedFromDom();
       renderNav();
       renderBottomNav();
@@ -18489,6 +19209,7 @@
       main.innerHTML = body;
       enhanceMobileTables(main);
       wireEvents(main);
+      syncProfileChoiceGate();
       if (currentView === "dashboard") fetchWeather();
       if (
         currentView === "calendar:visual" &&
@@ -18513,6 +19234,7 @@
       clearTimeout(dashAssociationFitTimer);
       dashAssociationFitTimer = setTimeout(() => {
         if (currentView === "dashboard") fitDashAssociationStripText();
+        if (document.getElementById("profile-choice-gate")) positionProfileChoiceGate();
       }, 120);
     });
 
