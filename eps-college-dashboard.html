@@ -11670,22 +11670,15 @@
         return;
       }
 
-      // Phase 2 — professeurs présents : flèche + choix de profil obligatoire
-      gate.className = "profile-choice-gate no-print";
+      // Phase 2 — professeurs présents : flèche seule vers l’icône (pas d’encadré pour ne pas gêner)
+      gate.className = "profile-choice-gate profile-choice-gate--arrow-only no-print";
+      gate.setAttribute("aria-label", "Choisir un profil — touchez l’icône indiquée par la flèche");
+      gate.removeAttribute("aria-labelledby");
       gate.innerHTML = `
         <div class="profile-choice-gate__spotlight" aria-hidden="true"></div>
         <svg class="profile-choice-gate__arrow" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
           <path d="M5 12l1.41 1.41L11 8.83V20h2V8.83l4.59 4.58L19 12l-7-7-7 7z"/>
-        </svg>
-        <div class="profile-choice-gate__card">
-          <p class="profile-choice-gate__title" id="profile-choice-gate-title">Choisir un profil</p>
-          <p class="profile-choice-gate__text">Touchez l’icône profil indiquée par la flèche. Aucune autre action n’est possible avant ce choix — il est définitif (sauf pour les coordonnateurs).</p>
-          <button type="button" class="btn btn-sm btn-primary" id="btn-profile-gate-open" style="margin-top:.65rem">Choisir mon profil</button>
-        </div>`;
-      gate.querySelector("#btn-profile-gate-open")?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        openProfilePickerModal();
-      });
+        </svg>`;
       const btn = document.getElementById("btn-dash-profile");
       if (btn) btn.classList.add("profile-gate-target");
       positionProfileChoiceGate();
@@ -11703,12 +11696,10 @@
       const gate = document.getElementById("profile-choice-gate");
       const btn = document.getElementById("btn-dash-profile");
       if (!gate || !btn) return;
-      const card = gate.querySelector(".profile-choice-gate__card");
       const arrow = gate.querySelector(".profile-choice-gate__arrow");
       const spot = gate.querySelector(".profile-choice-gate__spotlight");
-      if (!card || !arrow) return;
+      if (!arrow) return;
       const r = btn.getBoundingClientRect();
-      const pad = 12;
       const spotPad = 8;
       if (spot) {
         spot.style.left = Math.max(0, r.left - spotPad) + "px";
@@ -11716,34 +11707,13 @@
         spot.style.width = r.width + spotPad * 2 + "px";
         spot.style.height = r.height + spotPad * 2 + "px";
       }
-      const cardW = Math.min(296, window.innerWidth - 24);
-      let left = r.left + r.width / 2 - cardW / 2;
-      left = Math.max(pad, Math.min(left, window.innerWidth - cardW - pad));
-      let top = r.bottom + 40;
-      card.style.width = cardW + "px";
-      card.style.left = left + "px";
-      card.style.top = top + "px";
-      requestAnimationFrame(() => {
-        const ch = card.getBoundingClientRect();
-        if (ch.bottom > window.innerHeight - pad) {
-          top = Math.max(pad, r.top - ch.height - 40);
-          card.style.top = top + "px";
-        }
-        const cardRect = card.getBoundingClientRect();
-        const arrowSize = 38;
-        arrow.style.width = arrowSize + "px";
-        arrow.style.height = arrowSize + "px";
-        arrow.style.left = r.left + r.width / 2 - arrowSize / 2 + "px";
-        if (cardRect.top >= r.bottom) {
-          // Carte sous l’icône → flèche vers le haut
-          arrow.style.top = r.bottom + 6 + "px";
-          arrow.innerHTML = `<path d="M5 12l1.41 1.41L11 8.83V20h2V8.83l4.59 4.58L19 12l-7-7-7 7z"/>`;
-        } else {
-          // Carte au-dessus → flèche vers le bas
-          arrow.style.top = r.top - arrowSize - 6 + "px";
-          arrow.innerHTML = `<path d="M19 12l-1.41-1.41L13 15.17V4h-2v11.17l-4.59-4.58L5 12l7 7 7-7z"/>`;
-        }
-      });
+      const arrowSize = 42;
+      arrow.style.width = arrowSize + "px";
+      arrow.style.height = arrowSize + "px";
+      arrow.style.left = r.left + r.width / 2 - arrowSize / 2 + "px";
+      // Flèche sous l’icône, pointant vers le haut
+      arrow.style.top = r.bottom + 8 + "px";
+      arrow.innerHTML = `<path d="M5 12l1.41 1.41L11 8.83V20h2V8.83l4.59 4.58L19 12l-7-7-7 7z"/>`;
     }
 
     function renderTopbar(title, extra = "") {
