@@ -6287,7 +6287,9 @@
           }
           if (
             !confirm(
-              "Remplacer les activités, créneaux, compétitions et annulations de l’association sportive ?\n\nLes autres réglages (classes, emploi du temps, programmation, profil…) et les appels déjà saisis ne seront pas modifiés."
+              canManageAssociationStructure()
+                ? "Remplacer les activités, créneaux, compétitions et annulations de l’association sportive ?\n\nLes autres réglages (classes, emploi du temps, programmation, profil…) et les appels déjà saisis ne seront pas modifiés."
+                : "Importer le planning AS du coordonnateur ?\n\nCela remplace vos activités, créneaux, compétitions et annulations AS.\nVos appels déjà saisis et le reste de l’application (classes, EDT…) ne seront pas modifiés."
             )
           ) {
             return;
@@ -6318,13 +6320,35 @@
       reader.readAsText(file);
     }
 
-    function associationShareToolbarHtml() {
+    function associationShareToolbarHtml(opts) {
+      opts = opts || {};
+      const canExport = !!opts.forceExport || canManageAssociationStructure();
+      const hint = canManageAssociationStructure()
+        ? "Partage : fichier JSON <strong>uniquement AS</strong>. Exportez puis envoyez-le à l’équipe chaque semaine. En mode coordonnateur, l’import met à jour le planning partagé."
+        : "Chaque semaine, importez le fichier JSON AS envoyé par le <strong>coordonnateur</strong> pour mettre à jour le planning (activités, créneaux, compétitions, annulations). Vos appels déjà saisis sont conservés.";
       return `<div class="as-share-toolbar no-print" style="margin-top:.75rem;padding-top:.65rem;border-top:1px solid var(--border)">
-        <p class="kpi-sub" style="margin:0 0 .45rem;line-height:1.45">Partage : fichier JSON <strong>uniquement AS</strong>. En mode coordonnateur, l’import met à jour tous les profils ; en mode profil, uniquement votre copie personnelle.</p>
+        <p class="kpi-sub" style="margin:0 0 .45rem;line-height:1.45">${hint}</p>
         <div class="flex-row" style="flex-wrap:wrap;gap:.4rem">
-          <button type="button" class="btn btn-sm btn-primary" id="btn-export-as">Export AS (JSON)</button>
-          <label class="btn btn-sm btn-ghost" style="border:1px solid var(--border);cursor:pointer;margin:0">Import AS<input type="file" id="inp-import-as" accept="application/json,.json" class="hidden" /></label>
+          ${
+            canExport
+              ? `<button type="button" class="btn btn-sm btn-primary" id="btn-export-as">Export AS (JSON)</button>`
+              : ""
+          }
+          <label class="btn btn-sm ${canExport ? "btn-ghost" : "btn-primary"}" style="border:1px solid var(--border);cursor:pointer;margin:0">${
+            canExport ? "Import AS" : "Importer le planning AS"
+          }<input type="file" id="inp-import-as" accept="application/json,.json" class="hidden" /></label>
         </div>
+      </div>`;
+    }
+
+    function associationShareCardHtml() {
+      return `<div class="card no-print" style="border-left:5px solid #f59e0b;margin-top:.75rem">
+        <div class="card-header" style="margin-bottom:0;padding:0;border:none">
+          <h3 style="margin:0;font-size:1rem">${
+            canManageAssociationStructure() ? "Partage du planning AS" : "Mettre à jour le planning AS"
+          }</h3>
+        </div>
+        ${associationShareToolbarHtml()}
       </div>`;
     }
 
@@ -13350,12 +13374,13 @@
     }
 
     function associationWeekRecapEntries(rangeStart, rangeEnd) {
-      const activities = associationActivitiesForViewer();
+      // Récap accueil : visible pour tous les profils (pas filtré aux seuls créneaux encadrés).
+      const activities = associationActivitiesForViewer({ all: true });
       const groups = new Map();
       activities.forEach((a) => {
         const sortName = a.name || "";
         const slotDaysDone = new Set();
-        associationTrainingsForViewer(a).forEach((t) => {
+        (a.trainings || []).forEach((t) => {
           if (!Number.isInteger(t.dayIndex)) return;
           const slotDayKey = `${a.id}|${t.dayIndex}|${t.startTime || ""}|${t.endTime || ""}`;
           if (slotDaysDone.has(slotDayKey)) return;
@@ -14295,16 +14320,7 @@
         <div style="margin-top:.75rem">
           <div id="dash-as-planning-root">${associationPlanningInnerHtml()}</div>
         </div>
-        ${
-          canManageAssociationStructure()
-            ? `<div class="card no-print" style="border-left:5px solid #f59e0b;margin-top:.75rem">
-          <div class="card-header" style="margin-bottom:0;padding:0;border:none">
-            <h3 style="margin:0;font-size:1rem">Partage du planning AS</h3>
-          </div>
-          ${associationShareToolbarHtml()}
-        </div>`
-            : ""
-        }`
+        ${associationShareCardHtml()}`
       );
     }
 
@@ -15999,7 +16015,7 @@
             : "Vous ne voyez que les activités et créneaux où vous êtes encadrant. Cliquez pour ouvrir le planning."
         }</p>
         ${activityCards}
-        ${canManage ? associationShareToolbarHtml() : ""}
+        ${associationShareToolbarHtml()}
       </div>`;
     }
 
