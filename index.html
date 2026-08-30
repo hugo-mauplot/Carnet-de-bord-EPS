@@ -2006,6 +2006,7 @@
       white-space: nowrap;
     }
     .dash-association-strip__chevron {
+      display: inline;
       color: var(--text-muted);
       font-size: 0.85rem;
       line-height: 1;
@@ -2020,22 +2021,41 @@
       white-space: nowrap;
     }
     .dash-association-strip__recap {
-      display: flex;
+      display: none;
       flex-direction: column;
-      gap: 0.35rem;
+      gap: 0.28rem;
       width: 100%;
-      padding: 0;
-      border: none;
-      background: transparent;
-      color: inherit;
-      cursor: pointer;
-      text-align: left;
-      font-size: 0.76rem;
+      min-width: 0;
+      font-size: 0.74rem;
       font-weight: 500;
       text-transform: none;
       letter-spacing: 0;
-      min-width: 0;
+      color: inherit;
+    }
+    .dash-association-strip.is-open .dash-association-strip__recap {
+      display: flex;
+    }
+    .dash-association-strip__open {
+      display: block;
+      width: 100%;
+      margin: 0.05rem 0 0;
+      padding: 0.45rem 0.55rem;
+      border-radius: 9px;
+      border: 1px dashed color-mix(in srgb, #f59e0b 55%, var(--border));
+      background: color-mix(in srgb, #f59e0b 8%, var(--surface));
+      color: color-mix(in srgb, #b45309 70%, var(--text));
+      font-size: 0.72rem;
+      font-weight: 600;
+      line-height: 1.35;
+      text-align: center;
+      letter-spacing: 0;
+      text-transform: none;
+      cursor: pointer;
       font-family: inherit;
+    }
+    .dash-association-strip__open:hover {
+      background: color-mix(in srgb, #f59e0b 18%, var(--surface));
+      border-style: solid;
     }
     .dash-association-strip__line {
       display: block;
@@ -2401,6 +2421,10 @@
       .dash-association-strip__recap {
         font-size: 0.68rem;
         gap: 0.12rem;
+      }
+      .dash-association-strip__open {
+        font-size: 0.68rem;
+        padding: 0.4rem 0.45rem;
       }
       .as-comp-filters {
         gap: 0.28rem;
@@ -4740,6 +4764,12 @@
         max-width: 100%;
         white-space: normal;
         text-align: center;
+      }
+      .add-class-toolbar .btn {
+        padding: 0.48rem 0.28rem;
+        font-size: clamp(0.58rem, 3.1cqi, 0.78rem);
+        white-space: nowrap !important;
+        max-width: none;
       }
       .btn-sm {
         padding: 0.34rem 0.58rem;
@@ -8025,11 +8055,12 @@
       return associationActivityCoachIds(activity).includes(tid);
     }
 
-    /** Coordonnateur (lié ou profil consulté) : voit / gère toute l'AS. */
+    /**
+     * Accès complet AS = le profil sélectionné est coordonnateur.
+     * (Pas l'identité appareil : un coordo qui consulte un collègue voit l'AS de ce collègue.)
+     */
     function isAssociationFullAccessViewer() {
-      return (
-        isTeacherCoordinator(getBoundTeacher()) || isTeacherCoordinator(getActiveProfileTeacher())
-      );
+      return isTeacherCoordinator(getActiveProfileTeacher());
     }
 
     function associationTrainingIsCoachedBy(training, teacherId) {
@@ -8038,20 +8069,19 @@
       return associationCoachTeacherIds(training).includes(tid);
     }
 
-    /** Créneaux d'une activité visibles pour le profil (tous si coordonnateur). */
+    /** Créneaux d'une activité visibles pour le profil (tous si le profil est coordonnateur). */
     function associationTrainingsForViewer(activity) {
       const trainings = activity && Array.isArray(activity.trainings) ? activity.trainings : [];
       if (isAssociationFullAccessViewer()) return trainings.slice();
       const profile = getActiveProfileTeacher();
-      if (!profile) return trainings.slice();
+      if (!profile) return [];
       return trainings.filter((t) => associationTrainingIsCoachedBy(t, profile.id));
     }
 
     /**
      * Activités AS visibles pour le profil actif.
-     * Coordonnateur : toutes.
-     * Professeur : uniquement celles où il encadre au moins un créneau.
-     * Sans profil : toutes (configuration initiale).
+     * Profil coordonnateur : toutes.
+     * Sinon : uniquement celles où le profil encadre au moins un créneau.
      */
     function associationActivitiesForViewer(opts) {
       opts = opts || {};
@@ -8059,8 +8089,10 @@
       if (opts.all) return all.slice();
       if (isAssociationFullAccessViewer()) return all.slice();
       const profile = getActiveProfileTeacher();
-      if (!profile) return all.slice();
-      return all.filter((a) => associationTrainingsForViewer(a).length > 0);
+      if (!profile) return [];
+      return all.filter((a) =>
+        (a.trainings || []).some((t) => associationTrainingIsCoachedBy(t, profile.id))
+      );
     }
 
     function canEditAssociationActivity(activity) {
@@ -8068,10 +8100,10 @@
       if (isAssociationFullAccessViewer()) return true;
       const profile = getActiveProfileTeacher();
       if (!profile) return false;
-      return associationTrainingsForViewer(activity).length > 0;
+      return (activity.trainings || []).some((t) => associationTrainingIsCoachedBy(t, profile.id));
     }
 
-    /** Création / suppression d'activités et de créneaux : réservé aux coordonnateurs. */
+    /** Création / suppression d'activités et de créneaux : profil coordonnateur uniquement. */
     function canManageAssociationStructure() {
       return isAssociationFullAccessViewer();
     }
@@ -9663,14 +9695,14 @@
         render();
         return;
       }
-      // Arriver sur la liste AS puis ouvrir l'activité → le retour revient bien à la liste
-      if (!(currentView === "tools" && toolsPanel === "association")) {
-        navigateTo("tools", "association");
-      }
+      // Depuis le planning AS (ou une autre vue) : un seul retour → Association sportive / vue précédente
       pushNavHistory();
+      currentView = "tools";
+      toolsPanel = "association";
       associationOpenActivityId = activityId;
       associationSettingsTab = tabId;
       render();
+      scrollPageToStart();
     }
 
     function closeAssociationActivitySettings() {
@@ -14175,19 +14207,17 @@
             })
             .join("")
         : '<span class="dash-association-strip__line kpi-sub">Aucune séance prévue cette semaine</span>';
-      return `<div class="dash-association-strip no-print${dashAssociationStripOpen ? " is-open" : ""}" id="dash-association-strip">
-        <button type="button" class="dash-association-strip__head" id="dash-association-fold" aria-expanded="${dashAssociationStripOpen ? "true" : "false"}" aria-controls="dash-association-recap">
-          <span class="dash-association-strip__title-row">
+      return `<div class="dash-association-strip no-print" id="dash-association-strip">
+        <div class="dash-association-strip__head">
+          <div class="dash-association-strip__title-row">
             <span class="dash-association-strip__title">Association sportive</span>
-            <span class="dash-association-strip__chevron" aria-hidden="true">${dashAssociationStripOpen ? "▾" : "▸"}</span>
-          </span>
+          </div>
           <span class="dash-association-strip__week">${escapeHtml(weekLabel)}</span>
+        </div>
+        <div class="dash-association-strip__recap">${recapHtml}</div>
+        <button type="button" class="dash-association-strip__open" id="dash-association-toggle">
+          Cliquer pour ouvrir l’onglet Association sportive
         </button>
-        ${
-          dashAssociationStripOpen
-            ? `<button type="button" class="dash-association-strip__recap" id="dash-association-toggle" aria-label="Ouvrir l'association sportive">${recapHtml}</button>`
-            : ""
-        }
       </div>`;
     }
 
@@ -14509,10 +14539,10 @@
       const title = profile ? `Classes · ${profile.name || "Profil"}` : "Mes classes";
       const addBar = profile
         ? `<div class="add-class-toolbar no-print">
-            <button type="button" class="btn btn-ghost" id="btn-resync-profile-classes">Actualiser depuis la programmation</button>
-            <button type="button" class="btn btn-primary" id="btn-add-class">Ajouter une classe</button>
+            <button type="button" class="btn btn-ghost" id="btn-resync-profile-classes" title="Actualiser depuis la programmation"><span class="btn-label-full">Actualiser depuis la programmation</span><span class="btn-label-short">Actualiser (prog.)</span></button>
+            <button type="button" class="btn btn-primary" id="btn-add-class" title="Ajouter une classe"><span class="btn-label-full">Ajouter une classe</span><span class="btn-label-short">+ Classe</span></button>
           </div>`
-        : `<div class="add-class-toolbar no-print"><button type="button" class="btn btn-primary" id="btn-add-class">Ajouter une classe</button></div>`;
+        : `<div class="add-class-toolbar no-print"><button type="button" class="btn btn-primary" id="btn-add-class" title="Ajouter une classe">Ajouter une classe</button></div>`;
       return renderTopbar(title, "") + addBar + viewClassesBody();
     }
 
@@ -17459,12 +17489,6 @@
           e.preventDefault();
           openDashboardDatePicker();
         }
-      });
-      main.querySelector("#dash-association-fold")?.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dashAssociationStripOpen = !dashAssociationStripOpen;
-        render();
       });
       main.querySelector("#dash-association-toggle")?.addEventListener("click", () => {
         navigateTo("dashboard:association");
