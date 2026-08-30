@@ -1921,24 +1921,31 @@
       letter-spacing: 0.02em;
       text-align: left;
       line-height: 1.3;
-      cursor: pointer;
       font-family: inherit;
       display: flex;
       flex-direction: column;
       gap: 0.28rem;
     }
-    .dash-association-strip:hover {
-      background: color-mix(in srgb, #f59e0b 24%, var(--surface));
-    }
     .dash-association-strip__head {
       display: flex;
-      flex-wrap: nowrap;
-      align-items: baseline;
-      justify-content: center;
-      gap: 0.35rem 0.5rem;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.12rem;
       width: 100%;
       min-width: 0;
-      text-align: center;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+    }
+    .dash-association-strip__title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.45rem;
     }
     .dash-association-strip__title {
       text-transform: uppercase;
@@ -1948,6 +1955,12 @@
       flex-shrink: 0;
       white-space: nowrap;
     }
+    .dash-association-strip__chevron {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      line-height: 1;
+      font-weight: 700;
+    }
     .dash-association-strip__week {
       font-size: 0.65rem;
       font-weight: 600;
@@ -1955,18 +1968,24 @@
       color: var(--text-muted);
       letter-spacing: 0;
       white-space: nowrap;
-      flex-shrink: 0;
     }
     .dash-association-strip__recap {
       display: flex;
       flex-direction: column;
       gap: 0.35rem;
+      width: 100%;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      text-align: left;
       font-size: 0.76rem;
       font-weight: 500;
       text-transform: none;
       letter-spacing: 0;
-      color: var(--fg);
       min-width: 0;
+      font-family: inherit;
     }
     .dash-association-strip__line {
       display: block;
@@ -5862,6 +5881,8 @@
     let teamCoordAnnualParity = "";
     let teamOrgTeachersOpen = false;
     let teamOrgSlotsOpen = false;
+    /** Case Association sportive sur l'accueil (repliée par défaut). */
+    let dashAssociationStripOpen = false;
     /** Sous-onglet par activité sur l'accueil AS : planning | admin */
     const dashAsActivityPanelTab = {};
     /** Créneau sélectionné par activité (clé jour|début|fin) quand plusieurs créneaux. */
@@ -7957,12 +7978,16 @@
     /**
      * Activités AS visibles pour le profil actif.
      * Sans profil : toutes.
-     * Avec profil : activités où il est encadrant ; celles sans encadrant restent visibles (rétrocompat).
+     * Coordonnateur : toutes.
+     * Sinon : activités où il est encadrant ; celles sans encadrant restent visibles (rétrocompat).
      */
     function associationActivitiesForViewer(opts) {
       opts = opts || {};
       const all = (appData.association && appData.association.activities) || [];
       if (opts.all) return all.slice();
+      if (isTeacherCoordinator(getBoundTeacher()) || isTeacherCoordinator(getActiveProfileTeacher())) {
+        return all.slice();
+      }
       const profile = getActiveProfileTeacher();
       if (!profile) return all.slice();
       return all.filter((a) => {
@@ -7970,6 +7995,73 @@
         if (!coachIds.length) return true;
         return coachIds.includes(profile.id);
       });
+    }
+
+    function canEditAssociationActivity(activity) {
+      if (!activity) return false;
+      if (isTeacherCoordinator(getBoundTeacher()) || isTeacherCoordinator(getActiveProfileTeacher())) {
+        return true;
+      }
+      const profile = getActiveProfileTeacher();
+      if (!profile) return true;
+      const coachIds = associationActivityCoachIds(activity);
+      if (!coachIds.length) return true;
+      return coachIds.includes(profile.id);
+    }
+
+    function associationSessionOverrideKey(event) {
+      return [event.activityId || "", event.eventType || "", event.eventId || "", event.date || ""].join("|");
+    }
+
+    function getAssociationSessionTimeOverride(event) {
+      const map =
+        appData.association && appData.association.sessionTimeOverrides && typeof appData.association.sessionTimeOverrides === "object"
+          ? appData.association.sessionTimeOverrides
+          : null;
+      if (!map) return null;
+      const o = map[associationSessionOverrideKey(event)];
+      if (!o || typeof o !== "object") return null;
+      return {
+        startTime: normalizeTimeHHMM(o.startTime || ""),
+        endTime: normalizeTimeHHMM(o.endTime || ""),
+      };
+    }
+
+    function setAssociationSessionTimeOverride(event, startTime, endTime) {
+      if (!appData.association || typeof appData.association !== "object") appData.association = {};
+      if (!appData.association.sessionTimeOverrides || typeof appData.association.sessionTimeOverrides !== "object") {
+        appData.association.sessionTimeOverrides = {};
+      }
+      const key = associationSessionOverrideKey(event);
+      const start = normalizeTimeHHMM(startTime || "");
+      const end = normalizeTimeHHMM(endTime || "");
+      if (!start && !end) {
+        delete appData.association.sessionTimeOverrides[key];
+        return;
+      }
+      appData.association.sessionTimeOverrides[key] = { startTime: start, endTime: end };
+    }
+
+    function applyAssociationEventTimeOverride(event) {
+      if (!event || event.eventType !== "training") return event;
+      const o = getAssociationSessionTimeOverride(event);
+      if (!o) return event;
+      return {
+        ...event,
+        startTime: o.startTime || event.startTime || "",
+        endTime: o.endTime || event.endTime || "",
+        timeOverridden: true,
+      };
+    }
+
+    function deleteAssociationAdminColumn(activityId, colId, slotKey) {
+      const a = ((appData.association && appData.association.activities) || []).find((x) => x.id === activityId);
+      if (!a || !colId) return false;
+      const store = getAssociationAdminStore(a, slotKey || "");
+      store.columns = store.columns.filter((c) => c.id !== colId);
+      if (store.checks && store.checks[colId]) delete store.checks[colId];
+      saveData();
+      return true;
     }
 
     function associationCompetitionCategoryAgeFromBase(base) {
@@ -10603,6 +10695,48 @@
       });
     }
 
+    function openAssociationEditHoursModal(btn) {
+      const event = {
+        activityId: btn.getAttribute("data-activity-id") || "",
+        eventType: btn.getAttribute("data-event-type") || "training",
+        eventId: btn.getAttribute("data-event-id") || "",
+        date: btn.getAttribute("data-date") || "",
+        startTime: btn.getAttribute("data-start") || "",
+        endTime: btn.getAttribute("data-end") || "",
+      };
+      const activity = ((appData.association && appData.association.activities) || []).find((a) => a.id === event.activityId);
+      if (!canEditAssociationActivity(activity)) {
+        alert("Vous ne pouvez modifier que les horaires des activités que vous encadrez.");
+        return;
+      }
+      const body = el(`<div>
+        <p class="kpi-sub" style="margin:0 0 .65rem;line-height:1.45">Modification <strong>exceptionnelle</strong> pour la séance du <strong>${escapeHtml(fmtDateFr(event.date))}</strong> uniquement. Les autres séances du créneau restent inchangées.</p>
+        <div class="form-row">
+          <div class="form-group"><label>Heure début</label><input type="time" id="f-as-hours-start" value="${escapeHtml(event.startTime || "")}" /></div>
+          <div class="form-group"><label>Heure fin</label><input type="time" id="f-as-hours-end" value="${escapeHtml(event.endTime || "")}" /></div>
+        </div>
+        <button type="button" class="btn btn-sm btn-ghost" id="btn-as-hours-reset" style="margin-top:.25rem">Revenir à l’horaire habituel</button>
+      </div>`);
+      body.querySelector("#btn-as-hours-reset")?.addEventListener("click", () => {
+        setAssociationSessionTimeOverride(event, "", "");
+        saveData();
+        closeModal();
+        refreshAssociationDashPlanning();
+      });
+      openModal("Modifier les horaires", body, () => {
+        const start = body.querySelector("#f-as-hours-start")?.value || "";
+        const end = body.querySelector("#f-as-hours-end")?.value || "";
+        if (start && end && start >= end) {
+          alert("L’heure de fin doit être après l’heure de début.");
+          return false;
+        }
+        setAssociationSessionTimeOverride(event, start, end);
+        saveData();
+        refreshAssociationDashPlanning();
+        return true;
+      });
+    }
+
     function openAssociationCancelModalFromBtn(btn) {
       const activityId = btn.getAttribute("data-activity-id") || "";
       const eventType = btn.getAttribute("data-event-type") || "";
@@ -10706,6 +10840,12 @@
       if (!root || root.dataset.asPlanningTableWired) return;
       root.dataset.asPlanningTableWired = "1";
       root.addEventListener("click", (e) => {
+        const hoursBtn = e.target.closest(".btn-as-edit-hours");
+        if (hoursBtn) {
+          e.stopPropagation();
+          openAssociationEditHoursModal(hoursBtn);
+          return;
+        }
         const cancelBtn = e.target.closest(".btn-as-dash-cancel");
         if (cancelBtn) {
           e.stopPropagation();
@@ -10794,12 +10934,14 @@
           event.stopPropagation();
           const colId = button.getAttribute("data-col-id");
           const activityId = button.getAttribute("data-activity-id");
-          const original = [...document.querySelectorAll(".btn-as-admin-del-col")].find(
-            (item) =>
-              item.getAttribute("data-col-id") === colId && item.getAttribute("data-activity-id") === activityId
-          );
+          const slotKey = button.getAttribute("data-slot-key") || "";
+          if (!confirm("Supprimer cette colonne et toutes les cases cochées ?")) return;
+          if (!deleteAssociationAdminColumn(activityId, colId, slotKey)) return;
           closeModal();
-          setTimeout(() => original?.click(), 0);
+          dashAsActivityPanelTab[activityId] = "admin";
+          if (slotKey) dashAsActivitySlotTab[activityId] = slotKey;
+          dashAsExpandedActivityIds.add(activityId);
+          refreshAssociationDashPlanning();
         });
       });
       const closeFullscreen = () => {
@@ -12646,7 +12788,8 @@
             if (dayIndexMon0(d) !== t.dayIndex) continue;
             const date = fmtISODate(d);
             if (!associationActivityDateInSeason(a, date)) continue;
-            events.push({
+            events.push(
+              applyAssociationEventTimeOverride({
               activityId: a.id,
               activityName: a.name || "—",
               eventType: "training",
@@ -12656,7 +12799,8 @@
               endTime: t.endTime || "",
               detail: (t.groups || []).join(" · ") || "Tous",
               coach: coachLabel,
-            });
+            })
+            );
           }
         });
         (a.competitions || []).forEach((c) => {
@@ -13393,7 +13537,10 @@
     function renderAssociationEventRow(e) {
       const kind = e.eventType === "training" ? "Entraînement" : "Compétition";
       const typeClass = e.eventType === "training" ? "dash-as-type--training" : "dash-as-type--competition";
-      const hour = e.eventType === "training" ? `${e.startTime || "—"}${e.endTime ? "–" + e.endTime : ""}` : "—";
+      const hour =
+        e.eventType === "training"
+          ? `${e.startTime || "—"}${e.endTime ? "–" + e.endTime : ""}${e.timeOverridden ? " *" : ""}`
+          : "—";
       const coachBit = e.coach ? `Enc. ${e.coach}` : "";
       const extra =
         e.eventType === "competition"
@@ -13419,9 +13566,14 @@
       const presentCell = presentN > 0
         ? `<span class="dash-as-present-count">${presentN}</span>`
         : `<span class="kpi-sub">—</span>`;
+      const activity = ((appData.association && appData.association.activities) || []).find((x) => x.id === e.activityId);
+      const canEditHours = e.eventType === "training" && canEditAssociationActivity(activity);
+      const hoursBtn = canEditHours
+        ? `<button type="button" class="btn btn-sm btn-ghost btn-as-edit-hours" data-activity-id="${escapeHtml(e.activityId)}" data-event-id="${escapeHtml(e.eventId || "")}" data-event-type="${escapeHtml(e.eventType)}" data-date="${escapeHtml(e.date)}" data-start="${escapeHtml(e.startTime || "")}" data-end="${escapeHtml(e.endTime || "")}" style="padding:.15rem .35rem;font-size:.68rem;margin-right:.25rem" title="Modifier les horaires (exception)">Horaires</button>`
+        : "";
       const actionBtn = cancel.state === "none"
-        ? `<button type="button" class="btn btn-sm btn-danger btn-as-dash-cancel" data-activity-id="${escapeHtml(e.activityId)}" data-event-id="${escapeHtml(e.eventId || "")}" data-event-type="${escapeHtml(e.eventType)}" data-date="${escapeHtml(e.date)}" data-detail="${escapeHtml(e.detail || "")}" style="padding:.2rem .45rem;font-size:.72rem">Annuler</button>`
-        : `<button type="button" class="btn btn-sm btn-ghost btn-as-dash-uncancel" data-activity-id="${escapeHtml(e.activityId)}" data-event-id="${escapeHtml(e.eventId || "")}" data-event-type="${escapeHtml(e.eventType)}" data-date="${escapeHtml(e.date)}" style="padding:.2rem .45rem;font-size:.72rem">Lever</button>`;
+        ? `${hoursBtn}<button type="button" class="btn btn-sm btn-danger btn-as-dash-cancel" data-activity-id="${escapeHtml(e.activityId)}" data-event-id="${escapeHtml(e.eventId || "")}" data-event-type="${escapeHtml(e.eventType)}" data-date="${escapeHtml(e.date)}" data-detail="${escapeHtml(e.detail || "")}" style="padding:.2rem .45rem;font-size:.72rem">Annuler</button>`
+        : `${hoursBtn}<button type="button" class="btn btn-sm btn-ghost btn-as-dash-uncancel" data-activity-id="${escapeHtml(e.activityId)}" data-event-id="${escapeHtml(e.eventId || "")}" data-event-type="${escapeHtml(e.eventType)}" data-date="${escapeHtml(e.date)}" style="padding:.2rem .45rem;font-size:.72rem">Lever</button>`;
       return `<tr class="dash-as-session-row" tabindex="0" role="button"
           data-activity-id="${escapeHtml(e.activityId)}" data-event-id="${escapeHtml(e.eventId || "")}" data-event-type="${escapeHtml(e.eventType)}"
           data-date="${escapeHtml(e.date)}" data-detail="${escapeHtml(e.detail || "")}" data-activity-name="${escapeHtml(e.activityName)}"
@@ -13701,7 +13853,7 @@
           </table>
           </div>`;
         const tabsHtml = `<div class="as-activity-tabs no-print" style="margin-bottom:.5rem">
-            <button type="button" class="as-activity-tab btn-dash-as-subtab ${panelTab === "planning" ? "as-activity-tab--active" : ""}" data-activity-id="${escapeHtml(block.activityId)}" data-tab="planning">Planning</button>
+            <button type="button" class="as-activity-tab btn-dash-as-subtab ${panelTab === "planning" ? "as-activity-tab--active" : ""}" data-activity-id="${escapeHtml(block.activityId)}" data-tab="planning">Planning et appel</button>
             <button type="button" class="as-activity-tab btn-dash-as-subtab ${panelTab === "admin" ? "as-activity-tab--active" : ""}" data-activity-id="${escapeHtml(block.activityId)}" data-tab="admin">Gestion administrative</button>
           </div>`;
         const slotTabsHtml = multiSlot
@@ -13784,7 +13936,7 @@
     }
 
     function fitDashAssociationStripText() {
-      const strip = document.getElementById("dash-association-toggle");
+      const strip = document.getElementById("dash-association-strip");
       if (!strip) return;
       if (!isDashAssociationStripCompact()) {
         strip
@@ -13861,13 +14013,20 @@
             })
             .join("")
         : '<span class="dash-association-strip__line kpi-sub">Aucune séance prévue cette semaine</span>';
-      return `<button type="button" class="dash-association-strip no-print" id="dash-association-toggle" aria-label="Ouvrir l'association sportive">
-        <span class="dash-association-strip__head">
-          <span class="dash-association-strip__title">Association sportive</span>
+      return `<div class="dash-association-strip no-print${dashAssociationStripOpen ? " is-open" : ""}" id="dash-association-strip">
+        <button type="button" class="dash-association-strip__head" id="dash-association-fold" aria-expanded="${dashAssociationStripOpen ? "true" : "false"}" aria-controls="dash-association-recap">
+          <span class="dash-association-strip__title-row">
+            <span class="dash-association-strip__title">Association sportive</span>
+            <span class="dash-association-strip__chevron" aria-hidden="true">${dashAssociationStripOpen ? "▾" : "▸"}</span>
+          </span>
           <span class="dash-association-strip__week">${escapeHtml(weekLabel)}</span>
-        </span>
-        <span class="dash-association-strip__recap">${recapHtml}</span>
-      </button>`;
+        </button>
+        ${
+          dashAssociationStripOpen
+            ? `<button type="button" class="dash-association-strip__recap" id="dash-association-toggle" aria-label="Ouvrir l'association sportive">${recapHtml}</button>`
+            : ""
+        }
+      </div>`;
     }
 
     function viewAssociationUpcomingPage() {
@@ -16368,7 +16527,7 @@
                   : "status-pill--planned";
           const actCell = act
             ? `${escapeHtml(act.name)}${cyclePos ? `<span class="session-cycle-num">Séance n°${cyclePos.index} / ${cyclePos.total}</span>` : ""}`
-            : "—";
+            : `<span class="badge" style="background:#94a3b8;color:#fff;font-size:.72rem">Hors période</span>`;
           rowParts.push(`<tr style="${isToday ? "background:#16a34a22;font-weight:600" : ""}${stt.code === "cancelled" ? ";opacity:.92" : ""};cursor:pointer" class="btn-session-summary" data-session-id="${s.id}" title="${hasSummary ? "Voir / modifier le résumé" : "Ajouter un résumé"}">
             <td>${fmtDateFr(s.date)}</td>
             <td>${escapeHtml(jour)}</td>
@@ -16601,13 +16760,24 @@
       });
       {
         const shownActIds = new Set(periodActs.map((a) => a.id));
-        const orphan = sessionsForClass(classId).filter((s) => s.extra && (!s.activityId || !shownActIds.has(s.activityId)));
-        if (orphan.length) {
-          sections.push(`<div class="card" style="border-left:5px solid #d97706">
-            <h3 style="margin-bottom:.35rem">📌 Cours ajoutés — sans APSA</h3>
-            <p class="kpi-sub">Ces cours ont été ajoutés manuellement et ne sont rattachés à aucune activité.</p>
-            <div class="table-wrap session-table-wrap" data-table-title="Cours ajoutés — ${escapeHtml(cl.name)}"><table><thead><tr><th>Date</th><th>Jour</th><th>Horaire</th><th>Lieu</th><th>APSA</th><th>Statut</th><th>Motif / info</th><th class="no-print">Action</th></tr></thead><tbody>
-            ${renderSessionRowsHtml(orphan)}
+        const syStart = String(appData.settings.schoolYearStart || "");
+        const syEnd = String(appData.settings.schoolYearEnd || "");
+        const activityBelongsAnyPeriod = (activity) =>
+          !!activity && clPeriods.some((p) => activityBelongsToPeriod(activity, p));
+        const horsPeriode = sessionsForClass(classId).filter((s) => {
+          if (syStart && s.date < syStart) return false;
+          if (syEnd && s.date > syEnd) return false;
+          if (!s.activityId) return true;
+          const act = activityById(s.activityId);
+          if (!act) return true;
+          return !activityBelongsAnyPeriod(act);
+        });
+        if (horsPeriode.length) {
+          sections.push(`<div class="card" style="border-left:5px solid #94a3b8">
+            <h3 style="margin-bottom:.35rem">📌 Hors période</h3>
+            <p class="kpi-sub">Cours compris dans l’année scolaire mais non rattachés à une période. Appel, annulation et résumé restent disponibles.</p>
+            <div class="table-wrap session-table-wrap" data-table-title="Hors période — ${escapeHtml(cl.name)}"><table><thead><tr><th>Date</th><th>Jour</th><th>Horaire</th><th>Lieu</th><th>APSA</th><th>Statut</th><th>Motif / info</th><th class="no-print">Action</th></tr></thead><tbody>
+            ${renderSessionRowsHtml(horsPeriode)}
             </tbody></table></div>
           </div>`);
         }
@@ -16871,6 +17041,22 @@
       if (planningRoot && !planningRoot.dataset.asDashDelegated) {
         planningRoot.dataset.asDashDelegated = "1";
         planningRoot.addEventListener("click", (e) => {
+          const delCol = e.target.closest(".btn-as-admin-del-col");
+          if (delCol) {
+            e.preventDefault();
+            e.stopPropagation();
+            const activityId = delCol.getAttribute("data-activity-id");
+            const colId = delCol.getAttribute("data-col-id");
+            const slotKey = delCol.getAttribute("data-slot-key") || "";
+            if (!activityId || !colId) return;
+            if (!confirm("Supprimer cette colonne et toutes les cases cochées ?")) return;
+            if (!deleteAssociationAdminColumn(activityId, colId, slotKey)) return;
+            dashAsActivityPanelTab[activityId] = "admin";
+            if (slotKey) dashAsActivitySlotTab[activityId] = slotKey;
+            dashAsExpandedActivityIds.add(activityId);
+            refreshAssociationDashPlanning();
+            return;
+          }
           const slotBtn = e.target.closest(".btn-dash-as-slot-tab");
           if (slotBtn) {
             e.preventDefault();
@@ -16939,22 +17125,6 @@
             dashAsExpandedActivityIds.add(id);
             refreshAssociationDashPlanning();
           });
-        });
-      });
-      main.querySelectorAll(".btn-as-admin-del-col").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const activityId = btn.getAttribute("data-activity-id");
-          const colId = btn.getAttribute("data-col-id");
-          const slotKey = btn.getAttribute("data-slot-key") || "";
-          const a = (appData.association.activities || []).find((x) => x.id === activityId);
-          if (!a || !colId) return;
-          if (!confirm("Supprimer cette colonne et toutes les cases cochées ?")) return;
-          const store = getAssociationAdminStore(a, slotKey);
-          store.columns = store.columns.filter((c) => c.id !== colId);
-          if (store.checks[colId]) delete store.checks[colId];
-          saveData();
-          refreshAssociationDashPlanning();
         });
       });
     }
@@ -17075,6 +17245,12 @@
           e.preventDefault();
           openDashboardDatePicker();
         }
+      });
+      main.querySelector("#dash-association-fold")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dashAssociationStripOpen = !dashAssociationStripOpen;
+        render();
       });
       main.querySelector("#dash-association-toggle")?.addEventListener("click", () => {
         navigateTo("dashboard:association");
