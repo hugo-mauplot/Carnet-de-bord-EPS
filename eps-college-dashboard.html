@@ -2033,7 +2033,7 @@
       color: inherit;
     }
     .dash-association-strip.is-open .dash-association-strip__recap {
-      display: flex;
+      display: flex !important;
     }
     .dash-association-strip__open {
       display: block;
@@ -2407,10 +2407,13 @@
         gap: 0.2rem;
       }
       .dash-association-strip__head {
-        justify-content: center;
-        gap: 0.3rem;
-        white-space: nowrap;
-        overflow: hidden;
+        justify-content: flex-start;
+        gap: 0.2rem;
+        white-space: normal;
+        overflow: visible;
+        min-height: 2.4rem;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
       }
       .dash-association-strip__title {
         font-size: 0.68rem;
@@ -2422,9 +2425,13 @@
         font-size: 0.68rem;
         gap: 0.12rem;
       }
+      .dash-association-strip.is-open .dash-association-strip__recap {
+        display: flex !important;
+      }
       .dash-association-strip__open {
         font-size: 0.68rem;
         padding: 0.4rem 0.45rem;
+        touch-action: manipulation;
       }
       .as-comp-filters {
         gap: 0.28rem;
@@ -14215,7 +14222,7 @@
           </span>
           <span class="dash-association-strip__week">${escapeHtml(weekLabel)}</span>
         </button>
-        <div class="dash-association-strip__recap" id="dash-association-recap"${dashAssociationStripOpen ? "" : " hidden"}>${recapHtml}</div>
+        <div class="dash-association-strip__recap" id="dash-association-recap">${recapHtml}</div>
         <button type="button" class="dash-association-strip__open" id="dash-association-toggle">
           Cliquer pour ouvrir l’onglet Association sportive
         </button>
