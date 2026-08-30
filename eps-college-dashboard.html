@@ -734,6 +734,95 @@
     .cal-panel--visual .cal-panel__title { color: #6366f1; margin-bottom: 0.5rem; }
 
     .team-coord-card { margin-bottom: 1rem; }
+    .team-coord-card--foldable .team-coord-fold-head {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.45rem;
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: none;
+      padding: 0;
+      color: inherit;
+      cursor: pointer;
+    }
+    .team-coord-card--foldable .team-coord-fold-title-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      width: 100%;
+    }
+    .team-coord-card--foldable .team-coord-fold-title-row h3 {
+      flex: 1 1 auto;
+      margin: 0;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: unset;
+      line-height: 1.25;
+      font-size: 0.95rem;
+    }
+    .team-coord-fold-chevron {
+      flex: 0 0 auto;
+      font-size: 1.1rem;
+      line-height: 1;
+      margin-top: 0.15rem;
+      color: var(--text-muted);
+      transition: transform 0.15s ease;
+    }
+    .team-coord-card--foldable.is-open .team-coord-fold-chevron {
+      transform: rotate(90deg);
+    }
+    .team-coord-fold-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+    .team-coord-fold-body {
+      margin-top: 0.65rem;
+    }
+    .team-coord-card--planning {
+      border-left-width: 6px !important;
+      border-left-color: #f59e0b !important;
+      box-shadow: 0 10px 28px rgba(245, 158, 11, 0.14);
+      background: linear-gradient(165deg, color-mix(in srgb, #f59e0b 12%, var(--surface)) 0%, var(--surface) 42%);
+    }
+    .team-coord-card--planning > .card-header h3 {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: unset;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: color-mix(in srgb, #f59e0b 70%, var(--text));
+    }
+    .team-annual-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 0.12rem;
+      min-width: 7.5rem;
+      text-align: left;
+    }
+    .team-annual-cell__class {
+      font-weight: 800;
+      font-size: 0.88rem;
+      color: var(--text);
+    }
+    .team-annual-cell__apsa {
+      font-size: 0.72rem;
+      line-height: 1.3;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .team-annual-cell__empty {
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 0.78rem;
+      opacity: 0.55;
+    }
+    .team-annual-parity-view h4 {
+      margin: 0 0 0.55rem;
+      font-size: 0.95rem;
+    }
     .team-coord-week-tabs {
       display: flex;
       gap: 0.4rem;
@@ -1112,6 +1201,11 @@
       background: color-mix(in srgb, #0d9488 16%, var(--surface));
       border: 1px solid color-mix(in srgb, #0d9488 35%, var(--border));
       vertical-align: middle;
+    }
+    .team-teacher-self-row__badge--as {
+      color: #9a3412;
+      background: color-mix(in srgb, #f59e0b 18%, var(--surface));
+      border-color: color-mix(in srgb, #f59e0b 40%, var(--border));
     }
     .team-teacher-self-row__actions {
       display: inline-flex;
@@ -5766,6 +5860,8 @@
     let teamCoordFilterTeacherId = "";
     /** Affichage annuel indépendant de la nav semaine : "" | "A" | "B" */
     let teamCoordAnnualParity = "";
+    let teamOrgTeachersOpen = false;
+    let teamOrgSlotsOpen = false;
     /** Sous-onglet par activité sur l'accueil AS : planning | admin */
     const dashAsActivityPanelTab = {};
     /** Créneau sélectionné par activité (clé jour|début|fin) quand plusieurs créneaux. */
@@ -5948,37 +6044,49 @@
       );
     }
 
-    function afterFullDataImport(isTeamShare) {
+    function afterFullDataImport(opts) {
+      opts = opts || {};
+      const forceProfileChoice = !!opts.forceProfileChoice;
       if (!appData.settings || typeof appData.settings !== "object") appData.settings = {};
-      if (isTeamShare) {
+      migrateDataModel();
+      // Après migration : imposer un nouveau choix de profil (fichier d’équipe / 1re ouverture)
+      if (forceProfileChoice) {
         appData.settings.boundTeacherId = "";
         appData.settings.myCoordinationTeacherId = "";
       }
-      migrateDataModel();
       regenerateSessions();
       saveData();
       profileGateAllowOrgProg = false;
+      try {
+        closeModal();
+      } catch (_) {}
       const hasTeachers = ensureTeamCoordination().teachers.length > 0;
+      currentView = "dashboard";
+      toolsPanel = "home";
+      render();
       if (needsInitialProfileChoice() && hasTeachers) {
-        currentView = "dashboard";
-        render();
         alert(
-          isTeamShare
-            ? "Réglages de l’équipe importés.\nChoisissez maintenant votre profil professeur."
-            : "Import réussi.\nChoisissez maintenant votre profil professeur."
+          "Fichier importé.\n\nChoisissez maintenant votre profil via l’icône indiquée par la flèche.\nCe choix est définitif (sauf pour les coordonnateurs)."
         );
-        requestAnimationFrame(() => openProfilePickerModal());
+        requestAnimationFrame(() => {
+          syncProfileChoiceGate();
+          positionProfileChoiceGate();
+          requestAnimationFrame(positionProfileChoiceGate);
+        });
         return;
       }
-      render();
-      alert(
-        hasTeachers
-          ? "Import réussi."
-          : "Import réussi, mais aucun professeur n’est dans ce fichier.\nAjoutez-en ou importez le fichier d’équipe complet."
-      );
+      if (needsInitialProfileChoice() && !hasTeachers) {
+        alert(
+          "Import réussi, mais aucun professeur n’est dans ce fichier.\nDemandez le fichier d’équipe au coordonnateur, ou configurez l’établissement."
+        );
+        return;
+      }
+      alert("Import réussi.");
     }
 
-    function importJSONFile(file) {
+    function importJSONFile(file, opts) {
+      opts = opts || {};
+      const wasUnbound = !getBoundTeacherId();
       const reader = new FileReader();
       reader.onload = () => {
         try {
@@ -5988,7 +6096,10 @@
             if (o[k] !== undefined) appData[k] = o[k];
           });
           if (o.shareKind !== undefined) appData.shareKind = o.shareKind;
-          afterFullDataImport(isTeamShare);
+          afterFullDataImport({
+            forceProfileChoice:
+              !!opts.forceProfileChoice || isTeamShare || wasUnbound,
+          });
         } catch {
           alert("Fichier JSON invalide.");
         }
@@ -6308,6 +6419,7 @@
           t.name = String(t.name || "").trim();
           if (!t.color) t.color = TEAM_COORD_TEACHER_COLORS[tc.teachers.indexOf(t) % TEAM_COORD_TEACHER_COLORS.length];
           t.isCoordinator = !!t.isCoordinator;
+          t.isAsAnimator = !!t.isAsAnimator;
         }
       });
       tc.timeSlots.forEach((s) => {
@@ -6371,6 +6483,15 @@
 
     function isTeacherCoordinator(teacher) {
       return !!(teacher && teacher.isCoordinator);
+    }
+
+    function isTeacherAsAnimator(teacher) {
+      return !!(teacher && teacher.isAsAnimator);
+    }
+
+    /** Professeurs pouvant encadrer une activité AS. */
+    function asAnimatorTeachers() {
+      return (ensureTeamCoordination().teachers || []).filter(isTeacherAsAnimator);
     }
 
     function establishmentHasCoordinator() {
@@ -6537,21 +6658,7 @@
     }
 
     function profileEstablishmentBannerHtml() {
-      if (isTeacherCoordinator(getBoundTeacher())) {
-        return `<div class="card no-print" style="border-left:4px solid #0d9488;margin-bottom:.75rem;padding:.65rem .85rem"><p class="kpi-sub" style="margin:0;line-height:1.45">Mode <strong>coordonnateur</strong> — vos réglages ici s’appliquent à <strong>tous les profils</strong>.</p></div>`;
-      }
-      if (!usesPersonalEstablishmentSettings()) {
-        return "";
-      }
-      const hasFork =
-        !!(getBoundTeacherId() &&
-          appData.profileEstablishment &&
-          appData.profileEstablishment[getBoundTeacherId()]);
-      return `<div class="card no-print" style="border-left:4px solid #f59e0b;margin-bottom:.75rem;padding:.65rem .85rem"><p class="kpi-sub" style="margin:0;line-height:1.45">Mode <strong>profil</strong> — vous pouvez tout régler ; ${
-        hasFork
-          ? "vos modifications restent <strong>uniquement sur votre profil</strong> (non partagées)."
-          : "dès votre première modification, une copie personnelle sera créée (non partagée)."
-      }</p></div>`;
+      return "";
     }
 
     function sharedEstablishmentReadOnlyBannerHtml() {
@@ -11222,7 +11329,7 @@
         input.addEventListener("change", () => {
           const f = input.files && input.files[0];
           input.value = "";
-          if (f) importJSONFile(f);
+          if (f) importJSONFile(f, { forceProfileChoice: true });
         });
         document.body.appendChild(input);
       }
@@ -11525,11 +11632,8 @@
           String(a.startTime || a.time || "00:00").localeCompare(String(b.startTime || b.time || "00:00"))
         );
       const label = isToday ? "Cours du jour" : "Cours de la journée";
-      const profileHint = profile
-        ? `<p class="kpi-sub" style="margin:0 0 .45rem">Profil <strong>${escapeHtml(profile.name || "—")}</strong> · classes synchronisées depuis la Programmation de l'établissement</p>`
-        : "";
       if (!todaySessions.length && !dayEvents.length && !daySchoolBlocking.length) {
-        return `<div class="dash-block dash-block--courses"><h3 class="dash-block__title">🏃 ${label}</h3>${profileHint}<p class="kpi-sub" style="margin:0">Aucun cours prévu ce jour.</p></div>`;
+        return `<div class="dash-block dash-block--courses"><h3 class="dash-block__title">🏃 ${label}</h3><p class="kpi-sub" style="margin:0">Aucun cours prévu ce jour.</p></div>`;
       }
       const eventLines = dayEvents.map((h) => {
         const impactedSessions = todaySessions.filter((s) => holidayAppliesToSession(h, s));
@@ -11642,7 +11746,7 @@
         countParts.push(`${blockingEventCount} événement${blockingEventCount > 1 ? "s" : ""} bloquant${blockingEventCount > 1 ? "s" : ""}`);
       }
       const countLabel = countParts.length ? ` · ${countParts.join(" · ")}` : "";
-      return `<div class="dash-block dash-block--courses"><h3 class="dash-block__title">🏃 ${label}${countLabel}</h3>${profileHint}<div style="display:flex;flex-direction:column;gap:0">${eventLines}${schoolEventLines}${lines}</div></div>`;
+      return `<div class="dash-block dash-block--courses"><h3 class="dash-block__title">🏃 ${label}${countLabel}</h3><div style="display:flex;flex-direction:column;gap:0">${eventLines}${schoolEventLines}${lines}</div></div>`;
     }
 
     function currentWeekRangeMonSun(refDate) {
@@ -13338,16 +13442,23 @@
 
     function associationCoachCheckboxesHtml(selectedIds) {
       const selected = new Set((selectedIds || []).map((id) => String(id)));
-      const teachers = ensureTeamCoordination().teachers || [];
-      if (!teachers.length) {
+      const all = ensureTeamCoordination().teachers || [];
+      // Animateurs AS + éventuels encadrants déjà cochés (rétrocompat)
+      const teachers = all.filter((t) => isTeacherAsAnimator(t) || selected.has(String(t.id)));
+      if (!all.length) {
         return `<p class="kpi-sub" style="margin:.25rem 0 0">Aucun professeur dans Programmation de l'établissement. Ajoutez-en pour rattacher des encadrants.</p>`;
+      }
+      if (!teachers.length) {
+        return `<p class="kpi-sub" style="margin:.25rem 0 0">Aucun <strong>animateur AS</strong> paramétré. Cochez « Animateur AS » sur les professeurs concernés dans Programmation de l'établissement.</p>`;
       }
       return `<div class="as-coach-checks" style="display:flex;flex-wrap:wrap;gap:.4rem .75rem;margin-top:.2rem">${teachers
         .map(
           (t) =>
             `<label style="display:inline-flex;gap:.3rem;align-items:center;font-size:.85rem"><input type="checkbox" class="f-as-coach" value="${escapeHtml(
               t.id
-            )}" ${selected.has(t.id) ? "checked" : ""} /> ${escapeHtml(t.name || "Sans nom")}</label>`
+            )}" ${selected.has(t.id) ? "checked" : ""} /> ${escapeHtml(t.name || "Sans nom")}${
+              !isTeacherAsAnimator(t) ? ' <span class="kpi-sub">(ancien encadrant)</span>' : ""
+            }</label>`
         )
         .join("")}</div>`;
     }
@@ -13381,7 +13492,7 @@
               (p.groupsManual || []).join(", ")
             )}" /></div>
             <div class="form-group" style="margin-bottom:.35rem">
-              <label>Professeur(s) encadrant(s)</label>
+              <label>Professeur(s) encadrant(s) — animateurs AS</label>
               ${associationCoachCheckboxesHtml(p.coachTeacherIds || [])}
             </div>
             <button type="button" class="btn btn-sm btn-danger btn-as-slot-del" style="margin-top:.25rem">Supprimer ce créneau</button>
@@ -13453,7 +13564,7 @@
         <div class="card-header">
           <h3>${escapeHtml(activity.name)}</h3>
         </div>
-        <p class="kpi-sub" style="margin:0 0 .65rem">Renseignez la saison, les créneaux (jour, horaires, catégories) et le(s) professeur(s) encadrant(s).</p>
+        <p class="kpi-sub" style="margin:0 0 .65rem">Renseignez la saison, les créneaux (jour, horaires, catégories) et le(s) professeur(s) encadrant(s) — parmi les <strong>animateurs AS</strong>.</p>
         <div class="form-row" style="margin-bottom:.55rem">
           <div class="form-group" style="margin:0"><label for="f-as-setup-season-start">Début des séances</label><input type="date" id="f-as-setup-season-start" value="${escapeHtml(
             activity.seasonStart || ""
@@ -13505,7 +13616,7 @@
           <div class="form-group"><label>Début des séances</label><input type="date" id="f-as-season-start" /></div>
           <div class="form-group"><label>Fin des séances</label><input type="date" id="f-as-season-end" /></div>
         </div>
-        <p class="kpi-sub" style="margin:0 0 .35rem">Créneaux : jour, horaires, catégorie, sexe, groupe, et professeur(s) encadrant(s).</p>
+        <p class="kpi-sub" style="margin:0 0 .35rem">Créneaux : jour, horaires, catégorie, sexe, groupe, et professeur(s) encadrant(s) (animateurs AS).</p>
         <div id="f-as-slots">${associationTrainingSlotRowHtml()}</div>
         <button type="button" class="btn btn-sm btn-ghost" id="btn-as-slot-add" style="margin-top:.55rem">+ Ajouter un créneau</button>
       </div>`);
@@ -14068,8 +14179,10 @@
       const profile = getActiveProfileTeacher();
       const title = profile ? `Classes · ${profile.name || "Profil"}` : "Mes classes";
       const addBar = profile
-        ? `<p class="kpi-sub no-print" style="margin:0 0 .75rem">Profil <strong>${escapeHtml(profile.name || "")}</strong> : classes synchronisées depuis la Programmation de l'établissement. Complétez les élèves et gérez vos séances. <button type="button" class="btn btn-sm btn-ghost" id="btn-resync-profile-classes">Actualiser depuis la programmation</button></p>
-           <div class="add-class-toolbar no-print"><button type="button" class="btn btn-primary" id="btn-add-class">Ajouter une classe</button></div>`
+        ? `<div class="add-class-toolbar no-print">
+            <button type="button" class="btn btn-ghost" id="btn-resync-profile-classes">Actualiser depuis la programmation</button>
+            <button type="button" class="btn btn-primary" id="btn-add-class">Ajouter une classe</button>
+          </div>`
         : `<div class="add-class-toolbar no-print"><button type="button" class="btn btn-primary" id="btn-add-class">Ajouter une classe</button></div>`;
       return renderTopbar(title, "") + addBar + viewClassesBody();
     }
@@ -14174,7 +14287,6 @@
 
       return `${sharedEstablishmentReadOnlyBannerHtml()}<div class="card">
         <div class="card-header"><h3>Périodes</h3><button type="button" class="btn btn-sm btn-primary" id="btn-add-period">+ Période</button></div>
-        <p class="kpi-sub" style="margin-bottom:.75rem">Définissez les périodes de l'année scolaire et les niveaux concernés. <strong>Début</strong> = date de la première séance possible des APSA ; <strong>Fin</strong> = date de la dernière séance (bornes incluses). Réglage partagé pour tous les profils.</p>
         <div class="table-wrap"><table><thead><tr><th>Nom</th><th>Début (1re séance)</th><th>Fin (dernière séance)</th><th>Niveaux</th><th>Statut</th><th class="no-print">Actions</th></tr></thead><tbody>
         ${rows || '<tr><td colspan="6">Aucune période créée.</td></tr>'}
         </tbody></table></div>
@@ -14776,32 +14888,44 @@
           : `<p class="kpi-sub" style="margin:.55rem 0 0">Sélectionnez un professeur ci-dessus pour afficher son planning annuel (APSA par période) en semaine ${annualParity}.</p>`
         : "";
 
-      const teachersCard = `<div class="card team-coord-card" style="border-left:4px solid #6366f1">
-        <div class="card-header">
-          <h3>1 · Professeurs d'EPS de l'établissement</h3>
-          <button type="button" class="btn btn-sm btn-primary" id="btn-team-add-teachers-bulk">+ Ajouter professeur</button>
-        </div>
-        <p class="kpi-sub" style="margin:0">Le profil se choisit sur l’<strong>Accueil</strong> (bouton profil). Le statut <strong>Coordonnateur EPS</strong> se définit à la création ou via <strong>Modifier</strong>. Ensuite, seuls les coordonnateurs peuvent consulter d’autres profils.</p>
+      const teachersCard = `<div class="card team-coord-card team-coord-card--foldable${teamOrgTeachersOpen ? " is-open" : ""}" style="border-left:4px solid #6366f1">
+        <button type="button" class="team-coord-fold-head btn-team-org-fold" data-fold="teachers" aria-expanded="${teamOrgTeachersOpen ? "true" : "false"}">
+          <span class="team-coord-fold-title-row">
+            <h3>1 · Professeurs d'EPS de l'établissement</h3>
+            <span class="team-coord-fold-chevron" aria-hidden="true">›</span>
+          </span>
+        </button>
         ${
-          teachersAll.length
-            ? `<div class="team-teachers-self-list">${teachersAll
-                .map((t) => {
-                  const isCoord = !!t.isCoordinator;
-                  const isBound = t.id === boundId;
-                  const badges = [
-                    isCoord ? `<span class="team-teacher-self-row__badge">Coordonnateur</span>` : "",
-                    isBound ? ` <span class="kpi-sub">(profil de cet appareil)</span>` : "",
-                  ].join("");
-                  return `<div class="team-teacher-self-row">
+          teamOrgTeachersOpen
+            ? `<div class="team-coord-fold-body">
+          <div class="team-coord-fold-actions" style="margin-bottom:.55rem">
+            <button type="button" class="btn btn-sm btn-primary" id="btn-team-add-teachers-bulk">+ Ajouter professeur</button>
+          </div>
+          ${
+            teachersAll.length
+              ? `<div class="team-teachers-self-list">${teachersAll
+                  .map((t) => {
+                    const isCoord = !!t.isCoordinator;
+                    const isAs = !!t.isAsAnimator;
+                    const isBound = t.id === boundId;
+                    const badges = [
+                      isCoord ? `<span class="team-teacher-self-row__badge">Coordo</span>` : "",
+                      isAs ? `<span class="team-teacher-self-row__badge team-teacher-self-row__badge--as">AS</span>` : "",
+                      isBound ? ` <span class="kpi-sub">(profil de cet appareil)</span>` : "",
+                    ].join("");
+                    return `<div class="team-teacher-self-row">
               <span class="team-teacher-self-row__swatch" style="background:${escapeHtml(t.color || "#64748b")}" aria-hidden="true"></span>
               <span class="team-teacher-self-row__name">${escapeHtml(t.name || "—")}${badges}</span>
               <span class="team-teacher-self-row__actions">
                 <button type="button" class="btn btn-sm btn-ghost btn-team-edit-teacher" data-id="${escapeHtml(t.id)}">Modifier</button>
               </span>
             </div>`;
-                })
-                .join("")}</div>`
-            : `<p class="kpi-sub" style="margin:.55rem 0 0">Aucun professeur paramétré pour le moment.</p>`
+                  })
+                  .join("")}</div>`
+              : `<p class="kpi-sub" style="margin:0">Aucun professeur paramétré pour le moment.</p>`
+          }
+        </div>`
+            : ""
         }
       </div>`;
 
@@ -14813,22 +14937,31 @@
               return `<li>${escapeHtml(start)} – ${escapeHtml(end)}</li>`;
             })
             .join("")}</ul>`
-        : `<p class="kpi-sub" style="margin:.55rem 0 0">Aucun créneau paramétré.</p>`;
+        : `<p class="kpi-sub" style="margin:0">Aucun créneau paramétré.</p>`;
 
-      const slotsCard = `<div class="card team-coord-card" style="border-left:4px solid #0d9488">
-        <div class="card-header">
-          <h3>2 · Créneaux horaires des cours d'EPS</h3>
-          <button type="button" class="btn btn-sm btn-primary" id="btn-team-add-timeslot">Paramétrer les créneaux horaires</button>
-        </div>
-        <p class="kpi-sub" style="margin:0">Horaires communs utilisés par le tableau de programmation professeurs.</p>
-        ${slotsSummary}
+      const slotsCard = `<div class="card team-coord-card team-coord-card--foldable${teamOrgSlotsOpen ? " is-open" : ""}" style="border-left:4px solid #0d9488">
+        <button type="button" class="team-coord-fold-head btn-team-org-fold" data-fold="slots" aria-expanded="${teamOrgSlotsOpen ? "true" : "false"}">
+          <span class="team-coord-fold-title-row">
+            <h3>2 · Créneaux horaires des cours d'EPS</h3>
+            <span class="team-coord-fold-chevron" aria-hidden="true">›</span>
+          </span>
+        </button>
+        ${
+          teamOrgSlotsOpen
+            ? `<div class="team-coord-fold-body">
+          <div class="team-coord-fold-actions" style="margin-bottom:.55rem">
+            <button type="button" class="btn btn-sm btn-primary" id="btn-team-add-timeslot">Paramétrer les créneaux horaires</button>
+          </div>
+          ${slotsSummary}
+        </div>`
+            : ""
+        }
       </div>`;
 
-      const planningCard = `<div class="card team-coord-card" style="border-left:4px solid #f59e0b">
-        <div class="card-header"><h3>3 · Programmation professeurs</h3></div>
-        <p class="kpi-sub" style="margin:0 0 .55rem">Tableau de la semaine (navigation ci-dessous). Sous le tableau, <strong>Consulter semaine A/B</strong> affiche le planning annuel du professeur sélectionné (APSA par période), indépendamment de la semaine affichée.</p>
-        <div style="margin-bottom:.55rem">
-          <button type="button" class="btn btn-sm btn-ghost" id="btn-team-sync-from-classes" title="Remplit votre ligne à partir de Programmation de mes classes">↩ Importer ma programmation</button>
+      const planningCard = `<div class="card team-coord-card team-coord-card--planning">
+        <div class="card-header" style="flex-direction:column;align-items:stretch;gap:.45rem">
+          <h3>3 · Programmation des professeurs</h3>
+          <button type="button" class="btn btn-sm btn-ghost" id="btn-team-sync-from-classes" title="Remplit votre ligne à partir de Programmation de mes classes" style="align-self:flex-start">↩ Importer ma programmation</button>
         </div>
         <div class="team-coord-consult-bar">
           ${teacherFilter}
@@ -14851,21 +14984,30 @@
       }
       const week = weekParity === "B" ? "B" : "A";
       const periods = teamPeriodsSorted();
-      const daySections = [0, 1, 2, 3, 4]
+      const timeSlots = tc.timeSlots || [];
+      if (!timeSlots.length) {
+        return `<div class="team-annual-parity-view" style="margin-top:.75rem;padding-top:.65rem;border-top:1px solid var(--border)">
+          <h4>Planning annuel — ${escapeHtml(teacher.name || "—")} — Semaine ${week}</h4>
+          <p class="kpi-sub" style="margin:0">Aucun créneau horaire paramétré.</p>
+        </div>`;
+      }
+      const daysHtml = `<div class="team-coord-days-v2">${[0, 1, 2, 3, 4]
         .map((dayIndex) => {
-          const rows = (tc.timeSlots || [])
+          const rows = timeSlots
             .map((ts) => {
-              const cell = getTeamCell(teacherId, dayIndex, ts.id, week);
-              if (!teamCellHasAnyData(cell) && !(cell && cell.className)) return "";
+              const cell = getTeamCell(teacherId, dayIndex, ts.id, week) || {};
+              const className = String(cell.className || "").trim();
               const level = teamCellLevel(cell);
               const relevantPeriods = level ? periodsForLevel(level) : periods;
-              const periodBits = (relevantPeriods.length ? relevantPeriods : periods)
+              const periodList = relevantPeriods.length ? relevantPeriods : periods;
+              const apsaLines = periodList
                 .map((p) => {
                   const part = (cell.byPeriod && cell.byPeriod[p.id]) || {};
                   const apsa = String(part.apsa || "").trim();
                   const venue = String(part.venue || "").trim();
                   if (!apsa && !venue) return "";
-                  return `<div class="team-annual-period-line"><strong>${escapeHtml(p.name || "Période")}</strong> : ${escapeHtml(apsa || "—")}${
+                  const label = String(p.name || "Période").trim();
+                  return `<div class="team-annual-cell__apsa">${escapeHtml(label)} : ${escapeHtml(apsa || "—")}${
                     venue ? ` · ${escapeHtml(venue)}` : ""
                   }</div>`;
                 })
@@ -14873,29 +15015,32 @@
                 .join("");
               const start = normalizeTimeHHMM(ts.startTime || "");
               const end = normalizeTimeHHMM(ts.endTime || "");
+              const content = className
+                ? `<div class="team-annual-cell">
+                    <div class="team-annual-cell__class">${escapeHtml(className)}</div>
+                    ${apsaLines || `<div class="team-annual-cell__apsa">Aucune APSA</div>`}
+                  </div>`
+                : `<span class="team-annual-cell__empty">—</span>`;
               return `<tr>
                 <td class="team-coord-slot-time"><span class="team-coord-slot-time__start">${escapeHtml(start)}</span><span class="team-coord-slot-time__end">${escapeHtml(end)}</span></td>
-                <td><strong>${escapeHtml(cell.className || "—")}</strong>${level ? ` <span class="kpi-sub">(${escapeHtml(level)})</span>` : ""}</td>
-                <td>${periodBits || `<span class="kpi-sub">Aucune APSA sur les périodes</span>`}</td>
+                <td>${content}</td>
               </tr>`;
             })
-            .filter(Boolean)
             .join("");
-          if (!rows) return "";
-          return `<section class="team-annual-day" style="margin-top:.65rem">
-            <h4 style="margin:0 0 .35rem;font-size:.95rem">${escapeHtml(DOW[dayIndex])}</h4>
-            <div class="table-wrap"><table class="team-coord-day-v2-table">
-              <thead><tr><th class="team-coord-col-slot">Créneau</th><th>Classe</th><th>APSA par période</th></tr></thead>
+          return `<section class="team-coord-day-v2">
+            <table class="team-coord-day-v2-table">
+              <thead>
+                <tr><th colspan="2" class="team-coord-day-v2__title">${escapeHtml(DOW[dayIndex])}</th></tr>
+                <tr><th class="team-coord-col-slot">Créneau</th><th>Classe / APSA</th></tr>
+              </thead>
               <tbody>${rows}</tbody>
-            </table></div>
+            </table>
           </section>`;
         })
-        .filter(Boolean)
-        .join("");
+        .join("")}</div>`;
       return `<div class="team-annual-parity-view" style="margin-top:.75rem;padding-top:.65rem;border-top:1px solid var(--border)">
-        <h4 style="margin:0 0 .35rem">Planning annuel — ${escapeHtml(teacher.name || "—")} — Semaine ${week}</h4>
-        <p class="kpi-sub" style="margin:0 0 .45rem">Cours du professeur sur l’année pour les créneaux en semaine ${week} (indépendant de la navigation « Semaine du … » ci-dessus).</p>
-        ${daySections || `<p class="kpi-sub" style="margin:0">Aucun cours renseigné pour ce professeur en semaine ${week}.</p>`}
+        <h4>Planning annuel — ${escapeHtml(teacher.name || "—")} — Semaine ${week}</h4>
+        ${daysHtml}
       </div>`;
     }
 
@@ -15414,7 +15559,7 @@
           <h3 class="title-one-line">Activités encadrées</h3>
           <button type="button" class="btn btn-sm btn-primary btn-compact-label" id="btn-add-association-activity" title="Ajouter une activité">+ Activité</button>
         </div>
-        <p class="kpi-sub">Créez une activité avec saison, créneaux et encadrants. En mode coordonnateur ces réglages s’appliquent à tous ; sinon uniquement à votre profil.</p>
+        <p class="kpi-sub">Créez une activité avec saison, créneaux et encadrants.</p>
         ${activityCards}
         ${associationShareToolbarHtml()}
       </div>`;
@@ -16534,7 +16679,7 @@
           <div class="tutorial-section__body">
             <p>${goto("tools:orgProg", "Programmation de l'établissement")}</p>
             <ul>
-              <li><strong>1 · Professeurs</strong> : ajoutez les professeurs (couleur, case <strong>Coordonnateur EPS</strong>) ; bouton <strong>Modifier</strong> pour changer nom, couleur ou statut. Le profil se choisit sur l’Accueil.</li>
+              <li><strong>1 · Professeurs</strong> : ajoutez les professeurs (couleur, cases <strong>Coordonnateur EPS</strong> et <strong>Animateur AS</strong>) ; bouton <strong>Modifier</strong> pour changer nom, couleur ou statut. Seuls les animateurs AS peuvent encadrer une activité AS. Le profil se choisit sur l’Accueil.</li>
               <li><strong>2 · Créneaux horaires</strong> : paramétrez les horaires communs des cours d'EPS.</li>
               <li><strong>3 · Programmation professeurs</strong> : tableau hebdomadaire ; sous le tableau, <strong>Consulter semaine A/B</strong> affiche le planning annuel du professeur sélectionné (APSA par période).</li>
               <li>Les jours sont <strong>côte à côte</strong> : faites glisser horizontalement pour passer de lundi à vendredi. Le nom du jour est centré en en-tête.</li>
@@ -17630,6 +17775,14 @@
         teamCoordAnnualParity = teamCoordAnnualParity === "B" ? "" : "B";
         render();
       });
+      main.querySelectorAll(".btn-team-org-fold").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const fold = btn.getAttribute("data-fold");
+          if (fold === "teachers") teamOrgTeachersOpen = !teamOrgTeachersOpen;
+          else if (fold === "slots") teamOrgSlotsOpen = !teamOrgSlotsOpen;
+          render();
+        });
+      });
       main.querySelector("#sel-team-filter-teacher")?.addEventListener("change", (e) => {
         teamCoordFilterTeacherId = e.target.value || "";
         render();
@@ -17687,7 +17840,7 @@
         const body = el(`<div>
           <div class="form-group"><label>Nom</label><input id="f-edit-teacher-name" value="${escapeHtml(teacher.name || "")}" placeholder="Mme Dupont" /></div>
           <div class="form-group"><label>Couleur</label><input type="color" id="f-edit-teacher-color" value="${escapeHtml(teacher.color || TEAM_COORD_TEACHER_COLORS[0])}" style="width:100%;min-height:2.6rem;padding:.15rem" /></div>
-          <div class="form-group" style="margin:0">
+          <div class="form-group" style="margin:0 0 .55rem">
             <label style="display:inline-flex;align-items:center;gap:.4rem;cursor:${canEditCoord ? "pointer" : "not-allowed"};font-weight:600">
               <input type="checkbox" id="f-edit-teacher-coord" ${teacher.isCoordinator ? "checked" : ""} ${canEditCoord ? "" : "disabled"} />
               Coordonnateur EPS
@@ -17697,6 +17850,13 @@
                 ? `<p class="kpi-sub" style="margin:.35rem 0 0">Les réglages d’un coordonnateur (AS, lieux, périodes, programmation, calendriers) s’appliquent à tous les profils.</p>`
                 : `<p class="kpi-sub" style="margin:.35rem 0 0">Seul un coordonnateur peut modifier ce statut.</p>`
             }
+          </div>
+          <div class="form-group" style="margin:0">
+            <label style="display:inline-flex;align-items:center;gap:.4rem;cursor:pointer;font-weight:600">
+              <input type="checkbox" id="f-edit-teacher-as" ${teacher.isAsAnimator ? "checked" : ""} />
+              Animateur AS
+            </label>
+            <p class="kpi-sub" style="margin:.35rem 0 0">Les animateurs AS peuvent être choisis comme professeurs encadrants dans l’Association sportive.</p>
           </div>
         </div>`);
         openModal("Modifier le professeur", body, () => {
@@ -17725,6 +17885,7 @@
           if (canEditCoordinatorFlags()) {
             t.isCoordinator = !!body.querySelector("#f-edit-teacher-coord")?.checked;
           }
+          t.isAsAnimator = !!body.querySelector("#f-edit-teacher-as")?.checked;
           applyProfileEstablishmentOverlay();
           saveData();
           render();
@@ -17754,7 +17915,7 @@
       main.querySelector("#btn-team-add-teachers-bulk")?.addEventListener("click", () => {
         restoreSharedEstablishmentFromBackup();
         const canSetCoord = canEditCoordinatorFlags();
-        const rowHtml = (name, color, id, isCoord) => `<div class="team-teacher-row" data-teacher-id="${escapeHtml(id || "")}" style="border:1px solid var(--border);border-radius:10px;padding:.55rem .6rem;margin-bottom:.45rem">
+        const rowHtml = (name, color, id, isCoord, isAs) => `<div class="team-teacher-row" data-teacher-id="${escapeHtml(id || "")}" style="border:1px solid var(--border);border-radius:10px;padding:.55rem .6rem;margin-bottom:.45rem">
           <div class="form-row" style="align-items:flex-end;margin-bottom:.35rem">
             <div class="form-group" style="margin:0;flex:1">
               <label>Nom</label>
@@ -17766,17 +17927,23 @@
             </div>
             <button type="button" class="btn btn-sm btn-danger btn-team-teacher-row-del" title="Retirer" style="min-height:40px">✕</button>
           </div>
-          <label style="display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:600;cursor:${canSetCoord ? "pointer" : "not-allowed"}">
-            <input type="checkbox" class="f-team-teacher-coord" ${isCoord ? "checked" : ""} ${canSetCoord ? "" : "disabled"} />
-            Coordonnateur EPS
-          </label>
+          <div style="display:flex;flex-wrap:wrap;gap:.55rem 1rem">
+            <label style="display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:600;cursor:${canSetCoord ? "pointer" : "not-allowed"}">
+              <input type="checkbox" class="f-team-teacher-coord" ${isCoord ? "checked" : ""} ${canSetCoord ? "" : "disabled"} />
+              Coordonnateur EPS
+            </label>
+            <label style="display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:600;cursor:pointer">
+              <input type="checkbox" class="f-team-teacher-as" ${isAs ? "checked" : ""} />
+              Animateur AS
+            </label>
+          </div>
         </div>`;
         const body = el(`<div>
-          <p class="kpi-sub" style="margin:0 0 .55rem;line-height:1.45">Cochez <strong>Coordonnateur EPS</strong> pour les professeurs dont les réglages établissement s’appliquent à tous les profils.${
-            canSetCoord ? "" : " (seul un coordonnateur peut cocher cette case)"
+          <p class="kpi-sub" style="margin:0 0 .55rem;line-height:1.45">Cochez <strong>Coordonnateur EPS</strong> pour le partage des réglages établissement, et <strong>Animateur AS</strong> pour pouvoir encadrer des activités de l’Association sportive.${
+            canSetCoord ? "" : " (seul un coordonnateur peut cocher Coordonnateur EPS)"
           }</p>
           <div id="f-team-teachers-rows">
-            ${rowHtml("", TEAM_COORD_TEACHER_COLORS[0], "", false)}
+            ${rowHtml("", TEAM_COORD_TEACHER_COLORS[0], "", false, false)}
           </div>
           <button type="button" class="btn btn-sm btn-ghost" id="btn-team-teacher-row-add" style="margin-top:.25rem">+ Ajouter un professeur</button>
         </div>`);
@@ -17794,7 +17961,7 @@
           const idx = rowsRoot.querySelectorAll(".team-teacher-row").length;
           rowsRoot.insertAdjacentHTML(
             "beforeend",
-            rowHtml("", TEAM_COORD_TEACHER_COLORS[idx % TEAM_COORD_TEACHER_COLORS.length], "", false)
+            rowHtml("", TEAM_COORD_TEACHER_COLORS[idx % TEAM_COORD_TEACHER_COLORS.length], "", false, false)
           );
           wireRowDel();
         });
@@ -17808,11 +17975,12 @@
             const name = (row.querySelector(".f-team-teacher-name")?.value || "").trim();
             const color = (row.querySelector(".f-team-teacher-color")?.value || "").trim() || TEAM_COORD_TEACHER_COLORS[0];
             const isCoordinator = allowCoord && !!row.querySelector(".f-team-teacher-coord")?.checked;
+            const isAsAnimator = !!row.querySelector(".f-team-teacher-as")?.checked;
             if (!name) return;
             const key = name.toLowerCase();
             if (existing.has(key)) return;
             existing.add(key);
-            tc.teachers.push({ id: uid(), name, color, isCoordinator });
+            tc.teachers.push({ id: uid(), name, color, isCoordinator, isAsAnimator });
             added += 1;
           });
           if (!added) {
