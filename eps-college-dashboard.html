@@ -1720,12 +1720,34 @@
 
     .add-class-toolbar {
       display: flex;
-      justify-content: center;
+      justify-content: stretch;
+      align-items: stretch;
+      gap: 0.4rem;
       margin: 0 0 1rem;
+      flex-wrap: nowrap;
+      width: 100%;
     }
     .add-class-toolbar .btn {
-      min-width: min(100%, 220px);
-      font-weight: 800;
+      flex: 1 1 0;
+      min-width: 0;
+      font-weight: 700;
+      font-size: clamp(0.62rem, 2.6vw, 0.82rem);
+      padding: 0.5rem 0.35rem;
+      white-space: nowrap;
+      line-height: 1.15;
+      text-align: center;
+    }
+    .as-settings-activity-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      min-width: 0;
+    }
+    .as-settings-activity-actions {
+      display: flex;
+      gap: 0.35rem;
+      justify-content: flex-end;
+      flex-wrap: wrap;
     }
     .topbar {
       display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
@@ -13723,11 +13745,103 @@
     }
 
     function openAssociationActivityPlanning(activityId) {
+      dashAsExpandedActivityIds.clear();
       if (activityId) {
         dashAsExpandedActivityIds.add(activityId);
         dashAsActivityPanelTab[activityId] = "planning";
       }
       navigateTo("dashboard:association");
+    }
+
+    function deleteAssociationActivity(activityId) {
+      if (!guardSharedEstablishmentEdit("Association sportive")) return false;
+      if (!activityId || !appData.association || !Array.isArray(appData.association.activities)) return false;
+      const a = appData.association.activities.find((x) => x.id === activityId);
+      if (!a) return false;
+      if (
+        !confirm(
+          `Supprimer l'activité « ${a.name} » ?\n\nCréneaux, élèves, compétitions et données liées seront perdus.`
+        )
+      ) {
+        return false;
+      }
+      appData.association.activities = appData.association.activities.filter((x) => x.id !== activityId);
+      if (Array.isArray(appData.association.cancellations)) {
+        appData.association.cancellations = appData.association.cancellations.filter(
+          (c) => !(c && c.activityId === activityId)
+        );
+      }
+      if (appData.association.attendanceRecords && typeof appData.association.attendanceRecords === "object") {
+        Object.keys(appData.association.attendanceRecords).forEach((key) => {
+          if (key.startsWith(activityId + "|")) delete appData.association.attendanceRecords[key];
+        });
+      }
+      dashAsExpandedActivityIds.delete(activityId);
+      delete dashAsActivityPanelTab[activityId];
+      delete dashAsActivitySlotTab[activityId];
+      if (associationOpenActivityId === activityId) {
+        associationOpenActivityId = "";
+        associationSettingsTab = "trainings";
+      }
+      saveData();
+      return true;
+    }
+
+    function openEditAssociationActivityModal(activity) {
+      if (!activity) return;
+      if (!guardSharedEstablishmentEdit("Association sportive")) return;
+      const body = el(`<div>
+        <div class="form-group"><label>Nom de l'activité</label><input id="f-as-name" value="${escapeHtml(activity.name || "")}" /></div>
+        <div class="form-row">
+          <div class="form-group"><label>Début des séances</label><input type="date" id="f-as-season-start" value="${escapeHtml(activity.seasonStart || "")}" /></div>
+          <div class="form-group"><label>Fin des séances</label><input type="date" id="f-as-season-end" value="${escapeHtml(activity.seasonEnd || "")}" /></div>
+        </div>
+        <p class="kpi-sub" style="margin:0">Les créneaux, élèves et compétitions se gèrent depuis le détail de l'activité.</p>
+      </div>`);
+      openModal("Modifier l'activité", body, () => {
+        const name = body.querySelector("#f-as-name").value.trim();
+        if (!name) return false;
+        const seasonStart = body.querySelector("#f-as-season-start").value || "";
+        const seasonEnd = body.querySelector("#f-as-season-end").value || "";
+        if (seasonStart && seasonEnd && seasonStart > seasonEnd) {
+          alert("La fin des séances doit être après le début.");
+          return false;
+        }
+        activity.name = name;
+        activity.seasonStart = seasonStart;
+        activity.seasonEnd = seasonEnd;
+        saveData();
+        render();
+        return true;
+      });
+    }
+
+    function openCancelSessionModal(session) {
+      if (!session) return;
+      const sid = session.id;
+      if (appData.cancellations.some((c) => c.sessionId === sid)) {
+        alert("Ce cours est déjà annulé.");
+        return;
+      }
+      const body = el(`<div>
+        <p class="kpi-sub" style="margin-bottom:.75rem"><strong>${fmtDateFr(session.date)}</strong> · ${session.startTime || ""}–${session.endTime || ""}</p>
+        <div class="form-group"><label>Motif</label><select id="m-reason">${REASON_TYPES.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select></div>
+        <div class="form-group"><label>Commentaire</label><textarea id="m-com" rows="2"></textarea></div>
+      </div>`);
+      openModal("Annuler cette séance", body, () => {
+        if (appData.cancellations.some((c) => c.sessionId === sid)) return;
+        appData.cancellations.push({
+          id: uid(),
+          sessionId: session.id,
+          classId: session.classId,
+          date: session.date,
+          startTime: session.startTime,
+          reasonType: body.querySelector("#m-reason").value,
+          comment: body.querySelector("#m-com").value,
+        });
+        saveData();
+        render();
+      });
     }
 
     function openAddAssociationActivityModal() {
@@ -15644,7 +15758,11 @@
       return `<div class="card" style="border-left:5px solid #f59e0b;margin-bottom:.75rem">
         <div class="card-header">
           <h3>${escapeHtml(openActivity.name)}</h3>
-          <button type="button" class="btn btn-sm btn-ghost btn-association-back">${escapeHtml(backLabel)}</button>
+          <div style="display:flex;gap:.35rem;flex-wrap:wrap;justify-content:flex-end">
+            <button type="button" class="btn btn-sm btn-ghost btn-edit-association-activity" data-id="${escapeHtml(openActivity.id)}">Modifier</button>
+            <button type="button" class="btn btn-sm btn-danger btn-del-association-activity" data-id="${escapeHtml(openActivity.id)}">Supprimer</button>
+            <button type="button" class="btn btn-sm btn-ghost btn-association-back">${escapeHtml(backLabel)}</button>
+          </div>
         </div>
         <div class="as-activity-tabs no-print" style="margin-top:.15rem">
           ${tabBtn("trainings", "Créneaux", trainings.length)}
@@ -15672,13 +15790,19 @@
                 nSlots ? `${nSlots} créneau${nSlots > 1 ? "x" : ""}` : "Sans créneau",
                 coachNames.length ? coachNames.join(", ") : "Aucun encadrant",
               ].join(" · ");
-              return `<button type="button" class="tools-card tools-card--association btn-association-activity-open" data-id="${escapeHtml(
+              return `<div class="as-settings-activity-item">
+            <button type="button" class="tools-card tools-card--association btn-association-activity-open" data-id="${escapeHtml(
                 a.id
               )}">
             <span class="tools-card__icon" aria-hidden="true">🏅</span>
             <div class="tools-card__label">${escapeHtml(a.name)}</div>
             <div class="tools-card__sub">${escapeHtml(sub)}</div>
-          </button>`;
+          </button>
+            <div class="as-settings-activity-actions">
+              <button type="button" class="btn btn-sm btn-ghost btn-edit-association-activity" data-id="${escapeHtml(a.id)}">Modifier</button>
+              <button type="button" class="btn btn-sm btn-danger btn-del-association-activity" data-id="${escapeHtml(a.id)}">Supprimer</button>
+            </div>
+          </div>`;
             })
             .join("")}</div>`
         : '<p class="kpi-sub" style="margin-top:.5rem">Aucune activité encadrée pour le moment.</p>';
@@ -15688,7 +15812,7 @@
           <h3 class="title-one-line">Activités encadrées</h3>
           <button type="button" class="btn btn-sm btn-primary btn-compact-label" id="btn-add-association-activity" title="Ajouter une activité">+ Activité</button>
         </div>
-        <p class="kpi-sub">Créez une activité avec saison, créneaux et encadrants.</p>
+        <p class="kpi-sub">Cliquez une activité pour ouvrir son planning (les autres restent fermées). Modifier ou supprimer via les boutons sous chaque carte.</p>
         ${activityCards}
         ${associationShareToolbarHtml()}
       </div>`;
@@ -17278,6 +17402,23 @@
       main.querySelectorAll(".btn-association-activity-open").forEach((btn) => {
         btn.addEventListener("click", () => {
           openAssociationActivityPlanning(btn.getAttribute("data-id") || "");
+        });
+      });
+      main.querySelectorAll(".btn-edit-association-activity").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const id = btn.getAttribute("data-id") || "";
+          const a = findAssociationActivity(id);
+          if (!a) return;
+          openEditAssociationActivityModal(a);
+        });
+      });
+      main.querySelectorAll(".btn-del-association-activity").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (deleteAssociationActivity(btn.getAttribute("data-id") || "")) render();
         });
       });
       main.querySelector(".btn-association-back")?.addEventListener("click", () => {
@@ -19159,11 +19300,24 @@
           const act = activityById(s.activityId);
           const sessionNumLabel = sessionCycleLabel(s);
           const headerTitle = `${escapeHtml(cl ? cl.name : "—")} · ${s.startTime || ""}–${s.endTime || ""}${act ? " · " + escapeHtml(act.name) : ""}`;
+          const canc = cancellationForSession(s);
+          const cancelBar = canc
+            ? `<div class="sm-section" style="border-left:3px solid var(--danger);padding-left:.65rem">
+                <p class="sm-section__title">Cours annulé</p>
+                <p class="kpi-sub" style="margin:0 0 .45rem">${escapeHtml(
+                  REASON_TYPES.find((x) => x[0] === canc.reasonType)?.[1] || canc.reasonType || "Annulé"
+                )}${canc.comment ? " — " + escapeHtml(canc.comment) : ""}</p>
+                <button type="button" class="btn btn-sm btn-ghost" id="btn-td-uncancel-session">Lever l'annulation</button>
+              </div>`
+            : `<div class="sm-section no-print" style="display:flex;justify-content:flex-end;padding-bottom:.25rem">
+                <button type="button" class="btn btn-sm btn-danger" id="btn-td-cancel-session">Annuler ce cours</button>
+              </div>`;
           const body = el(`<div class="session-modal">
             <div class="sm-section sm-section--header">
               <p class="sm-header-title">${headerTitle}</p>
               ${sessionNumLabel ? `<p class="sm-header-meta">${escapeHtml(sessionNumLabel)}</p>` : ""}
             </div>
+            ${cancelBar}
             <div class="sm-alert-slot" id="td-prev-absent-reminder"></div>
             <div id="td-ex-info"></div>
             <div class="sm-section sm-section--summary">
@@ -19277,6 +19431,16 @@
           });
           body.appendChild(buildAttendanceBlock(s, { styled: true }));
           body.appendChild(buildSessionPdfBlock(s, { compactHeader: true }));
+          body.querySelector("#btn-td-cancel-session")?.addEventListener("click", () => {
+            closeModal();
+            openCancelSessionModal(s);
+          });
+          body.querySelector("#btn-td-uncancel-session")?.addEventListener("click", () => {
+            appData.cancellations = appData.cancellations.filter((c) => c.sessionId !== s.id);
+            saveData();
+            closeModal();
+            render();
+          });
           openModal("Cours du jour", body, () => {
             s.summary = body.querySelector("#f-td-summary").value;
             const todayISO = fmtISODate(new Date());
@@ -19313,26 +19477,7 @@
         b.addEventListener("click", () => {
           const sid = b.getAttribute("data-session-id");
           const s = appData.sessions.find((x) => x.id === sid);
-          if (!s) return;
-          const body = el(`<div>
-            <p class="kpi-sub" style="margin-bottom:.75rem"><strong>${fmtDateFr(s.date)}</strong> · ${s.startTime}–${s.endTime}</p>
-            <div class="form-group"><label>Motif</label><select id="m-reason">${REASON_TYPES.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select></div>
-            <div class="form-group"><label>Commentaire</label><textarea id="m-com" rows="2"></textarea></div>
-          </div>`);
-          openModal("Annuler cette séance", body, () => {
-            if (appData.cancellations.some((c) => c.sessionId === sid)) return;
-            appData.cancellations.push({
-              id: uid(),
-              sessionId: s.id,
-              classId: s.classId,
-              date: s.date,
-              startTime: s.startTime,
-              reasonType: body.querySelector("#m-reason").value,
-              comment: body.querySelector("#m-com").value,
-            });
-            saveData();
-            render();
-          });
+          openCancelSessionModal(s);
         });
       });
       main.querySelectorAll(".btn-del-extra-session").forEach((b) => {
