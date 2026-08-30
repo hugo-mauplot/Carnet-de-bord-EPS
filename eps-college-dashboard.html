@@ -1296,8 +1296,8 @@
       border: 1px solid rgba(245, 158, 11, 0.45);
       max-width: 100%;
       line-height: 1.3;
-      flex: 1 1 100%;
       width: 100%;
+      box-sizing: border-box;
     }
     .dash-share-badge__head {
       font-weight: 800;
@@ -2071,6 +2071,7 @@
         font-size: 0.9rem;
       }
       .dash-date-nav__side .btn-help,
+      .dash-date-nav__side .btn-profile,
       .dash-date-nav__side .btn-reminder-icon {
         width: 2rem;
         height: 2rem;
@@ -3717,9 +3718,9 @@
     }
     .dash-session-row {
       display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.35rem;
       padding: 0.55rem 0.65rem;
       border-top: 1px solid var(--border);
       cursor: pointer;
@@ -3729,11 +3730,22 @@
     }
     .dash-session-row:hover { background: var(--hover); }
     .dash-session-row:first-child { border-top: none; margin-top: 0; }
+    .dash-session-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem 0.55rem;
+      min-width: 0;
+    }
+    .dash-session-line--share {
+      width: 100%;
+    }
     .dash-session-time {
       font-size: 0.85rem;
       font-weight: 700;
       color: var(--session-c, var(--accent));
       min-width: 4.5rem;
+      flex-shrink: 0;
     }
     .dash-session-class {
       font-weight: 700;
@@ -3746,6 +3758,12 @@
       background: color-mix(in srgb, var(--session-c, var(--accent)) 32%, transparent);
       color: var(--text);
     }
+    .dash-session-venue,
+    .dash-session-apsa {
+      font-size: 0.82rem;
+    }
+    .dash-session-venue { color: var(--text-muted); }
+    .dash-session-apsa { font-weight: 700; color: var(--text); }
     .status-pill {
       display: inline-flex;
       align-items: center;
@@ -4034,6 +4052,74 @@
     }
     .btn-help:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
     .btn-help svg { display: block; pointer-events: none; }
+    .btn-profile {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      padding: 0;
+      border-radius: 50%;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      background: transparent;
+      flex-shrink: 0;
+      transition: color 0.2s, border-color 0.2s, background 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .btn-profile:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+    .btn-profile svg { display: block; pointer-events: none; }
+    .btn-profile.is-active {
+      color: #fff;
+      border-color: transparent;
+      background: var(--profile-color, var(--accent));
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--profile-color, var(--accent)) 28%, transparent);
+    }
+    .btn-profile.is-active svg { stroke: #fff; }
+    .btn-profile__dot {
+      position: absolute;
+      right: -1px;
+      bottom: -1px;
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      background: var(--profile-color, var(--accent));
+      border: 1.5px solid var(--card, var(--surface));
+    }
+    .profile-picker-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+    .profile-picker-item {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      width: 100%;
+      text-align: left;
+      padding: 0.7rem 0.8rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--fg);
+      cursor: pointer;
+      font-weight: 650;
+    }
+    .profile-picker-item:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .profile-picker-item.is-selected {
+      border-color: var(--accent);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+    .profile-picker-swatch {
+      width: 1.1rem;
+      height: 1.1rem;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dash-date-nav__side .btn-profile {
+      width: 2rem;
+      height: 2rem;
+    }
     .session-pdf-head {
       display: flex;
       align-items: center;
@@ -5833,6 +5919,325 @@
       return teacher && teacher.color ? String(teacher.color) : TEAM_COORD_TEACHER_COLORS[0];
     }
 
+    /** Profil actif = professeur choisi (même réglage que « Je suis » / Programmation établissement). */
+    function getActiveProfileTeacherId() {
+      return String((appData.settings && appData.settings.myCoordinationTeacherId) || "");
+    }
+
+    function getActiveProfileTeacher() {
+      const id = getActiveProfileTeacherId();
+      if (!id) return null;
+      return ensureTeamCoordination().teachers.find((t) => t.id === id) || null;
+    }
+
+    function setActiveProfileTeacherId(teacherId) {
+      if (!appData.settings) appData.settings = {};
+      const next = String(teacherId || "");
+      const exists = !next || ensureTeamCoordination().teachers.some((t) => t.id === next);
+      appData.settings.myCoordinationTeacherId = exists ? next : "";
+      if (exists && next) {
+        syncTeamCoordinationToProfileClasses(next, { silent: true });
+      }
+      saveData();
+    }
+
+    function normalizeClassNameKey(name) {
+      return String(name || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ");
+    }
+
+    function findClassByNameLoose(name, opts) {
+      const n = normalizeClassNameKey(name);
+      if (!n) return null;
+      const ownerId = opts && opts.ownerTeacherId != null ? String(opts.ownerTeacherId) : null;
+      return (
+        (appData.classes || []).find((c) => {
+          if (ownerId != null && String(c.ownerTeacherId || "") !== ownerId) return false;
+          return normalizeClassNameKey(c.name) === n;
+        }) || null
+      );
+    }
+
+    /** Classes visibles selon le profil (sans profil = classes « perso » sans propriétaire). */
+    function visibleClasses() {
+      const profile = getActiveProfileTeacher();
+      const list = appData.classes || [];
+      if (!profile) return list.filter((c) => !c.ownerTeacherId);
+      return list.filter((c) => String(c.ownerTeacherId || "") === profile.id);
+    }
+
+    function classBelongsToActiveProfile(classId) {
+      const cl = getClassById(classId);
+      if (!cl) return false;
+      const profile = getActiveProfileTeacher();
+      if (!profile) return !cl.ownerTeacherId;
+      return String(cl.ownerTeacherId || "") === profile.id;
+    }
+
+    function sessionsForVisibleClasses(dateISO) {
+      const allowed = new Set(visibleClasses().map((c) => c.id));
+      return (appData.sessions || []).filter((s) => allowed.has(s.classId) && (!dateISO || s.date === dateISO));
+    }
+
+    /**
+     * Crée / met à jour les classes du professeur à partir de sa ligne
+     * dans Programmation de l'établissement (créneaux, APSA, lieux).
+     * Conserve élèves, appels et séances déjà saisis.
+     */
+    function syncTeamCoordinationToProfileClasses(teacherId, opts) {
+      opts = opts || {};
+      const silent = !!opts.silent;
+      const tid = String(teacherId || "");
+      const tc = ensureTeamCoordination();
+      if (!tid || !tc.teachers.some((t) => t.id === tid)) {
+        return { ok: false, created: 0, updated: 0, reason: "no-teacher" };
+      }
+
+      const byClass = new Map();
+      Object.keys(tc.cells || {}).forEach((key) => {
+        const parts = key.split("|");
+        if (parts[0] !== tid) return;
+        const dayIndex = Number(parts[1]);
+        const timeSlotId = parts[2];
+        const week = parts[3] === "B" ? "B" : "A";
+        if (!Number.isInteger(dayIndex) || dayIndex < 0 || dayIndex > 4) return;
+        const ts = tc.timeSlots.find((s) => s.id === timeSlotId);
+        if (!ts) return;
+        const cell = normalizeTeamCell(tc.cells[key]);
+        if (!teamCellHasAnyData(cell)) return;
+        const className = String(cell.className || "").trim();
+        if (!className) return;
+        const norm = normalizeClassNameKey(className);
+        const level = teamCellLevel(cell) || cell.level || "";
+        const startTime = normalizeTimeHHMM(ts.startTime || "");
+        const endTime = normalizeTimeHHMM(ts.endTime || "");
+        if (!startTime || !endTime) return;
+        if (!byClass.has(norm)) {
+          byClass.set(norm, {
+            className,
+            level,
+            slots: new Map(),
+            byPeriod: {},
+          });
+        }
+        const entry = byClass.get(norm);
+        if (level && !entry.level) entry.level = level;
+        if (className) entry.className = className;
+        const slotKey = dayIndex + "|" + startTime + "|" + endTime;
+        if (!entry.slots.has(slotKey)) {
+          entry.slots.set(slotKey, { dayIndex, startTime, endTime, weeks: new Set() });
+        }
+        entry.slots.get(slotKey).weeks.add(week);
+        Object.entries(cell.byPeriod || {}).forEach(([pid, part]) => {
+          if (!part) return;
+          if (!entry.byPeriod[pid]) entry.byPeriod[pid] = { apsa: "", venue: "" };
+          if (part.apsa) entry.byPeriod[pid].apsa = String(part.apsa).trim();
+          if (part.venue) entry.byPeriod[pid].venue = String(part.venue).trim();
+        });
+      });
+
+      let created = 0;
+      let updated = 0;
+      const keptClassIds = new Set();
+      const palette = ["#6366f1", "#10b981", "#f59e0b", "#fb7185", "#06b6d4", "#a855f7", "#ef4444", "#14b8a6"];
+
+      byClass.forEach((entry) => {
+        let cl = findClassByNameLoose(entry.className, { ownerTeacherId: tid });
+        if (!cl) {
+          cl = {
+            id: uid(),
+            name: entry.className,
+            color: palette[created % palette.length],
+            enrollment: 0,
+            students: [],
+            level: entry.level || inferClassLevel(entry.className) || "",
+            apsaPerPeriod: 2,
+            cycleYears: (entry.level || "") === "6e" ? 3 : 4,
+            ownerTeacherId: tid,
+            fromTeamSync: true,
+          };
+          appData.classes.push(cl);
+          created += 1;
+        } else {
+          cl.ownerTeacherId = tid;
+          cl.fromTeamSync = true;
+          if (entry.level) cl.level = entry.level;
+          if (!cl.name) cl.name = entry.className;
+          updated += 1;
+        }
+        keptClassIds.add(cl.id);
+
+        const dayIndices = [...new Set([...entry.slots.values()].map((s) => s.dayIndex))].sort((a, b) => a - b);
+
+        appData.schedules = (appData.schedules || []).filter(
+          (s) => !(s.classId === cl.id && s.fromTeamSync === true)
+        );
+        entry.slots.forEach((slot) => {
+          const weeks = slot.weeks;
+          const weekParity = weeks.has("A") && weeks.has("B") ? "all" : weeks.has("B") ? "B" : "A";
+          appData.schedules.push({
+            id: uid(),
+            classId: cl.id,
+            dayIndex: slot.dayIndex,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            venue: "",
+            frequency: 1,
+            weekParity,
+            fromTeamSync: true,
+          });
+        });
+
+        const periods = teamPeriodsSorted();
+        Object.entries(entry.byPeriod).forEach(([periodId, part]) => {
+          const apsa = String((part && part.apsa) || "").trim();
+          if (!apsa) return;
+          const period = periods.find((p) => p.id === periodId);
+          if (!period) return;
+          let act = (appData.activities || []).find(
+            (a) => a.classId === cl.id && a.periodId === periodId && normalizeClassNameKey(a.name) === normalizeClassNameKey(apsa)
+          );
+          if (!act) {
+            act = {
+              id: uid(),
+              classId: cl.id,
+              periodId,
+              name: apsa,
+              field: typeof caForLevelApsa === "function" ? caForLevelApsa(cl.level, apsa) : "",
+              color: levelColor(cl.level),
+              startDate: period.startDate,
+              endDate: period.endDate,
+              venue: String((part && part.venue) || "").trim(),
+              objectives: "",
+              competencies: "",
+              plannedSessions: 0,
+              dayIndices: dayIndices.slice(),
+              quickProgram: true,
+              level: cl.level,
+              fromTeamSync: true,
+            };
+            appData.activities.push(act);
+          } else {
+            act.venue = String((part && part.venue) || act.venue || "").trim();
+            act.startDate = period.startDate;
+            act.endDate = period.endDate;
+            act.dayIndices = dayIndices.slice();
+            act.fromTeamSync = true;
+            if (cl.level) act.level = cl.level;
+          }
+        });
+      });
+
+      regenerateSessions({ skipSave: true });
+      if (!silent) {
+        alert(
+          "Profil synchronisé : " +
+            created +
+            " classe(s) créée(s), " +
+            updated +
+            " mise(s) à jour depuis la Programmation de l'établissement."
+        );
+      }
+      return { ok: true, created, updated, classCount: byClass.size };
+    }
+
+    /** Cours du jour issus de la Programmation de l'établissement pour un professeur. */
+    function teamCoursesForTeacherOnDate(teacherId, dateISO) {
+      const tid = String(teacherId || "");
+      if (!tid) return [];
+      const day = parseISODate(dateISO);
+      if (!day || Number.isNaN(day.getTime())) return [];
+      const dayIndex = dayIndexMon0(day);
+      if (!Number.isInteger(dayIndex) || dayIndex > 4) return [];
+      const week = weekParityForDate(dateISO) === "B" ? "B" : "A";
+      const tc = ensureTeamCoordination();
+      const courses = [];
+      tc.timeSlots.forEach((ts) => {
+        const cell = getTeamCell(tid, dayIndex, ts.id, week);
+        const level = teamCellLevel(cell);
+        const pid = periodIdForDateAndLevel(dateISO, level);
+        if (!pid || !teamCellIsFilled(cell, pid)) return;
+        const view = teamCellPeriodView(cell, pid);
+        if (view.applies === false) return;
+        const className = String(view.className || "").trim();
+        const matched = findClassByNameLoose(className);
+        const st = normalizeTimeHHMM(ts.startTime || "");
+        const en = normalizeTimeHHMM(ts.endTime || "");
+        let sessionId = "";
+        if (matched) {
+          const sess = (appData.sessions || []).find(
+            (s) =>
+              s.classId === matched.id &&
+              s.date === dateISO &&
+              timeRangesOverlap(st, en, s.startTime || "", s.endTime || "")
+          );
+          if (sess) sessionId = sess.id;
+        }
+        courses.push({
+          teacherId: tid,
+          date: dateISO,
+          startTime: st,
+          endTime: en,
+          className,
+          level: view.level || level || "",
+          apsa: view.apsa || "",
+          venue: view.venue || "",
+          classId: matched ? matched.id : "",
+          sessionId,
+          color: matched ? matched.color : teamTeacherColor(tid),
+        });
+      });
+      return courses.sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)));
+    }
+
+    /** Classes distinctes du professeur dans la Programmation de l'établissement. */
+    function teamClassesForTeacher(teacherId) {
+      const tid = String(teacherId || "");
+      if (!tid) return [];
+      const tc = ensureTeamCoordination();
+      const map = new Map();
+      Object.keys(tc.cells || {}).forEach((key) => {
+        if (!key.startsWith(tid + "|")) return;
+        const cell = normalizeTeamCell(tc.cells[key]);
+        if (!teamCellHasAnyData(cell)) return;
+        const className = String(cell.className || "").trim();
+        if (!className) return;
+        const norm = className.toLowerCase();
+        const level = teamCellLevel(cell) || cell.level || "";
+        const existing = map.get(norm) || {
+          className,
+          level,
+          byPeriod: {},
+          matched: findClassByNameLoose(className),
+        };
+        Object.entries(cell.byPeriod || {}).forEach(([pid, part]) => {
+          if (!part) return;
+          if (!existing.byPeriod[pid]) existing.byPeriod[pid] = { apsa: "", venue: "" };
+          if (part.apsa) existing.byPeriod[pid].apsa = String(part.apsa).trim();
+          if (part.venue) existing.byPeriod[pid].venue = String(part.venue).trim();
+        });
+        if (level && !existing.level) existing.level = level;
+        map.set(norm, existing);
+      });
+      return [...map.values()].sort((a, b) => a.className.localeCompare(b.className, "fr"));
+    }
+
+    function profileCoursePseudoSession(course) {
+      if (!course) return null;
+      return {
+        date: course.date,
+        startTime: course.startTime,
+        endTime: course.endTime,
+        venue: course.venue || "",
+        classId: course.classId || "",
+        activityId: "",
+      };
+    }
+
     function alphaColor(hex, alpha) {
       const raw = String(hex || "").trim();
       const m = raw.match(/^#([0-9a-f]{6})$/i);
@@ -6646,6 +7051,18 @@
       if (!appData.association.attendanceRecords || typeof appData.association.attendanceRecords !== "object") {
         appData.association.attendanceRecords = {};
       }
+      if (!appData.associationByTeacher || typeof appData.associationByTeacher !== "object") {
+        appData.associationByTeacher = {};
+      }
+      Object.keys(appData.associationByTeacher).forEach((tid) => {
+        const store = appData.associationByTeacher[tid];
+        if (!store || typeof store !== "object") {
+          appData.associationByTeacher[tid] = { attendanceRecords: {}, cancellations: [] };
+          return;
+        }
+        if (!store.attendanceRecords || typeof store.attendanceRecords !== "object") store.attendanceRecords = {};
+        if (!Array.isArray(store.cancellations)) store.cancellations = [];
+      });
       appData.association.activities.forEach((a) => {
         if (!Array.isArray(a.trainings)) a.trainings = [];
         if (!Array.isArray(a.students)) a.students = [];
@@ -6663,6 +7080,7 @@
         a.competitions.forEach((c) => {
           if (c && !c.id) c.id = uid();
           if (c) normalizeAssociationCompetition(c);
+          if (c && c.ownerTeacherId == null) c.ownerTeacherId = "";
         });
       });
     }
@@ -8843,7 +9261,9 @@
       let todayN = 0, planned = 0, done = 0, cancelled = 0;
       const todayDetails = [];
       const tStr = fmtISODate(refDate || new Date());
-      appData.sessions.forEach((s) => {
+      const profile = getActiveProfileTeacher();
+      const sessionPool = profile ? sessionsForVisibleClasses() : appData.sessions;
+      sessionPool.forEach((s) => {
         const st = computeSessionStatus(s);
         if (s.date === tStr && st.code !== "cancelled") {
           todayN++;
@@ -8861,7 +9281,7 @@
         else if (st.code === "planned" || st.code === "today") planned++;
       });
       todayDetails.sort((a, b) => a.startTime.localeCompare(b.startTime));
-      return { todayN, todayDetails, planned, done, cancelled, total: appData.sessions.length };
+      return { todayN, todayDetails, planned, done, cancelled, total: sessionPool.length, profileMode: !!profile };
     }
 
     function avgCycleProgress() {
@@ -8888,7 +9308,7 @@
     function renderNav() {
       const nav = document.getElementById("main-nav");
       let html = "";
-      appData.classes.forEach((cl) => {
+      visibleClasses().forEach((cl) => {
         const vid = getClassViewId(cl.id);
         const active = currentView === vid ? "active" : "";
         html += `<button type="button" class="nav-btn ${active}" data-view="${vid}" style="border-left:3px solid ${escapeHtml(cl.color)}">
@@ -9260,6 +9680,7 @@
           categoryAge,
           sex,
           coach: (body.querySelector("#f-as-comp-coach").value || "").trim(),
+          ownerTeacherId: getActiveProfileTeacherId() || "",
         };
         normalizeAssociationCompetition(comp);
         a.competitions.push(comp);
@@ -9977,6 +10398,70 @@
       </button>`;
     }
 
+    function profileButtonHtml() {
+      const teacher = getActiveProfileTeacher();
+      const color = teacher ? teamTeacherColor(teacher.id) : "";
+      const active = teacher ? " is-active" : "";
+      const style = color ? ` style="--profile-color:${escapeHtml(color)}"` : "";
+      const title = teacher
+        ? `Profil : ${teacher.name || "Professeur"} — changer de profil`
+        : "Choisir un profil professeur";
+      const aria = teacher ? `Profil actif : ${teacher.name || "Professeur"}` : "Choisir un profil professeur";
+      return `<button type="button" class="btn-profile no-print${active}" id="btn-dash-profile"${style} title="${escapeHtml(title)}" aria-label="${escapeHtml(aria)}">
+        <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+        ${teacher ? '<span class="btn-profile__dot" aria-hidden="true"></span>' : ""}
+      </button>`;
+    }
+
+    function openProfilePickerModal() {
+      const tc = ensureTeamCoordination();
+      const currentId = getActiveProfileTeacherId();
+      if (!tc.teachers.length) {
+        alert("Ajoutez d'abord des professeurs dans Réglages → Programmation de l'établissement.");
+        return;
+      }
+      const items = [
+        {
+          id: "",
+          name: "Aucun (Mes classes)",
+          sub: "Afficher vos données personnelles comme avant",
+          color: "",
+        },
+        ...tc.teachers.map((t) => ({
+          id: t.id,
+          name: t.name || "—",
+          sub: "Données de la Programmation de l'établissement",
+          color: teamTeacherColor(t.id),
+        })),
+      ];
+      const body = el(`<div>
+        <p class="kpi-sub" style="margin:0 0 .75rem;line-height:1.45">Un profil = un professeur. Ses <strong>classes et séances</strong> sont créées automatiquement depuis la Programmation de l'établissement. Il peut ensuite gérer élèves, appels, séances et son AS (présences / compétitions). Le paramétrage AS du coordonnateur reste visible pour tous.</p>
+        <div class="profile-picker-list" id="profile-picker-list">
+          ${items
+            .map(
+              (it) => `<button type="button" class="profile-picker-item${it.id === currentId ? " is-selected" : ""}" data-teacher-id="${escapeHtml(it.id)}">
+              <span class="profile-picker-swatch" style="background:${escapeHtml(it.color || "var(--text-muted)")};opacity:${it.color ? "1" : ".35"}"></span>
+              <span style="min-width:0;flex:1">
+                <span style="display:block">${escapeHtml(it.name)}</span>
+                <span class="kpi-sub" style="display:block;margin-top:.15rem;font-weight:500">${escapeHtml(it.sub)}</span>
+              </span>
+            </button>`
+            )
+            .join("")}
+        </div>
+      </div>`);
+      body.querySelectorAll(".profile-picker-item").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          setActiveProfileTeacherId(btn.getAttribute("data-teacher-id") || "");
+          closeModal();
+          render();
+        });
+      });
+      openModal("Profil professeur", body, () => true, { infoOnly: true });
+    }
+
     function renderTopbar(title, extra = "") {
       const backBtn = shouldShowNavBack()
         ? `<button type="button" class="btn btn-sm btn-ghost no-print topbar-back-btn" id="btn-history-back" style="gap:.25rem;margin-right:.5rem">${escapeHtml(getBackButtonLabel())}</button>`
@@ -9990,8 +10475,10 @@
     }
 
     function dashTodayCoursesHtml(isToday, dayISO) {
-      const todaySessions = appData.sessions.filter((s) => s.date === dayISO)
-        .slice().sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""));
+      const profile = getActiveProfileTeacher();
+      const todaySessions = (profile ? sessionsForVisibleClasses(dayISO) : appData.sessions.filter((s) => s.date === dayISO))
+        .slice()
+        .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""));
       const dayEvents = (appData.holidays || [])
         .filter((h) => dayISO >= h.startDate && dayISO <= h.endDate)
         .slice()
@@ -10003,8 +10490,11 @@
           String(a.startTime || a.time || "00:00").localeCompare(String(b.startTime || b.time || "00:00"))
         );
       const label = isToday ? "Cours du jour" : "Cours de la journée";
+      const profileHint = profile
+        ? `<p class="kpi-sub" style="margin:0 0 .45rem">Profil <strong>${escapeHtml(profile.name || "—")}</strong> · classes synchronisées depuis la Programmation de l'établissement</p>`
+        : "";
       if (!todaySessions.length && !dayEvents.length && !daySchoolBlocking.length) {
-        return `<div class="dash-block dash-block--courses"><h3 class="dash-block__title">🏃 ${label}</h3><p class="kpi-sub" style="margin:0">Aucun cours prévu ce jour.</p></div>`;
+        return `<div class="dash-block dash-block--courses"><h3 class="dash-block__title">🏃 ${label}</h3>${profileHint}<p class="kpi-sub" style="margin:0">Aucun cours prévu ce jour.</p></div>`;
       }
       const eventLines = dayEvents.map((h) => {
         const impactedSessions = todaySessions.filter((s) => holidayAppliesToSession(h, s));
@@ -10019,10 +10509,14 @@
         const dotColor = h.blocksSessions ? "var(--danger)" : "var(--accent)";
         const labelTxt = h.blocksSessions ? "Événement bloquant" : "Événement";
         return `<div class="dash-session-row" style="--session-c:${h.color || "#64748b"};opacity:.98">
-          <span class="dash-session-time">${escapeHtml(hours)}</span>
-          <span class="dash-session-class">📌 ${escapeHtml(h.name || "Événement calendrier")}</span>
-          <span style="font-size:.82rem;color:var(--text-muted)">${escapeHtml((h.type || "").toUpperCase())}</span>
-          <span class="status-pill ${statusClass}"><span class="status-dot" style="background:${dotColor}"></span>${labelTxt}</span>
+          <div class="dash-session-line dash-session-line--primary">
+            <span class="dash-session-time">${escapeHtml(hours)}</span>
+            <span class="dash-session-class">📌 ${escapeHtml(h.name || "Événement calendrier")}</span>
+            <span class="dash-session-venue">${escapeHtml((h.type || "").toUpperCase())}</span>
+          </div>
+          <div class="dash-session-line dash-session-line--secondary">
+            <span class="status-pill ${statusClass}"><span class="status-dot" style="background:${dotColor}"></span>${labelTxt}</span>
+          </div>
           ${impactedText}
         </div>`;
       }).join("");
@@ -10036,10 +10530,14 @@
           : "";
         const hours = schoolEventHoursLabel(e);
         return `<div class="dash-session-row" style="--session-c:#f59e0b;opacity:.98">
-          <span class="dash-session-time">${escapeHtml(hours)}</span>
-          <span class="dash-session-class">🏫 ${escapeHtml(schoolEventReminderText(e))}</span>
-          <span style="font-size:.82rem;color:var(--text-muted)">${escapeHtml((e.kind || "ÉTABLISSEMENT").toUpperCase())}</span>
-          <span class="status-pill status-pill--cancelled"><span class="status-dot" style="background:var(--danger)"></span>Événement bloquant</span>
+          <div class="dash-session-line dash-session-line--primary">
+            <span class="dash-session-time">${escapeHtml(hours)}</span>
+            <span class="dash-session-class">🏫 ${escapeHtml(schoolEventReminderText(e))}</span>
+            <span class="dash-session-venue">${escapeHtml((e.kind || "ÉTABLISSEMENT").toUpperCase())}</span>
+          </div>
+          <div class="dash-session-line dash-session-line--secondary">
+            <span class="status-pill status-pill--cancelled"><span class="status-dot" style="background:var(--danger)"></span>Événement bloquant</span>
+          </div>
           ${impactedText}
         </div>`;
       }).join("");
@@ -10065,21 +10563,36 @@
             .sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
           const valid = actSess.filter((x) => { const c = computeSessionStatus(x).code; return c !== "cancelled" && c !== "holiday"; });
           const idx = valid.findIndex((x) => x.id === s.id);
-          if (idx >= 0) sessionNumBadge = ` <span class="session-num-badge">n°${idx + 1}/${valid.length}</span>`;
+          if (idx >= 0) sessionNumBadge = `<span class="session-num-badge">n°${idx + 1}/${valid.length}</span>`;
         }
         const hasSummary = s.summary && s.summary.trim();
         const classColor = cl ? cl.color : "#888";
+        const shareHtml = sharedInstallationBadgeHtml(s);
+        const attHtml = (() => {
+          const att = s.attendance || {};
+          const keys = Object.keys(att);
+          if (!keys.length) return "";
+          const p = keys.filter((k) => att[k] === "present").length;
+          const a = keys.filter((k) => att[k] === "absent").length;
+          const l = keys.filter((k) => att[k] === "late").length;
+          return `<span class="att-badge" title="Appel effectué">${p}P${l ? " " + l + "R" : ""}${a ? " " + a + "A" : ""}</span>`;
+        })();
         return `<div class="btn-today-session dash-session-row" data-session-id="${s.id}" style="--session-c:${classColor}">
-          <span class="dash-session-time">${s.startTime || ""}–${s.endTime || ""}</span>
-          <span class="dash-session-class">${escapeHtml(cl ? cl.name : "—")}</span>
-          <span style="font-size:.82rem;color:var(--text-muted)">${escapeHtml(s.venue || "")}</span>
-          <span style="font-size:.82rem">${act ? escapeHtml(act.name) : "—"}${sessionNumBadge}</span>
-          ${sharedInstallationBadgeHtml(s)}
-          ${statusHtml}
-          ${motif ? `<span style="font-size:.78rem;color:var(--text-muted)">(${escapeHtml(motif)})</span>` : ""}
-          ${hasSummary ? '<span style="font-size:.85rem" title="Résumé rédigé">📝</span>' : ""}
-          ${s.sessionPdf ? '<span style="font-size:.85rem" title="PDF joint">📄</span>' : ""}
-          ${(() => { const att = s.attendance || {}; const keys = Object.keys(att); if (!keys.length) return ""; const p = keys.filter((k) => att[k] === "present").length; const a = keys.filter((k) => att[k] === "absent").length; const l = keys.filter((k) => att[k] === "late").length; return `<span class="att-badge" title="Appel effectué">${p}P${l ? " " + l + "R" : ""}${a ? " " + a + "A" : ""}</span>`; })()}
+          <div class="dash-session-line dash-session-line--primary">
+            <span class="dash-session-time">${s.startTime || ""}–${s.endTime || ""}</span>
+            <span class="dash-session-class">${escapeHtml(cl ? cl.name : "—")}</span>
+            <span class="dash-session-venue">${escapeHtml(s.venue || "")}</span>
+          </div>
+          <div class="dash-session-line dash-session-line--secondary">
+            <span class="dash-session-apsa">${act ? escapeHtml(act.name) : "—"}</span>
+            ${sessionNumBadge}
+            ${statusHtml}
+            ${motif ? `<span style="font-size:.78rem;color:var(--text-muted)">(${escapeHtml(motif)})</span>` : ""}
+            ${hasSummary ? '<span style="font-size:.85rem" title="Résumé rédigé">📝</span>' : ""}
+            ${s.sessionPdf ? '<span style="font-size:.85rem" title="PDF joint">📄</span>' : ""}
+            ${attHtml}
+          </div>
+          ${shareHtml ? `<div class="dash-session-line dash-session-line--share">${shareHtml}</div>` : ""}
         </div>`;
       }).join("");
       const blockingEventCount = dayEvents.filter((h) => h.blocksSessions).length + daySchoolBlocking.length;
@@ -10094,7 +10607,7 @@
         countParts.push(`${blockingEventCount} événement${blockingEventCount > 1 ? "s" : ""} bloquant${blockingEventCount > 1 ? "s" : ""}`);
       }
       const countLabel = countParts.length ? ` · ${countParts.join(" · ")}` : "";
-      return `<div class="dash-block dash-block--courses"><h3 class="dash-block__title">🏃 ${label}${countLabel}</h3><div style="display:flex;flex-direction:column;gap:0">${eventLines}${schoolEventLines}${lines}</div></div>`;
+      return `<div class="dash-block dash-block--courses"><h3 class="dash-block__title">🏃 ${label}${countLabel}</h3>${profileHint}<div style="display:flex;flex-direction:column;gap:0">${eventLines}${schoolEventLines}${lines}</div></div>`;
     }
 
     function currentWeekRangeMonSun(refDate) {
@@ -11562,6 +12075,20 @@
     }
 
     function getAssociationAttendance(event) {
+      const profile = getActiveProfileTeacher();
+      if (profile) {
+        if (!appData.associationByTeacher || typeof appData.associationByTeacher !== "object") {
+          appData.associationByTeacher = {};
+        }
+        if (!appData.associationByTeacher[profile.id] || typeof appData.associationByTeacher[profile.id] !== "object") {
+          appData.associationByTeacher[profile.id] = { attendanceRecords: {}, cancellations: [] };
+        }
+        const store = appData.associationByTeacher[profile.id];
+        if (!store.attendanceRecords || typeof store.attendanceRecords !== "object") store.attendanceRecords = {};
+        const key = associationAttendanceStorageKey(event);
+        if (!store.attendanceRecords[key]) store.attendanceRecords[key] = {};
+        return store.attendanceRecords[key];
+      }
       if (!appData.association.attendanceRecords || typeof appData.association.attendanceRecords !== "object") {
         appData.association.attendanceRecords = {};
       }
@@ -12102,7 +12629,8 @@
       const dash = dashboardKPIs(dashboardDate);
       const g = globalSessionCounts(dashboardDate);
       const dISO = dashboardDateISO();
-      const classCards = appData.classes
+      const profile = getActiveProfileTeacher();
+      const classCards = visibleClasses()
         .filter((c) => matchesSearch(c.name))
         .map((cl, idx) => {
           const periodActs = activitiesForClassActivePeriod(cl.id, dISO);
@@ -12165,7 +12693,7 @@
       return `
         ${appStorageIsMemory ? `<div class="card" style="margin-bottom:1rem;padding:.75rem 1rem;background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.35);font-size:.85rem;line-height:1.45"><strong>Mode fichier (AirDrop / Fichiers)</strong> — Safari ne peut pas enregistrer en local sur cette page. Vos saisies restent tant que l’onglet est ouvert ; pensez à <strong>Réglages → Sauvegarde → Export JSON</strong> pour garder une copie.</div>` : ""}
         <div class="dash-date-nav${isToday ? " dash-date-nav--today" : ""}">
-          <div class="dash-date-nav__side dash-date-nav__side--left no-print">${helpButtonHtml()}</div>
+          <div class="dash-date-nav__side dash-date-nav__side--left no-print">${profileButtonHtml()}</div>
           <div class="dash-date-nav__center">
             <div class="dash-date-nav__date-row">
               <button type="button" class="btn btn-sm btn-ghost dash-date-nav__arrow" id="dash-prev-day" aria-label="Jour précédent">◀</button>
@@ -12241,17 +12769,27 @@
           ).join("") || '<p class="kpi-sub">Aucune tâche pour le moment.</p>'}</div>
         </div>
         <div class="dash-block dash-block--sequences">
-          <h3 class="dash-block__title">📚 Séquences en cours</h3>
-          <div class="dashboard-classes">${classCards || '<p class="kpi-sub">Aucune classe — Réglages → Mes classes.</p>'}</div>
+          <h3 class="dash-block__title">📚 ${profile ? "Classes du profil" : "Séquences en cours"}</h3>
+          <div class="dashboard-classes">${classCards || (profile ? '<p class="kpi-sub">Aucune classe pour ce professeur dans la Programmation de l\'établissement.</p>' : '<p class="kpi-sub">Aucune classe — Réglages → Mes classes.</p>')}</div>
         </div>
         </section>
         <div class="print-only"><h1>EPS — Tableau de bord</h1><p>Généré le ${escapeHtml(dISO)}</p></div>`;
     }
 
-    function viewClassesBody() {
+    function viewClassesBody(opts) {
+      const forceAllUnowned = !!(opts && opts.forcePersonal);
+      const profile = getActiveProfileTeacher();
+      const list = (forceAllUnowned ? (appData.classes || []).filter((c) => !c.ownerTeacherId) : visibleClasses()).filter((c) =>
+        matchesSearch(c.name)
+      );
+      if (!list.length) {
+        if (profile && !forceAllUnowned) {
+          return `<p class="kpi-sub">Aucune classe pour <strong>${escapeHtml(profile.name || "ce professeur")}</strong>. Vérifiez sa ligne dans la Programmation de l'établissement, puis resélectionnez le profil.</p>`;
+        }
+        return `<p class="kpi-sub">Aucune classe — utilisez « Ajouter une classe ».</p>`;
+      }
       return `<div class="class-grid">
-          ${appData.classes
-            .filter((c) => matchesSearch(c.name))
+          ${list
             .map((cl) => {
               const pact = activitiesOnDatePeriod(cl.id, fmtISODate(new Date()));
               const curLabel = pact.length ? pact.map((a) => a.name).join(", ") : "—";
@@ -12275,11 +12813,13 @@
     }
 
     function viewClasses() {
-      return (
-        renderTopbar("Mes classes", "") +
-        `<div class="add-class-toolbar no-print"><button type="button" class="btn btn-primary" id="btn-add-class">Ajouter une classe</button></div>` +
-        viewClassesBody()
-      );
+      const profile = getActiveProfileTeacher();
+      const title = profile ? `Classes · ${profile.name || "Profil"}` : "Mes classes";
+      const addBar = profile
+        ? `<p class="kpi-sub no-print" style="margin:0 0 .75rem">Profil <strong>${escapeHtml(profile.name || "")}</strong> : classes synchronisées depuis la Programmation de l'établissement. Complétez les élèves et gérez vos séances. <button type="button" class="btn btn-sm btn-ghost" id="btn-resync-profile-classes">Actualiser depuis la programmation</button></p>
+           <div class="add-class-toolbar no-print"><button type="button" class="btn btn-primary" id="btn-add-class">Ajouter une classe</button></div>`
+        : `<div class="add-class-toolbar no-print"><button type="button" class="btn btn-primary" id="btn-add-class">Ajouter une classe</button></div>`;
+      return renderTopbar(title, "") + addBar + viewClassesBody();
     }
 
     function periodExtensionFormHtml(period) {
@@ -12977,7 +13517,7 @@
       return `<div class="card team-coord-card" style="border-left:4px solid #f59e0b">
         <div class="card-header"><h3>Planning professeurs</h3></div>
         <div class="team-coord-me">
-          <label class="kpi-sub" for="sel-my-coord-teacher" style="margin:0">Je suis</label>
+          <label class="kpi-sub" for="sel-my-coord-teacher" style="margin:0">Profil / Je suis</label>
           <select id="sel-my-coord-teacher" aria-label="Mon profil enseignant">
             <option value="">— Choisir mon nom —</option>
             ${teacherOpts}
@@ -13346,6 +13886,9 @@
             });
           });
         });
+
+        const activeId = getActiveProfileTeacherId();
+        if (activeId) syncTeamCoordinationToProfileClasses(activeId, { silent: true });
 
         saveData();
         render();
@@ -14565,7 +15108,7 @@
           <summary>Les 3 écrans à retenir</summary>
           <div class="tutorial-section__body">
             <ul>
-              <li><strong>Accueil ⌂</strong> — journée : date, cours, rappels, bandeau association sportive, calendrier.</li>
+              <li><strong>Accueil ⌂</strong> — journée : date, profil professeur, cours, rappels, bandeau association sportive, calendrier.</li>
               <li><strong>Classes 📚</strong> — suivi d'une classe (séances, dispenses, oublis, participation).</li>
               <li><strong>Réglages ⚙</strong> — configuration de l'année et de l'établissement. ${goto("tools:home", "Ouvrir Réglages")}</li>
             </ul>
@@ -14599,7 +15142,7 @@
               <li>Tableau : colonne <strong>Créneau</strong> + colonne <strong>Cours</strong>. Chaque professeur garde sa <strong>couleur</strong> pour repérer rapidement sa présence.</li>
               <li>Cliquez une case pour ajouter les professeurs du créneau ; pour chacun : classe, niveau, puis <strong>APSA + lieu pour chaque période</strong> du niveau choisi. Pour un cours différent en <strong>sem. A</strong> et <strong>sem. B</strong>, ajoutez <strong>deux lignes</strong> du même professeur (une par semaine).</li>
               <li>Semaine affichée avec des <strong>flèches ◀ ▶</strong> (dates sur une ligne, <strong>Semaine A</strong> ou <strong>B</strong> en dessous), par défaut sur la semaine en cours. Pour chaque professeur, l'app utilise la <strong>période de son niveau</strong> (ex. 6e et 5e peuvent avoir des dates différentes). Filtre <strong>Professeur</strong> : Tous = équipe ; un nom = planning personnel. La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
-              <li><strong>Je suis</strong> + <strong>Importer ma programmation</strong> : remplit votre ligne depuis « Programmation de mes classes ».</li>
+              <li><strong>Profil / Je suis</strong> (Accueil ou ici) + <strong>Importer ma programmation</strong> : remplit votre ligne depuis « Programmation de mes classes ». Un profil choisi filtre Accueil et Classes sur ce professeur.</li>
               <li>Chaque professeur s'affiche dans <strong>sa couleur</strong> (sans encadré). Si une installation est partagée, les lignes concernées affichent une petite <strong>étoile colorée</strong> au début ; même installation = même couleur d'étoile. L'information reste visible aussi sur l'Accueil (🤝).</li>
             </ul>
           </div>
@@ -14610,7 +15153,7 @@
           <div class="tutorial-section__body">
             <p>${goto("dashboard", "Accueil")}</p>
             <ul>
-              <li><strong>?</strong> à gauche — ce guide · <strong>🔔</strong> à droite — rappel. La date (un peu plus grande) reste sur une seule ligne au centre, sans déplacer les boutons.</li>
+              <li><strong>?</strong> dans <strong>Réglages</strong> — ce guide. Sur l'Accueil, l'icône <strong>profil</strong> choisit un professeur : ses classes/séances sont créées depuis la Programmation de l'établissement ; il gère élèves, appels, séances et son AS (présences / compétitions). Sans profil : classes perso du fichier.</li>
               <li><strong>Date</strong> — touchez-la pour choisir un jour ; ◀ ▶ pour hier / demain.</li>
               <li><strong>Cours du jour</strong> — touchez un cours : appel, résumé, dispense, oubli, PDF.</li>
               <li><strong>🤝 Installation partagée</strong> — collègue au même lieu : professeur, APSA et classe.</li>
@@ -14656,11 +15199,12 @@
       if (toolsPanel === "holidays" || toolsPanel === "calendar") toolsPanel = "calendriers";
 
       const TOOLS_CARDS = [
-        { id: "classes",      icon: "📋", label: "Mes classes",      sub: appData.classes.length + " classe(s)" },
+        { id: "classes",      icon: "📋", label: "Mes classes",      sub: visibleClasses().length + " classe(s)" },
         { id: "orgEPS",       icon: "🏫", label: "Organisation de l'EPS dans l'établissement", sub: "Périodes, APSA, lieux, programmation" },
         { id: "association",  icon: "🏅", label: "Association sportive", sub: "Organisation et suivi AS" },
         { id: "calendriers",  icon: "📆", label: "Calendriers",      sub: "Calendrier scolaire & visuel" },
         { id: "backup",       icon: "💾", label: "Sauvegarde",       sub: "Export, import, reset" },
+        { id: "tutorial",     icon: "❓", label: "Guide d'utilisation", sub: "Tutoriel de l'application" },
       ];
 
       if (toolsPanel === "home" || !toolsPanel) {
@@ -14939,6 +15483,7 @@
         }
       });
       main.querySelector("#btn-dash-reminder")?.addEventListener("click", openDashboardReminderModal);
+      main.querySelector("#btn-dash-profile")?.addEventListener("click", openProfilePickerModal);
       if (!main.dataset.reminderDismissWired) {
         main.dataset.reminderDismissWired = "1";
         main.addEventListener("click", (e) => {
@@ -15150,6 +15695,15 @@
         btn.addEventListener("click", () => {
           const activityId = btn.getAttribute("data-activity-id");
           const competitionId = btn.getAttribute("data-id");
+          const a = appData.association && Array.isArray(appData.association.activities)
+            ? appData.association.activities.find((x) => x.id === activityId)
+            : null;
+          const comp = a && Array.isArray(a.competitions) ? a.competitions.find((c) => c.id === competitionId) : null;
+          const profileId = getActiveProfileTeacherId();
+          if (profileId && comp && comp.ownerTeacherId && String(comp.ownerTeacherId) !== profileId) {
+            alert("Cette compétition a été créée par un autre professeur. Vous ne pouvez la supprimer qu'avec son profil (ou sans profil pour le coordonnateur).");
+            return;
+          }
           if (!confirm("Supprimer cette compétition ? Les annulations et appels liés seront également effacés.")) return;
           if (!removeAssociationCompetition(activityId, competitionId)) return;
           saveData();
@@ -15672,9 +16226,8 @@
         render();
       });
       main.querySelector("#sel-my-coord-teacher")?.addEventListener("change", (e) => {
-        if (!appData.settings) appData.settings = {};
-        appData.settings.myCoordinationTeacherId = e.target.value || "";
-        saveData();
+        setActiveProfileTeacherId(e.target.value || "");
+        render();
       });
       main.querySelector("#btn-team-sync-from-classes")?.addEventListener("click", () => {
         const myId = String((appData.settings && appData.settings.myCoordinationTeacherId) || "");
@@ -16061,6 +16614,13 @@
           });
         });
       });
+      main.querySelector("#btn-resync-profile-classes")?.addEventListener("click", () => {
+        const profile = getActiveProfileTeacher();
+        if (!profile) return;
+        syncTeamCoordinationToProfileClasses(profile.id, { silent: false });
+        saveData();
+        render();
+      });
       main.querySelector("#btn-add-class")?.addEventListener("click", () => {
         const slotRowHtml = () => `<div class="class-create-slot">
           <div class="form-group"><label>Jour</label><select class="f-class-slot-day">${DOW.map((d, i) => `<option value="${i}">${d}</option>`).join("")}</select></div>
@@ -16188,6 +16748,7 @@
             level: body.querySelector("#f-level").value,
             apsaPerPeriod: +body.querySelector("#f-apsa-per-period").value || 2,
             cycleYears: body.querySelector("#f-level").value === "6e" ? 3 : 4,
+            ownerTeacherId: getActiveProfileTeacherId() || "",
           });
           body.querySelectorAll(".class-create-slot").forEach((row) => {
             const startTime = row.querySelector(".f-class-slot-start").value;
@@ -16697,6 +17258,23 @@
         regenerateSessions();
         saveData();
         render();
+      });
+      main.querySelectorAll(".btn-today-profile-course").forEach((row) => {
+        row.addEventListener("click", () => {
+          const classId = row.getAttribute("data-class-id") || "";
+          if (classId) {
+            navigateTo(getClassViewId(classId));
+            return;
+          }
+          const body = el(`<div>
+            <p><strong>Classe</strong><br>${escapeHtml(row.getAttribute("data-class-name") || "—")}</p>
+            <p><strong>Horaire</strong><br>${escapeHtml(row.getAttribute("data-time") || "—")}</p>
+            <p><strong>APSA</strong><br>${escapeHtml(row.getAttribute("data-apsa") || "—")}</p>
+            <p><strong>Lieu</strong><br>${escapeHtml(row.getAttribute("data-venue") || "—")}</p>
+            <p class="kpi-sub" style="margin-top:.75rem">Issu de la Programmation de l'établissement. Pour l'appel / le suivi, créez la classe dans Mes classes avec le même nom.</p>
+          </div>`);
+          openModal("Cours (profil)", body, () => true, { infoOnly: true });
+        });
       });
       main.querySelectorAll(".btn-today-session").forEach((row) => {
         row.addEventListener("click", () => {
