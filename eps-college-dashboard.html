@@ -8229,22 +8229,28 @@
       return associationCoachTeacherIds(training).includes(tid);
     }
 
-    /** Créneaux d'une activité visibles pour le profil actif (encadrant uniquement). */
+    /**
+     * Créneaux d'une activité visibles pour le profil actif.
+     * Coordonnateur (profil actif) : tous les créneaux. Sinon : encadrant uniquement.
+     */
     function associationTrainingsForViewer(activity) {
       const trainings = activity && Array.isArray(activity.trainings) ? activity.trainings : [];
+      if (isAssociationFullAccessViewer()) return trainings.slice();
       const profile = getActiveProfileTeacher();
       if (!profile) return [];
       return trainings.filter((t) => associationTrainingIsCoachedBy(t, profile.id));
     }
 
     /**
-     * Activités AS visibles pour le profil actif (encadrant uniquement).
+     * Activités AS visibles pour le profil actif.
+     * Coordonnateur (profil actif) : toutes. Sinon : encadrant uniquement.
      * Exception : opts.all = true pour le récap hebdo accueil (toutes les activités).
      */
     function associationActivitiesForViewer(opts) {
       opts = opts || {};
       const all = (appData.association && appData.association.activities) || [];
       if (opts.all) return all.slice();
+      if (isAssociationFullAccessViewer()) return all.slice();
       const profile = getActiveProfileTeacher();
       if (!profile) return [];
       return all.filter((a) =>
