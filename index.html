@@ -6062,6 +6062,30 @@
       return t >= startStr && t <= endStr;
     }
 
+    /**
+     * Calendrier académique (data.education.gouv.fr) : plage [startDate, endDate)
+     * — startDate inclus, endDate exclus (= 1er jour de reprise des cours).
+     * Les fériés / événements d'un seul jour gardent startDate === endDate et
+     * couvrent ce jour unique.
+     */
+    function isoDateInHolidayRange(dateStr, start, end) {
+      const d = String(dateStr || "");
+      const s = String(start || "");
+      const e = String(end || "");
+      if (!d || !s || !e) return false;
+      if (s === e) return d === s;
+      return d >= s && d < e;
+    }
+
+    /** Dernier jour de congé (inclus), pour libellés. */
+    function holidayLastInclusiveDate(start, end) {
+      const s = String(start || "");
+      const e = String(end || "");
+      if (!s || !e) return s || e;
+      if (s === e) return s;
+      return fmtISODate(addDays(parseISODate(e), -1));
+    }
+
     function todayStart() {
       const n = new Date();
       n.setHours(0, 0, 0, 0);
@@ -7749,7 +7773,7 @@
 
     function holidayAppliesToSession(holiday, session) {
       if (!holiday || !session) return false;
-      if (!(session.date >= holiday.startDate && session.date <= holiday.endDate)) return false;
+      if (!isoDateInHolidayRange(session.date, holiday.startDate, holiday.endDate)) return false;
       if (!holiday.blocksSessions) return false;
       if (!hasTimeWindow(holiday)) return true;
       return timeRangesOverlap(session.startTime || "", session.endTime || "", holiday.startTime, holiday.endTime);
@@ -7812,15 +7836,14 @@
       // Pendant la génération, seuls les vacances/fériés « journée entière » empêchent la création.
       // Les événements établissement (journée ou créneau) génèrent des séances puis computeSessionStatus → annulée.
       return appData.holidays.some((h) =>
-        dateStr >= h.startDate &&
-        dateStr <= h.endDate &&
+        isoDateInHolidayRange(dateStr, h.startDate, h.endDate) &&
         h.blocksSessions &&
         !hasTimeWindow(h)
       );
     }
 
     function getHolidayOnDate(dateStr) {
-      return appData.holidays.find((h) => dateStr >= h.startDate && dateStr <= h.endDate);
+      return appData.holidays.find((h) => isoDateInHolidayRange(dateStr, h.startDate, h.endDate));
     }
 
     function blockingHolidayForSession(session) {
@@ -11982,7 +12005,7 @@
         .slice()
         .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""));
       const dayEvents = (appData.holidays || [])
-        .filter((h) => dayISO >= h.startDate && dayISO <= h.endDate)
+        .filter((h) => isoDateInHolidayRange(dayISO, h.startDate, h.endDate))
         .slice()
         .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""));
       const daySchoolBlocking = (appData.schoolCalendarEvents || [])
@@ -16224,7 +16247,7 @@
           <details class="cal-panel__events">
             <summary>Événements du calendrier officiel (${holidaysCount})</summary>
             <div class="cal-panel__events-body">
-              <p class="kpi-sub" style="margin:.55rem 0 .65rem">Vacances, fériés, ponts, banalisations… Les lignes « Bloque : Oui » empêchent la génération des séances sur la période.</p>
+              <p class="kpi-sub" style="margin:.55rem 0 .65rem">Vacances, fériés, ponts, banalisations… Les lignes « Bloque : Oui » empêchent la génération des séances. Convention officielle : <strong>Début</strong> inclus, <strong>Fin</strong> = premier jour de reprise (exclu). Un férié d'un jour a Début = Fin.</p>
               <div class="table-wrap"><table><thead><tr><th>Type</th><th>Nom</th><th>Début</th><th>Fin</th><th>Horaires</th><th>Bloque</th><th></th></tr></thead><tbody>
               ${appData.holidays
                 .map(
@@ -16347,7 +16370,8 @@
     }
 
     function renderCalHolidayChip(hol, dateStr) {
-      const tip = `${hol.name || ""}${hol.type ? " (" + hol.type + ")" : ""} · ${fmtDateFr(hol.startDate)} → ${fmtDateFr(hol.endDate)}`;
+      const last = holidayLastInclusiveDate(hol.startDate, hol.endDate);
+      const tip = `${hol.name || ""}${hol.type ? " (" + hol.type + ")" : ""} · ${fmtDateFr(hol.startDate)}${last !== hol.startDate ? " → " + fmtDateFr(last) : ""}${hol.startDate !== hol.endDate ? " (reprise " + fmtDateFr(hol.endDate) + ")" : ""}`;
       return `<button type="button" class="cal-chip btn-cal-event-detail" data-kind="holiday" data-id="${escapeHtml(hol.id)}" data-date="${escapeHtml(dateStr)}" title="${escapeHtml(tip)}" style="background:${hol.color}33">${escapeHtml(hol.name)}</button>`;
     }
 
@@ -16561,10 +16585,15 @@
         if (!holiday) return;
         const typeLabel = holiday.type === "ferie" ? "Jour férié" : holiday.type === "vacances" ? "Vacances" : holiday.type || "—";
         title = holiday.name || "Calendrier scolaire";
+        const lastInclusive = holidayLastInclusiveDate(holiday.startDate, holiday.endDate);
+        const periodHtml =
+          holiday.startDate === holiday.endDate
+            ? escapeHtml(fmtDateFr(holiday.startDate))
+            : `${escapeHtml(fmtDateFr(holiday.startDate))} → ${escapeHtml(fmtDateFr(lastInclusive))} <span class="kpi-sub">(reprise ${escapeHtml(fmtDateFr(holiday.endDate))})</span>`;
         body.innerHTML = `
           <p><strong>Nom</strong><br>${escapeHtml(holiday.name || "—")}</p>
           <p><strong>Type</strong><br>${escapeHtml(typeLabel)}</p>
-          <p><strong>Période</strong><br>${escapeHtml(fmtDateFr(holiday.startDate))} → ${escapeHtml(fmtDateFr(holiday.endDate))}</p>
+          <p><strong>Période</strong><br>${periodHtml}</p>
           <p><strong>Jour consulté</strong><br>${escapeHtml(fmtDateFr(dateStr))}</p>
           <p><strong>Impact cours</strong><br>${holiday.blocksSessions !== false ? "Pas de séance générée" : "Séances possibles"}</p>`;
         remindKind = "holiday";
@@ -16678,7 +16707,7 @@
           const cl = getClassById(s.classId);
           return matchesSearch(cl?.name || "") || matchesSearch(activityById(s.activityId || "")?.name || "");
         });
-        const hol = appData.holidays.find((h) => dateStr >= h.startDate && dateStr <= h.endDate);
+        const hol = getHolidayOnDate(dateStr);
         const schoolEvents = schoolEventsOnDate(dateStr).filter((e) => matchesSearch(e.title || "") || matchesSearch(e.kind || ""));
         const termTitle = schoolTermDayTitle(dateStr);
         const chips =
@@ -16698,7 +16727,7 @@
           const day = addDays(mon, i);
           const ds = fmtISODate(day);
           const list = showCourses ? sessionsOnDate(ds) : [];
-          const hol = appData.holidays.find((h) => ds >= h.startDate && ds <= h.endDate);
+          const hol = getHolidayOnDate(ds);
           const schoolEvents = schoolEventsOnDate(ds).filter((e) => matchesSearch(e.title || "") || matchesSearch(e.kind || ""));
           const weekTermTitle = schoolTermDayTitle(ds);
           const weekChips =
@@ -16837,13 +16866,14 @@
     }
 
     function holidayTouchesActivityBetween(holiday, activity, previousDate, nextDate) {
+      const holidayLast = holidayLastInclusiveDate(holiday.startDate, holiday.endDate);
       const firstDate = [holiday.startDate, fmtISODate(addDays(parseISODate(previousDate), 1))].sort().pop();
-      const lastDate = [holiday.endDate, fmtISODate(addDays(parseISODate(nextDate), -1))].sort()[0];
+      const lastDate = [holidayLast, fmtISODate(addDays(parseISODate(nextDate), -1))].sort()[0];
       if (firstDate > lastDate) return false;
       const end = parseISODate(lastDate);
       for (let cursor = parseISODate(firstDate); cursor <= end; cursor = addDays(cursor, 1)) {
         const iso = fmtISODate(cursor);
-        if (iso >= holiday.startDate && iso <= holiday.endDate && activityHasScheduledSlotOnDate(activity, iso)) {
+        if (isoDateInHolidayRange(iso, holiday.startDate, holiday.endDate) && activityHasScheduledSlotOnDate(activity, iso)) {
           return true;
         }
       }
@@ -16863,9 +16893,10 @@
 
     function renderSessionInterruptionRow(holiday) {
       const isFerie = holiday.type === "ferie";
+      const last = holidayLastInclusiveDate(holiday.startDate, holiday.endDate);
       const label = isFerie
         ? `Pas de séance car férié le ${fmtDateFr(holiday.startDate)}${holiday.name ? " · " + holiday.name : ""}`
-        : `Vacances du ${fmtDateFr(holiday.startDate)} au ${fmtDateFr(holiday.endDate)}${holiday.name ? " · " + holiday.name : ""}`;
+        : `Vacances du ${fmtDateFr(holiday.startDate)} au ${fmtDateFr(last)}${holiday.name ? " · " + holiday.name : ""}`;
       const klass = isFerie ? "session-interrupt--ferie" : "session-interrupt--vacances";
       const icon = isFerie ? "🟧" : "🟥";
       return `<tr class="session-interrupt-row"><td colspan="8"><span class="session-interrupt ${klass}">${icon} ${escapeHtml(label)}</span></td></tr>`;
@@ -19371,7 +19402,8 @@
             <option value="examen">Examens</option><option value="formation">Formation</option>
           </select></div>
           <div class="form-group"><label>Nom</label><input id="f-n" /></div>
-          <div class="form-row"><div class="form-group"><label>Début</label><input type="date" id="f-d1" /></div><div class="form-group"><label>Fin</label><input type="date" id="f-d2" /></div></div>
+          <div class="form-row"><div class="form-group"><label>Début (inclus)</label><input type="date" id="f-d1" /></div><div class="form-group"><label>Fin = reprise (exclue)</label><input type="date" id="f-d2" /></div></div>
+          <p class="kpi-sub" style="margin:0 0 .65rem">Pour les vacances, la date de fin est le 1er jour de cours (non bloqué). Pour un férié d'un jour, mettez la même date en début et fin.</p>
           <div class="form-row"><div class="form-group"><label>Heure début (optionnel)</label><input type="time" id="f-h1" /></div><div class="form-group"><label>Heure fin (optionnel)</label><input type="time" id="f-h2" /></div></div>
           <div class="form-group"><label>Couleur (#hex)</label><input id="f-c" value="#64748b" /></div>
           <div class="form-group"><label><input type="checkbox" id="f-b" checked /> Bloque les séances (annule automatiquement les cours chevauchés)</label></div>
