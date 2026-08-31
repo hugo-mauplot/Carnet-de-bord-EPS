@@ -6370,6 +6370,77 @@
       return appData.schedules.filter((s) => s.classId === classId);
     }
 
+    /** Clé jour + horaires pour fusionner créneaux A/B ou doublons EDT. */
+    function scheduleSlotKey(s) {
+      const day = Number(s.dayIndex);
+      const start = normalizeTimeHHMM(s.startTime || "");
+      const end = normalizeTimeHHMM(s.endTime || "");
+      return `${day}|${start}|${end}`;
+    }
+
+    function mergedWeekParity(a, b) {
+      const pa = a || "all";
+      const pb = b || "all";
+      if (pa === "all" || pb === "all") return "all";
+      if (pa === pb) return pa;
+      return "all";
+    }
+
+    /** Un créneau par jour/horaire (programmation ne distingue pas semaine A/B). */
+    function uniqueSchedulesForClass(classId) {
+      const byKey = new Map();
+      schedulesForClass(classId).forEach((s) => {
+        const key = scheduleSlotKey(s);
+        const prev = byKey.get(key);
+        if (!prev) {
+          byKey.set(key, s);
+          return;
+        }
+        prev.weekParity = mergedWeekParity(prev.weekParity, s.weekParity);
+        if (!prev.venue && s.venue) prev.venue = s.venue;
+      });
+      return [...byKey.values()];
+    }
+
+    function consolidateDuplicateSchedules() {
+      const schedules = appData.schedules || [];
+      const groups = new Map();
+      schedules.forEach((s) => {
+        const key = `${s.classId}|${scheduleSlotKey(s)}`;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(s);
+      });
+      const removedIds = new Set();
+      groups.forEach((list) => {
+        if (list.length <= 1) return;
+        const canonical = list.find((s) => (s.weekParity || "all") === "all") || list[0];
+        let wp = canonical.weekParity || "all";
+        list.forEach((s) => {
+          wp = mergedWeekParity(wp, s.weekParity);
+          if (s.id !== canonical.id) removedIds.add(s.id);
+          if (!canonical.venue && s.venue) canonical.venue = s.venue;
+        });
+        canonical.weekParity = wp;
+      });
+      if (!removedIds.size) return;
+      appData.schedules = schedules.filter((s) => !removedIds.has(s.id));
+      const canonicalByKey = new Map();
+      appData.schedules.forEach((s) => {
+        canonicalByKey.set(`${s.classId}|${scheduleSlotKey(s)}`, s);
+      });
+      (appData.sessions || []).forEach((sess) => {
+        if (!sess.scheduleId || !removedIds.has(sess.scheduleId)) return;
+        const di = dayIndexMon0(parseISODate(sess.date));
+        const key = `${sess.classId}|${scheduleSlotKey({
+          dayIndex: di,
+          startTime: sess.startTime,
+          endTime: sess.endTime,
+        })}`;
+        const canon = canonicalByKey.get(key);
+        if (canon) sess.scheduleId = canon.id;
+      });
+    }
+
     function activitiesForClass(classId) {
       return appData.activities
         .filter((a) => a.classId === classId)
@@ -7948,6 +8019,7 @@
       appData.schedules.forEach((s) => {
         if (s.weekParity !== "A" && s.weekParity !== "B" && s.weekParity !== "all") s.weekParity = "all";
       });
+      consolidateDuplicateSchedules();
       appData.activities.forEach((a) => {
         if (!Array.isArray(a.dayIndices)) a.dayIndices = [];
       });
@@ -14864,7 +14936,7 @@
           .join("");
         const rows = levelClasses
           .map((cl) => {
-            const slots = schedulesForClass(cl.id)
+            const slots = uniqueSchedulesForClass(cl.id)
               .slice()
               .sort((a, b) => a.dayIndex - b.dayIndex || a.startTime.localeCompare(b.startTime));
             const cells = levelPeriods
