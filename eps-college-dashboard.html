@@ -2063,6 +2063,85 @@
       letter-spacing: 0;
       color: inherit;
     }
+    .dash-association-strip__notice {
+      display: block;
+      padding: 0.28rem 0.4rem;
+      border-radius: 6px;
+      border-left: 3px solid #f59e0b;
+      background: color-mix(in srgb, #f59e0b 10%, var(--surface));
+      color: color-mix(in srgb, #b45309 55%, var(--text));
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .dash-association-strip__notice-date {
+      font-weight: 500;
+      opacity: 0.85;
+    }
+    .as-notices-manage {
+      margin-top: 0.75rem;
+    }
+    .as-notices-manage__header {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.45rem;
+      margin: 0;
+      padding: 0;
+      border: none;
+    }
+    .as-notices-manage__header h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+    .as-notices-manage__actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      align-items: center;
+    }
+    .as-notices-manage__actions-row .btn {
+      flex: 1 1 auto;
+      min-width: min(100%, 9.5rem);
+      justify-content: center;
+      white-space: normal;
+      line-height: 1.25;
+      text-align: center;
+    }
+    .as-notices-manage__list {
+      list-style: none;
+      margin: 0.5rem 0 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .as-notices-manage__item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.45rem 0.55rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+    .as-notices-manage__text {
+      margin: 0;
+      font-size: 0.85rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+    .as-notices-manage__meta {
+      margin: 0.15rem 0 0;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .as-notices-manage__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      flex-shrink: 0;
+    }
     .dash-association-strip__open {
       display: block;
       width: 100%;
@@ -5959,7 +6038,7 @@
       reminders: [],
       schoolCalendarEvents: [],
       schoolTermSchedule: { mode: "trimestre", terms: [] },
-      association: { activities: [] },
+      association: { activities: [], notices: [] },
       teamCoordination: { teachers: [], timeSlots: [], cells: {} },
     };
 
@@ -6274,6 +6353,7 @@
           cancellations: JSON.parse(
             JSON.stringify(Array.isArray(assoc.cancellations) ? assoc.cancellations : [])
           ),
+          notices: JSON.parse(JSON.stringify(Array.isArray(assoc.notices) ? assoc.notices : [])),
         },
       };
     }
@@ -6290,7 +6370,7 @@
     }
 
     /**
-     * Import AS uniquement : remplace activities + cancellations.
+     * Import AS uniquement : remplace activities + cancellations + notices.
      * Ne touche jamais aux classes, EDT, réglages, profils, lieux, ni aux appels locaux
      * (attendanceRecords / associationByTeacher).
      */
@@ -6312,8 +6392,8 @@
           if (
             !confirm(
               canManageAssociationStructure()
-                ? "Remplacer les activités, créneaux, compétitions et annulations de l’association sportive ?\n\nLes autres réglages (classes, emploi du temps, programmation, profil…) et les appels déjà saisis ne seront pas modifiés."
-                : "Importer le planning AS du coordonnateur ?\n\nCela remplace vos activités, créneaux, compétitions et annulations AS.\nVos appels déjà saisis et le reste de l’application (classes, EDT…) ne seront pas modifiés."
+                ? "Remplacer les activités, créneaux, compétitions, annulations et informations AS ?\n\nLes autres réglages (classes, emploi du temps, programmation, profil…) et les appels déjà saisis ne seront pas modifiés."
+                : "Importer le planning AS du coordonnateur ?\n\nCela remplace vos activités, créneaux, compétitions, annulations et informations AS.\nVos appels déjà saisis et le reste de l’application (classes, EDT…) ne seront pas modifiés."
             )
           ) {
             return;
@@ -6332,6 +6412,9 @@
           appData.association.cancellations = Array.isArray(o.association.cancellations)
             ? JSON.parse(JSON.stringify(o.association.cancellations))
             : [];
+          appData.association.notices = Array.isArray(o.association.notices)
+            ? JSON.parse(JSON.stringify(o.association.notices))
+            : [];
           appData.association.attendanceRecords = keepAttendance;
           migrateDataModel();
           saveData();
@@ -6348,8 +6431,8 @@
       opts = opts || {};
       const canExport = !!opts.forceExport || canManageAssociationStructure();
       const hint = canManageAssociationStructure()
-        ? "Partage : fichier JSON <strong>uniquement AS</strong>. Exportez puis envoyez-le à l’équipe chaque semaine. En mode coordonnateur, l’import met à jour le planning partagé."
-        : "Chaque semaine, importez le fichier JSON AS envoyé par le <strong>coordonnateur</strong> pour mettre à jour le planning (activités, créneaux, compétitions, annulations). Vos appels déjà saisis sont conservés.";
+        ? "Partage : fichier JSON <strong>uniquement AS</strong>. Exportez puis envoyez-le à l’équipe chaque semaine. En mode coordonnateur, l’import met à jour le planning partagé (activités, infos hebdo…)."
+        : "Chaque semaine, importez le fichier JSON AS envoyé par le <strong>coordonnateur</strong> pour mettre à jour le planning (activités, créneaux, compétitions, annulations, informations). Vos appels déjà saisis sont conservés.";
       return `<div class="as-share-toolbar no-print" style="margin-top:.75rem;padding-top:.65rem;border-top:1px solid var(--border)">
         <p class="kpi-sub" style="margin:0 0 .45rem;line-height:1.45">${hint}</p>
         <div class="flex-row" style="flex-wrap:wrap;gap:.4rem">
@@ -8139,6 +8222,10 @@
       if (!appData.association || typeof appData.association !== "object") appData.association = {};
       if (!Array.isArray(appData.association.activities)) appData.association.activities = [];
       if (!Array.isArray(appData.association.cancellations)) appData.association.cancellations = [];
+      if (!Array.isArray(appData.association.notices)) appData.association.notices = [];
+      appData.association.notices = appData.association.notices
+        .map(normalizeAssociationNotice)
+        .filter(Boolean);
       if (!appData.association.attendanceRecords || typeof appData.association.attendanceRecords !== "object") {
         appData.association.attendanceRecords = {};
       }
@@ -8269,6 +8356,176 @@
     /** Création / suppression d'activités et de créneaux : profil coordonnateur uniquement. */
     function canManageAssociationStructure() {
       return isAssociationFullAccessViewer();
+    }
+
+    function normalizeAssociationNotice(raw) {
+      if (!raw || typeof raw !== "object") return null;
+      const text = String(raw.text || "").trim();
+      const date = String(raw.date || "").trim();
+      if (!text || !date || !parseISODate(date)) return null;
+      return {
+        id: String(raw.id || uid()),
+        text,
+        date,
+      };
+    }
+
+    function ensureAssociationNotices() {
+      if (!appData.association || typeof appData.association !== "object") appData.association = {};
+      if (!Array.isArray(appData.association.notices)) appData.association.notices = [];
+      appData.association.notices = appData.association.notices
+        .map(normalizeAssociationNotice)
+        .filter(Boolean);
+      return appData.association.notices;
+    }
+
+    function findAssociationNotice(id) {
+      const nid = String(id || "");
+      if (!nid) return null;
+      return ensureAssociationNotices().find((n) => n.id === nid) || null;
+    }
+
+    function associationNoticesSorted() {
+      return ensureAssociationNotices()
+        .slice()
+        .sort(
+          (a, b) =>
+            String(a.date).localeCompare(String(b.date)) ||
+            String(a.text).localeCompare(String(b.text), "fr")
+        );
+    }
+
+    /** Informations AS visibles sur l'accueil pendant la semaine (lun–dim) contenant leur date. */
+    function associationNoticesForWeek(rangeStart, rangeEnd) {
+      // currentWeekRangeMonSun returns ISO strings; accept Date too for safety.
+      const startIso =
+        typeof rangeStart === "string"
+          ? coerceISODateString(rangeStart)
+          : rangeStart instanceof Date
+            ? fmtISODate(rangeStart)
+            : "";
+      const endIso =
+        typeof rangeEnd === "string"
+          ? coerceISODateString(rangeEnd)
+          : rangeEnd instanceof Date
+            ? fmtISODate(rangeEnd)
+            : "";
+      if (!startIso || !endIso) return [];
+      return associationNoticesSorted().filter((n) => n.date >= startIso && n.date <= endIso);
+    }
+
+    function openAssociationNoticeModal(existing) {
+      if (!canManageAssociationStructure()) {
+        alert("Seul un coordonnateur peut gérer les informations AS.");
+        return;
+      }
+      if (!guardSharedEstablishmentEdit("Association sportive")) return;
+      const isEdit = !!(existing && existing.id);
+      const body = el(`<div>
+        <div class="form-group"><label>Texte</label><input type="text" id="f-as-notice-text" placeholder="Fin des inscriptions" value="${escapeHtml(
+          (existing && existing.text) || ""
+        )}" /></div>
+        <div class="form-group"><label>Date liée</label><input type="date" id="f-as-notice-date" value="${escapeHtml(
+          (existing && existing.date) || ""
+        )}" /></div>
+        <p class="kpi-sub" style="margin:0">L’information s’affiche sur l’accueil AS pendant toute la semaine (lundi–dimanche) contenant cette date, pour tous les professeurs.</p>
+      </div>`);
+      openModal(isEdit ? "Modifier l'information" : "Ajouter une information", body, () => {
+        const text = body.querySelector("#f-as-notice-text").value.trim();
+        const date = body.querySelector("#f-as-notice-date").value || "";
+        if (!text) {
+          alert("Indiquez le texte de l’information.");
+          return false;
+        }
+        if (!date || !parseISODate(date)) {
+          alert("Choisissez une date valide.");
+          return false;
+        }
+        const notices = ensureAssociationNotices();
+        if (isEdit) {
+          const n = notices.find((x) => x.id === existing.id);
+          if (!n) return false;
+          n.text = text;
+          n.date = date;
+        } else {
+          notices.push({ id: uid(), text, date });
+        }
+        saveData();
+        render();
+        return true;
+      });
+    }
+
+    function deleteAssociationNotice(id) {
+      if (!canManageAssociationStructure()) {
+        alert("Seul un coordonnateur peut supprimer une information AS.");
+        return false;
+      }
+      if (!guardSharedEstablishmentEdit("Association sportive")) return false;
+      const n = findAssociationNotice(id);
+      if (!n) return false;
+      if (!confirm(`Supprimer l’information « ${n.text} » ?`)) return false;
+      appData.association.notices = ensureAssociationNotices().filter((x) => x.id !== n.id);
+      saveData();
+      return true;
+    }
+
+    /** Coordonnateurs : informations AS + annulation d'une journée (une seule carte). */
+    function associationNoticesManageHtml() {
+      if (!canManageAssociationStructure()) return "";
+      const notices = associationNoticesSorted();
+      const rows = notices.length
+        ? `<ul class="as-notices-manage__list">${notices
+            .map(
+              (n) => `<li class="as-notices-manage__item">
+            <div>
+              <p class="as-notices-manage__text">${escapeHtml(n.text)}</p>
+              <p class="as-notices-manage__meta">Semaine du ${escapeHtml(fmtDateFr(n.date))}</p>
+            </div>
+            <div class="as-notices-manage__actions">
+              <button type="button" class="btn btn-sm btn-ghost btn-edit-as-notice" data-id="${escapeHtml(
+                n.id
+              )}">Modifier</button>
+              <button type="button" class="btn btn-sm btn-danger btn-del-as-notice" data-id="${escapeHtml(
+                n.id
+              )}">Supprimer</button>
+            </div>
+          </li>`
+            )
+            .join("")}</ul>`
+        : `<p class="kpi-sub" style="margin:.45rem 0 0">Aucune information hebdomadaire pour l’instant.</p>`;
+      return `<div class="card no-print as-notices-manage" style="border-left:5px solid #f59e0b">
+        <div class="as-notices-manage__header">
+          <h3>Informations AS</h3>
+          <div class="as-notices-manage__actions-row">
+            <button type="button" class="btn btn-sm btn-primary" id="btn-as-add-notice">Ajouter une information</button>
+            <button type="button" class="btn btn-sm btn-danger" id="btn-as-cancel-all-day" title="Annuler toutes les séances d'AS d'une date">Annuler toutes les séances d'AS</button>
+          </div>
+        </div>
+        <p class="kpi-sub" style="margin:.4rem 0 0;line-height:1.4">Ces messages apparaissent sur le récap AS de l’accueil pendant la semaine concernée (tous les professeurs).</p>
+        ${rows}
+      </div>`;
+    }
+
+    function wireAssociationNoticesManage(main) {
+      if (!main) return;
+      main.querySelector("#btn-as-add-notice")?.addEventListener("click", () => {
+        openAssociationNoticeModal(null);
+      });
+      main.querySelector("#btn-as-cancel-all-day")?.addEventListener("click", () => {
+        openCancelAllAssociationSessionsOnDateModal();
+      });
+      main.querySelectorAll(".btn-edit-as-notice").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const n = findAssociationNotice(btn.getAttribute("data-id") || "");
+          if (n) openAssociationNoticeModal(n);
+        });
+      });
+      main.querySelectorAll(".btn-del-as-notice").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          if (deleteAssociationNotice(btn.getAttribute("data-id") || "")) render();
+        });
+      });
     }
 
     function canEditAssociationTraining(activity, training) {
@@ -12924,6 +13181,10 @@
       return true;
     }
 
+    function associationSeasonBoundaryHintHtml() {
+      return `<p class="kpi-sub" style="margin:0 0 .65rem">Les entraînements du planning et de l'accueil ne s'affichent qu'entre ces deux dates (si renseignées).</p>`;
+    }
+
     function associationCompetitionConcernedGroups(competition) {
       if (!competition) return new Set();
       normalizeAssociationCompetition(competition);
@@ -13018,6 +13279,145 @@
             sex,
           });
         });
+      });
+    }
+
+    /** Toutes les séances AS (entraînements + compétitions) prévues à une date donnée. */
+    function listAssociationEventsOnDate(dateIso) {
+      const d = parseISODate(dateIso);
+      if (!d) return [];
+      const dayIndex = dayIndexMon0(d);
+      const events = [];
+      associationActivitiesForViewer({ all: true }).forEach((a) => {
+        if (!associationActivityDateInSeason(a, dateIso)) return;
+        (a.trainings || []).forEach((t) => {
+          if (!t || !Number.isInteger(t.dayIndex) || t.dayIndex !== dayIndex) return;
+          events.push(
+            applyAssociationEventTimeOverride({
+              activityId: a.id,
+              activityName: a.name || "—",
+              eventType: "training",
+              eventId: t.id,
+              date: dateIso,
+              startTime: t.startTime || "",
+              endTime: t.endTime || "",
+              detail: (t.groups || []).join(" · ") || "Tous",
+              coach: associationTrainingCoachLabel(t),
+            })
+          );
+        });
+        (a.competitions || []).forEach((c) => {
+          if (!c || c.date !== dateIso) return;
+          if (!associationActivityDateInSeason(a, c.date)) return;
+          events.push({
+            activityId: a.id,
+            activityName: a.name || "—",
+            eventType: "competition",
+            eventId: c.id,
+            date: c.date,
+            startTime: "",
+            endTime: "",
+            detail: c.category || "",
+            place: c.place || "",
+            coach: c.coach || associationTeacherNameById(c.ownerTeacherId) || "",
+          });
+        });
+      });
+      events.sort(
+        (x, y) =>
+          String(x.activityName || "").localeCompare(String(y.activityName || ""), "fr") ||
+          String(x.startTime || "").localeCompare(String(y.startTime || "")) ||
+          String(x.eventType || "").localeCompare(String(y.eventType || ""))
+      );
+      return events;
+    }
+
+    /**
+     * Annule toutes les séances AS d'une date (même mécanisme que l'annulation unitaire).
+     * Retourne le nombre de nouvelles annulations créées.
+     */
+    function cancelAllAssociationSessionsOnDate(dateIso) {
+      if (!canManageAssociationStructure()) return 0;
+      if (!dateIso || !parseISODate(dateIso)) return 0;
+      if (!appData.association || typeof appData.association !== "object") appData.association = {};
+      if (!Array.isArray(appData.association.cancellations)) appData.association.cancellations = [];
+      const events = listAssociationEventsOnDate(dateIso);
+      let created = 0;
+      events.forEach((e) => {
+        if (!e || !e.activityId || !e.date) return;
+        if (associationCancellationSummary(e).state === "all") return;
+        const already = appData.association.cancellations.some(
+          (c) =>
+            c &&
+            c.activityId === e.activityId &&
+            c.eventType === e.eventType &&
+            c.date === e.date &&
+            (c.eventId || null) === (e.eventId || null) &&
+            (c.mode || "all") === "all"
+        );
+        if (already) return;
+        appData.association.cancellations.push({
+          id: uid(),
+          activityId: e.activityId,
+          eventType: e.eventType,
+          eventId: e.eventId || null,
+          date: e.date,
+          mode: "all",
+          category: "",
+          sex: "",
+        });
+        created += 1;
+      });
+      return created;
+    }
+
+    /** Modal : demande la date, puis annule toutes les séances AS de ce jour. */
+    function openCancelAllAssociationSessionsOnDateModal() {
+      if (!canManageAssociationStructure()) {
+        alert("Seul un coordonnateur peut annuler toutes les séances d'AS d'une date.");
+        return;
+      }
+      if (!guardSharedEstablishmentEdit("Association sportive")) return;
+      const today = fmtISODate(new Date());
+      const body = el(`<div>
+        <div class="form-group"><label>Date</label><input type="date" id="f-as-cancel-all-date" value="${escapeHtml(today)}" /></div>
+        <p class="kpi-sub" style="margin:0">Toutes les séances d'AS (entraînements et compétitions) prévues à cette date seront annulées. Vous pourrez lever chaque annulation au cas par cas dans le planning.</p>
+      </div>`);
+      openModal("Annuler toutes les séances d'AS", body, () => {
+        const dateIso = String(body.querySelector("#f-as-cancel-all-date")?.value || "").trim();
+        if (!dateIso || !parseISODate(dateIso)) {
+          alert("Indiquez la date à annuler.");
+          return false;
+        }
+        const events = listAssociationEventsOnDate(dateIso);
+        if (!events.length) {
+          alert(`Aucune séance d'AS prévue le ${fmtDateFr(dateIso)}.`);
+          return false;
+        }
+        const alreadyAll = events.filter((e) => associationCancellationSummary(e).state === "all").length;
+        const toCancel = events.length - alreadyAll;
+        if (!toCancel) {
+          alert(`Toutes les séances d'AS du ${fmtDateFr(dateIso)} sont déjà annulées.`);
+          return false;
+        }
+        if (
+          !confirm(
+            `Annuler ${toCancel} séance${toCancel > 1 ? "s" : ""} d'AS du ${fmtDateFr(dateIso)} ?\nVous pourrez lever chaque annulation au cas par cas.`
+          )
+        ) {
+          return false;
+        }
+        const created = cancelAllAssociationSessionsOnDate(dateIso);
+        if (!created) {
+          alert("Aucune nouvelle annulation à enregistrer.");
+          return false;
+        }
+        saveData();
+        if (currentView === "dashboard:association") {
+          refreshAssociationDashPlanning();
+        } else {
+          render();
+        }
       });
     }
 
@@ -14336,8 +14736,19 @@
       const weekLabel = isDashAssociationStripCompact()
         ? `Sem. ${w0}–${w1}`
         : `Semaine du ${w0} au ${w1}`;
+      const weekNotices = associationNoticesForWeek(week.start, week.end);
+      const noticesHtml = weekNotices.length
+        ? weekNotices
+            .map(
+              (n) =>
+                `<span class="dash-association-strip__notice">${escapeHtml(n.text)} <span class="dash-association-strip__notice-date">(${escapeHtml(
+                  fmtDateFr(n.date).slice(0, 5)
+                )})</span></span>`
+            )
+            .join("")
+        : "";
       const activities = associationWeekRecapByActivity(week.start, week.end);
-      const recapHtml = activities.length
+      const activitiesHtml = activities.length
         ? activities
             .map((act) => {
               const daysHtml = act.days
@@ -14374,6 +14785,7 @@
             })
             .join("")
         : '<span class="dash-association-strip__line kpi-sub">Aucune séance prévue cette semaine</span>';
+      const recapHtml = noticesHtml + activitiesHtml;
       return `<div class="dash-association-home no-print" id="dash-association-home">
         <details class="dash-association-strip" id="dash-association-strip"${dashAssociationStripOpen ? " open" : ""}>
           <summary class="dash-association-strip__head" id="dash-association-fold">
@@ -14433,6 +14845,7 @@
         <div style="margin-top:.75rem">
           <div id="dash-as-planning-root">${associationPlanningInnerHtml()}</div>
         </div>
+        ${associationNoticesManageHtml()}
         ${associationShareCardHtml()}`
       );
     }
@@ -16042,7 +16455,7 @@
               <input type="date" id="as-season-end" data-activity-id="${escapeHtml(openActivity.id)}" value="${escapeHtml(openActivity.seasonEnd || "")}" />
             </div>
           </div>
-          <p class="kpi-sub" style="margin:0 0 .65rem">Les entraînements du planning et de l'accueil ne s'affichent qu'entre ces deux dates (si renseignées).</p>`
+          ${associationSeasonBoundaryHintHtml()}`
               : `<p class="kpi-sub" style="margin:0 0 .65rem">Vos créneaux uniquement. La structure (saison, nouveaux créneaux) est gérée par le coordonnateur.</p>`
           }
           ${trainingsHtml}
@@ -16132,6 +16545,7 @@
             : "Vous ne voyez que les activités et créneaux où vous êtes encadrant. Cliquez pour ouvrir le planning."
         }</p>
         ${activityCards}
+        ${associationNoticesManageHtml()}
         ${associationShareToolbarHtml()}
       </div>`;
     }
@@ -17683,6 +18097,7 @@
       }
       wireAssociationDashEvents(main);
       wireAssociationCompetitionFilters(main);
+      wireAssociationNoticesManage(main);
       if (associationDashSetupActivityId && currentView === "dashboard:association") {
         const setupRoot = main.querySelector(".as-dash-setup");
         if (setupRoot) {
@@ -17926,6 +18341,7 @@
           return;
         }
         saveData();
+        render();
       };
       main.querySelector("#as-season-start")?.addEventListener("change", saveAssociationSeasonDates);
       main.querySelector("#as-season-end")?.addEventListener("change", saveAssociationSeasonDates);
