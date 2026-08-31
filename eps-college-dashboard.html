@@ -6903,6 +6903,20 @@
       return (appData.sessions || []).filter((s) => allowed.has(s.classId) && (!dateISO || s.date === dateISO));
     }
 
+    function activitiesForVisibleClasses() {
+      const allowed = new Set(visibleClasses().map((c) => c.id));
+      return (appData.activities || []).filter((a) => allowed.has(a.classId));
+    }
+
+    function cancellationsForVisibleClasses() {
+      const allowed = new Set(visibleClasses().map((c) => c.id));
+      return (appData.cancellations || []).filter((c) => {
+        if (c.classId && allowed.has(c.classId)) return true;
+        const s = (appData.sessions || []).find((x) => x.id === c.sessionId);
+        return s && allowed.has(s.classId);
+      });
+    }
+
     /**
      * Crée / met à jour les classes du professeur à partir de sa ligne
      * dans Programmation de l'établissement (créneaux, APSA, lieux).
@@ -8120,25 +8134,22 @@
       return associationCoachTeacherIds(training).includes(tid);
     }
 
-    /** Créneaux d'une activité visibles pour le profil (tous si le profil est coordonnateur). */
+    /** Créneaux d'une activité visibles pour le profil actif (encadrant uniquement). */
     function associationTrainingsForViewer(activity) {
       const trainings = activity && Array.isArray(activity.trainings) ? activity.trainings : [];
-      if (isAssociationFullAccessViewer()) return trainings.slice();
       const profile = getActiveProfileTeacher();
       if (!profile) return [];
       return trainings.filter((t) => associationTrainingIsCoachedBy(t, profile.id));
     }
 
     /**
-     * Activités AS visibles pour le profil actif.
-     * Profil coordonnateur : toutes.
-     * Sinon : uniquement celles où le profil encadre au moins un créneau.
+     * Activités AS visibles pour le profil actif (encadrant uniquement).
+     * Exception : opts.all = true pour le récap hebdo accueil (toutes les activités).
      */
     function associationActivitiesForViewer(opts) {
       opts = opts || {};
       const all = (appData.association && appData.association.activities) || [];
       if (opts.all) return all.slice();
-      if (isAssociationFullAccessViewer()) return all.slice();
       const profile = getActiveProfileTeacher();
       if (!profile) return [];
       return all.filter((a) =>
@@ -9321,7 +9332,8 @@
         const we = addDays(ws, 6);
         return { start: ws, end: we, cancelled: [], extras: [] };
       });
-      appData.classes.forEach((cl) => {
+      const profileClasses = visibleClasses();
+      profileClasses.forEach((cl) => {
         const hasToday = sessionsForClass(cl.id).some((s) => s.date === todayStr);
         if (hasToday) classesToday++;
         sessionsForClass(cl.id).forEach((s) => {
@@ -9352,7 +9364,7 @@
           }
         });
       });
-      const cycleAlerts = appData.classes.filter((cl) => {
+      const cycleAlerts = profileClasses.filter((cl) => {
         const ids = new Set(activitiesOnDatePeriod(cl.id, todayStr).map((a) => a.id));
         if (!ids.size) return false;
         const acts = activitiesForClass(cl.id).filter((a) => ids.has(a.id));
@@ -9364,11 +9376,11 @@
         }
         return false;
       });
-      return { classesToday, next3Weeks, cycleAlerts, classCount: appData.classes.length };
+      return { classesToday, next3Weeks, cycleAlerts, classCount: profileClasses.length };
     }
 
     function recentCancellations(limit = 6) {
-      return appData.cancellations
+      return cancellationsForVisibleClasses()
         .map((c) => {
           const s = appData.sessions.find((x) => x.id === c.sessionId) || { classId: c.classId, date: c.date };
           const cl = getClassById(s.classId);
@@ -10404,7 +10416,7 @@
       const todayDetails = [];
       const tStr = fmtISODate(refDate || new Date());
       const profile = getActiveProfileTeacher();
-      const sessionPool = profile ? sessionsForVisibleClasses() : appData.sessions;
+      const sessionPool = sessionsForVisibleClasses();
       sessionPool.forEach((s) => {
         const st = computeSessionStatus(s);
         if (s.date === tStr && st.code !== "cancelled") {
@@ -10427,17 +10439,18 @@
     }
 
     function avgCycleProgress() {
-      if (!appData.classes.length) return 0;
+      const classes = visibleClasses();
+      if (!classes.length) return 0;
       let sum = 0;
-      appData.classes.forEach((cl) => {
+      classes.forEach((cl) => {
         sum += sessionStatsForClass(cl.id).pct;
       });
-      return Math.round(sum / appData.classes.length);
+      return Math.round(sum / classes.length);
     }
 
     function fieldDistribution() {
       const map = {};
-      appData.activities.forEach((a) => {
+      activitiesForVisibleClasses().forEach((a) => {
         const k = a.field || "—";
         map[k] = (map[k] || 0) + 1;
       });
@@ -11893,8 +11906,7 @@
     }
 
     function dashTodayCoursesHtml(isToday, dayISO) {
-      const profile = getActiveProfileTeacher();
-      const todaySessions = (profile ? sessionsForVisibleClasses(dayISO) : appData.sessions.filter((s) => s.date === dayISO))
+      const todaySessions = sessionsForVisibleClasses(dayISO)
         .slice()
         .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""));
       const dayEvents = (appData.holidays || [])
@@ -14366,7 +14378,7 @@
       const threshold = forgottenGearThreshold;
       const todayStr = dashboardDateISO();
       const alerts = [];
-      appData.classes.forEach((cl) => {
+      visibleClasses().forEach((cl) => {
         const range = forgottenGearFilterRangeForClass(cl.id, todayStr);
         if (!range) return;
         const items = (appData.forgottenGear || []).filter(
@@ -14495,7 +14507,9 @@
           }</div>
           ${(() => {
             const todayDate = dISO;
+            const allowedClassIds = new Set(visibleClasses().map((c) => c.id));
             const todayEx = (appData.exemptions || []).filter((e) =>
+              allowedClassIds.has(e.classId) &&
               sessionsForClass(e.classId).some(
                 (s) => s.date === todayDate && computeSessionStatus(s).code !== "cancelled" && exemptionAppliesToSession(e, s)
               )
@@ -14703,12 +14717,13 @@
     }
 
     function viewScheduleBody() {
+      const profileClasses = visibleClasses();
       return (
         `<div class="card"><p class="kpi-sub">Créneaux hebdomadaires : jour, horaires, alternance <strong>semaine A / B</strong> (depuis le début d'année scolaire : semaines paires = A, impaires = B). La génération des séances exclut vacances et jours fériés bloquants.</p>
         <div class="form-group"><label>Filtrer classe</label>
-          <select id="sched-class-filter"><option value="">— Toutes —</option>${appData.classes.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("")}</select>
+          <select id="sched-class-filter"><option value="">— Toutes —</option>${profileClasses.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("")}</select>
         </div></div>
-        ${appData.classes
+        ${profileClasses
           .map((cl) => {
             const slots = schedulesForClass(cl.id);
             return `<div class="card class-sched-block" data-class="${cl.id}">
@@ -14821,7 +14836,7 @@
 
     function viewLevelProgrammingBody() {
       const colors = ["#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316"];
-      const classes = appData.classes.slice().sort((a, b) => {
+      const classes = visibleClasses().slice().sort((a, b) => {
         const levelDiff = CLASS_LEVELS.indexOf(classLevel(a)) - CLASS_LEVELS.indexOf(classLevel(b));
         return levelDiff || a.name.localeCompare(b.name, "fr");
       });
@@ -14929,9 +14944,10 @@
     }
 
     function viewActivitiesBody() {
-      if (advancedApsaClassId && !appData.classes.some((cl) => cl.id === advancedApsaClassId)) advancedApsaClassId = "";
-      const selectedAdvancedClass = appData.classes.find((cl) => cl.id === advancedApsaClassId);
-      const classOptions = `<option value="">— Choisir une classe —</option>${appData.classes
+      const profileClasses = visibleClasses();
+      if (advancedApsaClassId && !profileClasses.some((cl) => cl.id === advancedApsaClassId)) advancedApsaClassId = "";
+      const selectedAdvancedClass = profileClasses.find((cl) => cl.id === advancedApsaClassId);
+      const classOptions = `<option value="">— Choisir une classe —</option>${profileClasses
         .map((cl) => `<option value="${cl.id}" ${cl.id === advancedApsaClassId ? "selected" : ""}>${escapeHtml(cl.name)} · ${escapeHtml(classLevel(cl))}</option>`)
         .join("")}`;
       const advanced = selectedAdvancedClass
@@ -15103,7 +15119,7 @@
       const bucket = new Map();
       let unmatched = 0;
 
-      (appData.classes || []).forEach((cl) => {
+      (visibleClasses() || []).forEach((cl) => {
         const level = classLevel(cl);
         const className = String(cl.name || "").trim();
         schedulesForClass(cl.id).forEach((sched) => {
@@ -16000,7 +16016,7 @@
             .join("")}</div>`
         : `<p class="kpi-sub" style="margin-top:.5rem">${
             canManage
-              ? "Aucune activité encadrée pour le moment."
+              ? "Aucune activité où vous êtes encadrant. Changez de profil pour consulter celles d'un collègue, ou ajoutez une activité."
               : "Aucun créneau AS ne vous est attribué. Demandez au coordonnateur de vous ajouter comme encadrant."
           }</p>`;
 
@@ -16011,7 +16027,7 @@
         </div>
         <p class="kpi-sub">${
           canManage
-            ? "Cliquez une activité pour ouvrir son planning (les autres restent fermées). Modifier ou supprimer via les boutons sous chaque carte."
+            ? "Vous ne voyez que les activités où vous êtes encadrant. Pour consulter celles d'un collègue, changez de profil. En tant que coordonnateur, vous pouvez créer ou supprimer des activités et gérer la structure."
             : "Vous ne voyez que les activités et créneaux où vous êtes encadrant. Cliquez pour ouvrir le planning."
         }</p>
         ${activityCards}
@@ -16174,7 +16190,7 @@
     }
 
     function viewCancellationsBody() {
-      const opts = appData.sessions
+      const opts = sessionsForVisibleClasses()
         .slice()
         .sort((a, b) => (b.date + b.startTime).localeCompare(a.date + a.startTime))
         .slice(0, 400)
@@ -16193,7 +16209,7 @@
           <button type="button" class="btn btn-primary" id="btn-submit-canc">Enregistrer l'annulation</button>
         </div>
         <div class="card"><h3>Annulations enregistrées</h3><div class="table-wrap"><table><thead><tr><th>Classe</th><th>Date</th><th>Motif</th><th>Commentaire</th><th></th></tr></thead><tbody>
-        ${appData.cancellations
+        ${cancellationsForVisibleClasses()
           .map((c) => {
             const s = appData.sessions.find((x) => x.id === c.sessionId);
             const cl = getClassById(c.classId || s?.classId);
@@ -16210,7 +16226,7 @@
     }
 
     function sessionsOnDate(dStr) {
-      return appData.sessions.filter((s) => s.date === dStr);
+      return sessionsForVisibleClasses(dStr);
     }
 
     function schoolEventsOnDate(dateStr) {
@@ -16659,11 +16675,13 @@
     }
 
     function viewStatsBody() {
+      const profileClasses = visibleClasses();
       const fields = fieldDistribution();
       const maxF = fields[0] ? fields[0][1] : 1;
+      const visibleSessionCount = sessionsForVisibleClasses().length;
       return (
         `<div class="card"><h3>Taux de réalisation par classe</h3><div class="bar-chart" style="margin-top:.75rem">
-        ${appData.classes
+        ${profileClasses
           .filter((c) => matchesSearch(c.name))
           .map((cl) => {
             const st = sessionStatsForClass(cl.id);
@@ -16681,7 +16699,7 @@
           .join("")}
         </div></div>
         <div class="card"><h3>Séances moyennes par classe (sur l'année)</h3>
-        <p class="kpi-sub">Total séances générées / nombre de classes : <strong>${appData.classes.length ? Math.round(appData.sessions.length / appData.classes.length) : 0}</strong></p></div>`
+        <p class="kpi-sub">Total séances générées / nombre de classes : <strong>${profileClasses.length ? Math.round(visibleSessionCount / profileClasses.length) : 0}</strong></p></div>`
       );
     }
 
@@ -16918,6 +16936,9 @@
     function viewClassPage(classId) {
       const cl = getClassById(classId);
       if (!cl) return renderTopbar("Classe", "") + `<div class="card"><p>Classe introuvable.</p></div>`;
+      if (!classBelongsToActiveProfile(classId)) {
+        return renderTopbar("Classe", "") + `<div class="card"><p class="kpi-sub">Cette classe n'appartient pas au profil actif.</p></div>`;
+      }
       const st = sessionStatsForClass(classId);
       const { next, lastDone } = nextAndLastSession(classId);
 
@@ -19425,7 +19446,7 @@
       main.querySelector("#btn-submit-canc")?.addEventListener("click", () => {
         const sid = main.querySelector("#canc-session").value;
         const s = appData.sessions.find((x) => x.id === sid);
-        if (!s) return;
+        if (!s || !classBelongsToActiveProfile(s.classId)) return;
         appData.cancellations.push({
           id: uid(),
           sessionId: s.id,
