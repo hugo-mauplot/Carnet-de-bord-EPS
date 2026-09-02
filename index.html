@@ -6391,9 +6391,7 @@
           }
           if (
             !confirm(
-              canManageAssociationStructure()
-                ? "Remplacer les activités, créneaux, compétitions, annulations et informations AS ?\n\nLes autres réglages (classes, emploi du temps, programmation, profil…) et les appels déjà saisis ne seront pas modifiés."
-                : "Importer le planning AS du coordonnateur ?\n\nCela remplace vos activités, créneaux, compétitions, annulations et informations AS.\nVos appels déjà saisis et le reste de l’application (classes, EDT…) ne seront pas modifiés."
+              "Remplacer les activités, créneaux, compétitions, annulations et informations AS ?\n\nLes autres réglages (classes, emploi du temps, programmation…) et les appels déjà saisis ne seront pas modifiés."
             )
           ) {
             return;
@@ -6427,12 +6425,157 @@
       reader.readAsText(file);
     }
 
+    /** Marqueur d'export pack Organisation EPS (lieux, périodes, calendrier, prog. établissement). */
+    const EPS_ORG_SHARE_KIND = "eps-college-organisation-eps";
+
+    function snapshotEpsOrgForExport() {
+      flushEstablishmentOverlayToProfile();
+      const had = !!establishmentSharedBackup;
+      if (establishmentSharedBackup) {
+        ESTABLISHMENT_OVERLAY_KEYS.forEach((k) => {
+          appData[k] = establishmentSharedBackup[k];
+        });
+        if (establishmentSharedBackup.settingsSlice) {
+          Object.assign(appData.settings, establishmentSharedBackup.settingsSlice);
+        }
+      }
+      const tc = ensureTeamCoordination();
+      const payload = {
+        kind: EPS_ORG_SHARE_KIND,
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        pack: {
+          venues: deepCloneJson(appData.venues || []),
+          periods: deepCloneJson(appData.periods || []),
+          holidays: deepCloneJson(appData.holidays || []),
+          schoolCalendarEvents: deepCloneJson(appData.schoolCalendarEvents || []),
+          schoolTermSchedule: deepCloneJson(appData.schoolTermSchedule || { mode: "trimestre", terms: [] }),
+          teamCoordination: {
+            teachers: deepCloneJson(tc.teachers || []),
+            timeSlots: deepCloneJson(tc.timeSlots || []),
+            cells: deepCloneJson(tc.cells || {}),
+          },
+          progEtabPdf: appData.progEtabPdf || null,
+          settings: {
+            schoolYearStart: appData.settings.schoolYearStart || "",
+            schoolYearEnd: appData.settings.schoolYearEnd || "",
+            academy: appData.settings.academy || "",
+            calendarSchoolYear: appData.settings.calendarSchoolYear || "",
+          },
+        },
+      };
+      if (had) {
+        establishmentSharedBackup = null;
+        establishmentOverlayTeacherId = "";
+        applyProfileEstablishmentOverlay();
+      }
+      return payload;
+    }
+
+    function exportEpsOrgJSON() {
+      if (!getBoundTeacherId()) {
+        alert("Choisissez d’abord votre profil pour exporter le pack Organisation EPS.");
+        return;
+      }
+      downloadJsonFile(snapshotEpsOrgForExport(), `eps-organisation-${fmtISODate(new Date())}.json`);
+    }
+
+    /**
+     * Import pack Organisation EPS : lieux, périodes, calendrier, programmation établissement.
+     * Ne modifie pas les classes, EDT, APSA, appels, dispenses, oublis ni l'AS.
+     */
+    function importEpsOrgJSONFile(file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const o = JSON.parse(reader.result);
+          if (!o || typeof o !== "object" || o.kind !== EPS_ORG_SHARE_KIND) {
+            alert(
+              "Ce fichier n’est pas un export Organisation EPS.\nUtilisez « Export pack EPS » dans Organisation de l’EPS (pas l’export complet de Sauvegarde)."
+            );
+            return;
+          }
+          const pack = o.pack;
+          if (!pack || typeof pack !== "object") {
+            alert("Fichier Organisation EPS invalide (données manquantes).");
+            return;
+          }
+          const importMsg =
+            "Remplacer les lieux, périodes, calendrier (vacances, trimestres) et programmation de l’établissement ?\n\nVos classes, appels, dispenses, oublis et l’association sportive ne seront pas modifiés.";
+          if (!confirm(importMsg)) return;
+          appData.venues = Array.isArray(pack.venues) ? deepCloneJson(pack.venues) : [];
+          appData.periods = Array.isArray(pack.periods) ? deepCloneJson(pack.periods) : [];
+          appData.holidays = Array.isArray(pack.holidays) ? deepCloneJson(pack.holidays) : [];
+          appData.schoolCalendarEvents = Array.isArray(pack.schoolCalendarEvents)
+            ? deepCloneJson(pack.schoolCalendarEvents)
+            : [];
+          if (pack.schoolTermSchedule && typeof pack.schoolTermSchedule === "object") {
+            appData.schoolTermSchedule = deepCloneJson(pack.schoolTermSchedule);
+          }
+          if (pack.teamCoordination && typeof pack.teamCoordination === "object") {
+            appData.teamCoordination = {
+              teachers: Array.isArray(pack.teamCoordination.teachers)
+                ? deepCloneJson(pack.teamCoordination.teachers)
+                : [],
+              timeSlots: Array.isArray(pack.teamCoordination.timeSlots)
+                ? deepCloneJson(pack.teamCoordination.timeSlots)
+                : [],
+              cells:
+                pack.teamCoordination.cells && typeof pack.teamCoordination.cells === "object"
+                  ? deepCloneJson(pack.teamCoordination.cells)
+                  : {},
+            };
+          }
+          if (pack.progEtabPdf !== undefined) appData.progEtabPdf = pack.progEtabPdf || null;
+          if (pack.settings && typeof pack.settings === "object") {
+            if (pack.settings.schoolYearStart != null) appData.settings.schoolYearStart = pack.settings.schoolYearStart;
+            if (pack.settings.schoolYearEnd != null) appData.settings.schoolYearEnd = pack.settings.schoolYearEnd;
+            if (pack.settings.academy != null) appData.settings.academy = pack.settings.academy;
+            if (pack.settings.calendarSchoolYear != null) {
+              appData.settings.calendarSchoolYear = pack.settings.calendarSchoolYear;
+            }
+          }
+          migrateDataModel();
+          regenerateSessions();
+          saveData();
+          render();
+          alert("Pack Organisation EPS importé. Vos données de classes et de suivi élèves sont intactes.");
+        } catch {
+          alert("Fichier JSON invalide.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function epsOrgShareToolbarHtml() {
+      const canExport = !!getBoundTeacherId();
+      const hint = canExport
+        ? "Partage : fichier JSON <strong>pack Organisation EPS</strong> (lieux, périodes, calendrier, trimestres/semestres, programmation établissement). Exportez puis envoyez-le à l’équipe pour mettre à jour ces réglages sans toucher aux classes ni aux appels."
+        : "Choisissez votre profil pour exporter ou importer le pack Organisation EPS. L’import met à jour lieux, périodes, calendrier et programmation ; vos classes, appels, dispenses et oublis sont conservés.";
+      return `<div class="card no-print eps-org-share" style="border-left:5px solid #8ba4ff;margin-top:1rem;width:100%">
+        <div class="card-header" style="margin-bottom:0;padding:0;border:none;flex-direction:column;align-items:stretch;gap:.35rem">
+          <h3 style="margin:0;font-size:1rem">Partage Organisation EPS</h3>
+          <p class="kpi-sub" style="margin:0;line-height:1.45">${hint}</p>
+          <div class="flex-row" style="flex-wrap:wrap;gap:.4rem;margin-top:.15rem">
+            ${
+              canExport
+                ? `<button type="button" class="btn btn-sm btn-primary" id="btn-export-eps-org">Export pack EPS (JSON)</button>`
+                : ""
+            }
+            <label class="btn btn-sm ${canExport ? "btn-ghost" : "btn-primary"}" style="border:1px solid var(--border);cursor:pointer;margin:0">${
+              canExport ? "Import pack EPS" : "Importer le pack Organisation EPS"
+            }<input type="file" id="inp-import-eps-org" accept="application/json,.json" class="hidden" /></label>
+          </div>
+        </div>
+      </div>`;
+    }
+
     function associationShareToolbarHtml(opts) {
       opts = opts || {};
       const canExport = !!opts.forceExport || canManageAssociationStructure();
       const hint = canManageAssociationStructure()
-        ? "Partage : fichier JSON <strong>uniquement AS</strong>. Exportez puis envoyez-le à l’équipe chaque semaine. En mode coordonnateur, l’import met à jour le planning partagé (activités, infos hebdo…)."
-        : "Chaque semaine, importez le fichier JSON AS envoyé par le <strong>coordonnateur</strong> pour mettre à jour le planning (activités, créneaux, compétitions, annulations, informations). Vos appels déjà saisis sont conservés.";
+        ? "Partage : fichier JSON <strong>uniquement AS</strong>. Exportez puis envoyez-le à l’équipe pour mettre à jour le planning (activités, infos hebdo…)."
+        : "Importez le fichier JSON AS pour mettre à jour le planning (activités, créneaux, compétitions, annulations, informations). Vous ne verrez ensuite que les activités où vous êtes encadrant. Vos appels déjà saisis sont conservés.";
       return `<div class="as-share-toolbar no-print" style="margin-top:.75rem;padding-top:.65rem;border-top:1px solid var(--border)">
         <p class="kpi-sub" style="margin:0 0 .45rem;line-height:1.45">${hint}</p>
         <div class="flex-row" style="flex-wrap:wrap;gap:.4rem">
@@ -6829,9 +6972,8 @@
     }
 
     /**
-     * Réglages établissement (AS, lieux, périodes, prog. établissement, calendriers) :
-     * - Coordonnateur (ou aucun coordonnateur coché) → données partagées pour tous les profils.
-     * - Non-coordonnateur → peut tout de même régler, mais dans une copie liée à son profil uniquement.
+     * Réglages établissement : partagés pour tous les professeurs (plus de copie perso par profil).
+     * Seule différence coordonnateur / non-coordonnateur : changement de profil consulté (canSwitchActiveProfile).
      */
     const ESTABLISHMENT_OVERLAY_KEYS = [
       "association",
@@ -6850,18 +6992,15 @@
     }
 
     function usesPersonalEstablishmentSettings() {
-      // Identité appareil (lié), pas le profil consulté : un coordonnateur qui consulte un collègue écrit toujours en partagé.
-      const bound = getBoundTeacher();
-      return !!(bound && establishmentHasCoordinator() && !isTeacherCoordinator(bound));
+      return false;
     }
 
     function writesSharedEstablishmentSettings() {
-      return !usesPersonalEstablishmentSettings();
+      return true;
     }
 
-    /** true = le profil actif écrit/lit sa copie perso (déjà forké ou à forker). */
     function canEditSharedEstablishmentSettings() {
-      return writesSharedEstablishmentSettings();
+      return true;
     }
 
     function cloneSharedEstablishmentBundle() {
@@ -6888,18 +7027,7 @@
     }
 
     function ensureActiveProfileEstablishmentFork() {
-      if (!usesPersonalEstablishmentSettings()) return false;
-      const boundId = getBoundTeacherId();
-      if (!boundId) return false;
-      if (!appData.profileEstablishment || typeof appData.profileEstablishment !== "object") {
-        appData.profileEstablishment = {};
-      }
-      if (!appData.profileEstablishment[boundId]) {
-        restoreSharedEstablishmentFromBackup();
-        appData.profileEstablishment[boundId] = cloneSharedEstablishmentBundle();
-      }
-      applyProfileEstablishmentOverlay();
-      return true;
+      return false;
     }
 
     function flushEstablishmentOverlayToProfile() {
@@ -6946,40 +7074,10 @@
 
     function applyProfileEstablishmentOverlay() {
       restoreSharedEstablishmentFromBackup();
-      if (!usesPersonalEstablishmentSettings()) return;
-      const boundId = getBoundTeacherId();
-      const store = appData.profileEstablishment && appData.profileEstablishment[boundId];
-      if (!store) return;
-      establishmentSharedBackup = {};
-      ESTABLISHMENT_OVERLAY_KEYS.forEach((k) => {
-        establishmentSharedBackup[k] = appData[k];
-        if (k === "teamCoordination") {
-          const personalTc = store.teamCoordination || { timeSlots: [], cells: {} };
-          const sharedTc = appData.teamCoordination || { teachers: [], timeSlots: [], cells: {} };
-          appData.teamCoordination = {
-            teachers: sharedTc.teachers || [],
-            timeSlots: personalTc.timeSlots || [],
-            cells: personalTc.cells || {},
-          };
-          return;
-        }
-        if (store[k] !== undefined) appData[k] = store[k];
-      });
-      establishmentSharedBackup.settingsSlice = {
-        schoolYearStart: appData.settings.schoolYearStart,
-        schoolYearEnd: appData.settings.schoolYearEnd,
-        academy: appData.settings.academy || "",
-        calendarSchoolYear: appData.settings.calendarSchoolYear || "",
-      };
-      if (store.settingsSlice) {
-        Object.assign(appData.settings, store.settingsSlice);
-      }
-      establishmentOverlayTeacherId = boundId;
     }
 
-    /** Avant toute écriture établissement : fork perso si non-coordonnateur. Toujours autorisé. */
+    /** Tout professeur lié peut modifier les réglages établissement partagés. */
     function prepareEstablishmentWrite() {
-      ensureActiveProfileEstablishmentFork();
       return true;
     }
 
@@ -8303,8 +8401,8 @@
     }
 
     /**
-     * Accès complet AS = le profil sélectionné est coordonnateur.
-     * (Pas l'identité appareil : un coordo qui consulte un collègue voit l'AS de ce collègue.)
+     * Accès complet AS = le profil consulté est coordonnateur.
+     * Un coordo qui consulte un collègue ne voit que l'AS de ce collègue.
      */
     function isAssociationFullAccessViewer() {
       return isTeacherCoordinator(getActiveProfileTeacher());
@@ -8317,8 +8415,8 @@
     }
 
     /**
-     * Créneaux d'une activité visibles pour le profil actif.
-     * Coordonnateur (profil actif) : tous les créneaux. Sinon : encadrant uniquement.
+     * Créneaux visibles pour le profil actif.
+     * Profil coordonnateur : tous. Sinon : uniquement ceux où le profil est encadrant.
      */
     function associationTrainingsForViewer(activity) {
       const trainings = activity && Array.isArray(activity.trainings) ? activity.trainings : [];
@@ -8330,8 +8428,8 @@
 
     /**
      * Activités AS visibles pour le profil actif.
-     * Coordonnateur (profil actif) : toutes. Sinon : encadrant uniquement.
-     * Exception : opts.all = true pour le récap hebdo accueil (toutes les activités).
+     * Profil coordonnateur : toutes. Sinon : uniquement celles où le profil encadre au moins un créneau.
+     * Exception : opts.all = true pour le récap hebdo accueil (toutes les activités, tous les profils).
      */
     function associationActivitiesForViewer(opts) {
       opts = opts || {};
@@ -8353,7 +8451,7 @@
       return (activity.trainings || []).some((t) => associationTrainingIsCoachedBy(t, profile.id));
     }
 
-    /** Création / suppression d'activités et de créneaux : profil coordonnateur uniquement. */
+    /** Structure AS (créer/supprimer activités & créneaux, infos, annulation journée) : profil coordonnateur. */
     function canManageAssociationStructure() {
       return isAssociationFullAccessViewer();
     }
@@ -16530,8 +16628,8 @@
             .join("")}</div>`
         : `<p class="kpi-sub" style="margin-top:.5rem">${
             canManage
-              ? "Aucune activité où vous êtes encadrant. Changez de profil pour consulter celles d'un collègue, ou ajoutez une activité."
-              : "Aucun créneau AS ne vous est attribué. Demandez au coordonnateur de vous ajouter comme encadrant."
+              ? "Aucune activité — utilisez le bouton ci-dessus pour en ajouter."
+              : "Aucun créneau AS ne vous est attribué. Demandez à être ajouté comme encadrant, ou importez le planning AS."
           }</p>`;
 
       return `${sharedEstablishmentReadOnlyBannerHtml()}<div class="card" style="border-left:5px solid #f59e0b">
@@ -16541,7 +16639,7 @@
         </div>
         <p class="kpi-sub">${
           canManage
-            ? "Vous ne voyez que les activités où vous êtes encadrant. Pour consulter celles d'un collègue, changez de profil. En tant que coordonnateur, vous pouvez créer ou supprimer des activités et gérer la structure."
+            ? "En tant que coordonnateur, vous voyez toutes les activités. Cliquez pour gérer créneaux, élèves, compétitions et dates de saison."
             : "Vous ne voyez que les activités et créneaux où vous êtes encadrant. Cliquez pour ouvrir le planning."
         }</p>
         ${activityCards}
@@ -16566,7 +16664,7 @@
         .join("");
       return `${sharedEstablishmentReadOnlyBannerHtml()}<div class="card">
         <div class="card-header"><h3>Lieux de pratique</h3><button type="button" class="btn btn-sm btn-primary" id="btn-add-venue">+ Lieu</button></div>
-        <p class="kpi-sub" style="margin-bottom:.75rem">Installations sportives de l'établissement. Coordonnateur : partagé ; sinon : copie de votre profil.</p>
+        <p class="kpi-sub" style="margin-bottom:.75rem">Installations sportives de l'établissement (réglages partagés).</p>
         <div class="table-wrap"><table><thead><tr><th>Nom</th><th>Type</th><th>Notes</th><th class="no-print">Actions</th></tr></thead><tbody>
         ${rows || '<tr><td colspan="4">Aucun lieu enregistré.</td></tr>'}
         </tbody></table></div>
@@ -17247,7 +17345,7 @@
             Après avoir paramétré l’établissement, utilisez <strong>Export pour l’équipe</strong> : le fichier contient tous les réglages et la liste des professeurs, <strong>sans</strong> votre profil personnel. Chaque collègue importe ce fichier puis choisit <em>son</em> profil — sans devoir recréer les professeurs.
           </p>
           <p class="kpi-sub" style="line-height:1.5;margin-top:.55rem">
-            <strong>Nouvelle version de l’app :</strong> ouvrez le nouveau fichier HTML → sur l’écran d’accueil cliquez <em>Je suis le coordonnateur — configurer l’établissement</em> (ou importez d’abord votre Export JSON perso / fichier d’équipe précédent), configurez, puis refaites un <strong>Export pour l’équipe</strong> à transmettre.
+            <strong>Mise à jour de l’app :</strong> remplacez le fichier HTML (export JSON perso par précaution). Pour partager des réglages sans toucher aux classes : <strong>pack Organisation EPS</strong> ou <strong>Export AS</strong>.
           </p>
           <div class="flex-row" style="margin-top:.75rem">
             <button type="button" class="btn btn-primary" id="btn-export-team">Export pour l’équipe</button>
@@ -17694,7 +17792,7 @@
               <li>Tableau : colonne <strong>Créneau</strong> + colonne <strong>Cours</strong>. Chaque professeur garde sa <strong>couleur</strong> pour repérer rapidement sa présence.</li>
               <li>Cliquez une case pour ajouter les professeurs du créneau ; pour chacun : classe, niveau, puis <strong>APSA + lieu pour chaque période</strong> du niveau choisi. Pour un cours différent en <strong>sem. A</strong> et <strong>sem. B</strong>, ajoutez <strong>deux lignes</strong> du même professeur (une par semaine).</li>
               <li>Semaine affichée avec des <strong>flèches ◀ ▶</strong> (dates sur une ligne, <strong>Semaine A</strong> ou <strong>B</strong> en dessous), par défaut sur la semaine en cours. Pour chaque professeur, l'app utilise la <strong>période de son niveau</strong> (ex. 6e et 5e peuvent avoir des dates différentes). Filtre <strong>Professeur</strong> : Tous = équipe ; un nom = planning personnel. La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
-              <li><strong>Profil Accueil</strong> (une seule fois) lie cet appareil à un professeur. Ensuite, seuls les <strong>coordonnateurs</strong> peuvent consulter d'autres profils. Les réglages du coordonnateur (AS, lieux, périodes, prog. établissement, calendriers) s'appliquent à tous ; un non-coordonnateur peut aussi régler ces écrans, uniquement pour son profil.</li>
+              <li><strong>Profil Accueil</strong> (une seule fois) lie cet appareil à un professeur. Ce choix est <strong>définitif</strong> pour les non-coordonnateurs. Les <strong>coordonnateurs EPS</strong> peuvent ensuite consulter le profil des autres professeurs. Tous les professeurs peuvent paramétrer l’établissement (lieux, périodes, calendrier, programmation…). L’<strong>Association sportive</strong> reste individualisée : chaque professeur ne voit que les activités où il est encadrant (le coordonnateur voit tout).</li>
               <li>Chaque professeur s'affiche dans <strong>sa couleur</strong> (sans encadré). Si une installation est partagée, les lignes concernées affichent une petite <strong>étoile colorée</strong> au début ; même installation = même couleur d'étoile. L'information reste visible aussi sur l'Accueil (🤝).</li>
             </ul>
           </div>
@@ -17801,7 +17899,7 @@
               <div class="kpi-label" style="text-align:center;font-size:.95rem">${c.label}</div>
               <div class="kpi-sub" style="margin-top:.3rem;text-align:center">${c.sub}</div>
             </div>`
-          ).join("")}</div>`;
+          ).join("")}</div>${epsOrgShareToolbarHtml()}`;
           break;
         }
         case "orgPeriodes":
@@ -18887,8 +18985,8 @@
             </label>
             ${
               canEditCoord
-                ? `<p class="kpi-sub" style="margin:.35rem 0 0">Les réglages d’un coordonnateur (AS, lieux, périodes, programmation, calendriers) s’appliquent à tous les profils.</p>`
-                : `<p class="kpi-sub" style="margin:.35rem 0 0">Seul un coordonnateur peut modifier ce statut.</p>`
+                ? `<p class="kpi-sub" style="margin:.35rem 0 0">Un coordonnateur EPS peut consulter les profils des autres professeurs sur cet appareil.</p>`
+                : `<p class="kpi-sub" style="margin:.35rem 0 0">Seuls les coordonnateurs EPS peuvent attribuer ou retirer ce statut.</p>`
             }
           </div>
           <div class="form-group" style="margin:0">
@@ -20009,6 +20107,16 @@
         }
         const f = e.target.files[0];
         if (f) importAssociationJSONFile(f);
+        e.target.value = "";
+      });
+      main.querySelector("#btn-export-eps-org")?.addEventListener("click", exportEpsOrgJSON);
+      main.querySelector("#inp-import-eps-org")?.addEventListener("change", (e) => {
+        if (!guardSharedEstablishmentEdit("Organisation EPS")) {
+          e.target.value = "";
+          return;
+        }
+        const f = e.target.files[0];
+        if (f) importEpsOrgJSONFile(f);
         e.target.value = "";
       });
       main.querySelectorAll(".btn-theme-toggle").forEach((btn) => {
