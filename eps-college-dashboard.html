@@ -6061,6 +6061,8 @@
     const TEAM_COORD_TEACHER_COLORS = ["#2563eb", "#7c3aed", "#dc2626", "#ea580c", "#0891b2", "#0f766e", "#65a30d", "#c026d3", "#4f46e5", "#b45309"];
     let teamCoordWeekParity = weekParityForDate(new Date());
     let teamCoordWeekStartISO = "";
+    /** Jour affiché dans Programmation des professeurs (ISO). Vide = aujourd'hui (jour ouvré). */
+    let teamCoordDayISO = "";
     let teamCoordPeriodId = TEAM_COORD_CURRENT_PERIOD;
     let teamCoordFilterTeacherId = "";
     /** Affichage annuel indépendant de la nav semaine : "" | "A" | "B" */
@@ -7520,7 +7522,43 @@
       return fmtISODate(addDays(d, -dayIndexMon0(d)));
     }
 
+    /** Ramène un jour week-end au vendredi de la même semaine. */
+    function clampTeamCoordToWeekdayISO(iso) {
+      const d = parseISODate(iso);
+      if (!d || Number.isNaN(d.getTime())) return "";
+      const di = dayIndexMon0(d);
+      if (di > 4) return fmtISODate(addDays(d, 4 - di));
+      return fmtISODate(d);
+    }
+
+    function ensureTeamCoordDayISO() {
+      let iso = coerceISODateString(teamCoordDayISO);
+      if (iso) {
+        iso = clampTeamCoordToWeekdayISO(iso) || iso;
+        teamCoordDayISO = iso;
+        teamCoordWeekStartISO = mondayIsoForDate(iso);
+        return iso;
+      }
+      const today = clampTeamCoordToWeekdayISO(fmtISODate(new Date())) || fmtISODate(new Date());
+      const weekStart = coerceISODateString(teamCoordWeekStartISO);
+      if (weekStart) {
+        const mon = parseISODate(mondayIsoForDate(weekStart));
+        const t = parseISODate(today);
+        if (mon && t && !Number.isNaN(mon.getTime()) && t >= mon && t <= addDays(mon, 4)) {
+          teamCoordDayISO = today;
+        } else {
+          teamCoordDayISO = mondayIsoForDate(weekStart) || today;
+        }
+      } else {
+        teamCoordDayISO = today;
+      }
+      teamCoordDayISO = clampTeamCoordToWeekdayISO(teamCoordDayISO) || teamCoordDayISO;
+      teamCoordWeekStartISO = mondayIsoForDate(teamCoordDayISO);
+      return teamCoordDayISO;
+    }
+
     function ensureTeamCoordWeekStartISO() {
+      ensureTeamCoordDayISO();
       const start = coerceISODateString(teamCoordWeekStartISO);
       if (start) return mondayIsoForDate(start);
       const today = fmtISODate(new Date());
@@ -7532,6 +7570,20 @@
       const monday = parseISODate(ensureTeamCoordWeekStartISO());
       if (!monday || Number.isNaN(monday.getTime())) return "";
       return fmtISODate(addDays(monday, dayIndex));
+    }
+
+    function shiftTeamCoordDay(deltaDays) {
+      let d = parseISODate(ensureTeamCoordDayISO());
+      if (!d || Number.isNaN(d.getTime())) return;
+      const step = deltaDays >= 0 ? 1 : -1;
+      let remaining = Math.abs(deltaDays) || 1;
+      while (remaining > 0) {
+        d = addDays(d, step);
+        if (dayIndexMon0(d) <= 4) remaining -= 1;
+      }
+      teamCoordDayISO = fmtISODate(d);
+      teamCoordWeekStartISO = mondayIsoForDate(teamCoordDayISO);
+      teamCoordWeekParity = weekParityForDate(teamCoordDayISO);
     }
 
     function teamCoordWeekOptions() {
@@ -15829,22 +15881,25 @@
       const filterId = teamCoordFilterTeacherId || "";
       const filterTeacher = filterId ? teachersAll.find((t) => t.id === filterId) : null;
       const timeSlots = tc.timeSlots;
-      const weekStartISO = ensureTeamCoordWeekStartISO();
-      const weekStart = parseISODate(weekStartISO);
-      const weekEndISO = weekStart ? fmtISODate(addDays(weekStart, 6)) : weekStartISO;
-      const week = weekParityForDate(weekStartISO) === "B" ? "B" : "A";
+      const dayISO = ensureTeamCoordDayISO();
+      const dayDate = parseISODate(dayISO);
+      const dayIndex = dayDate && !Number.isNaN(dayDate.getTime()) ? dayIndexMon0(dayDate) : 0;
+      const week = weekParityForDate(dayISO) === "B" ? "B" : "A";
       teamCoordWeekParity = week;
       const boundId = getBoundTeacherId();
       const filterOpts = teachersAll
         .map((t) => `<option value="${escapeHtml(t.id)}" ${t.id === filterId ? "selected" : ""}>${escapeHtml(t.name || "—")}</option>`)
         .join("");
-      const weekSelect = `<div class="team-coord-week-nav" aria-label="Naviguer entre les semaines">
-          <button type="button" class="btn btn-sm btn-ghost team-coord-week-nav__arrow" id="btn-team-week-prev" aria-label="Semaine précédente">◀</button>
+      const dayLabelRaw = dayDate && !Number.isNaN(dayDate.getTime())
+        ? `${DOW[dayIndex]} ${fmtDateFr(dayISO)}`
+        : fmtDateFr(dayISO);
+      const daySelect = `<div class="team-coord-week-nav" aria-label="Naviguer entre les jours">
+          <button type="button" class="btn btn-sm btn-ghost team-coord-week-nav__arrow" id="btn-team-day-prev" aria-label="Jour précédent">◀</button>
           <div class="team-coord-week-nav__center">
-            <p class="team-coord-week-nav__label" id="team-week-label">Semaine du ${escapeHtml(fmtDateFr(weekStartISO))} au ${escapeHtml(fmtDateFr(weekEndISO))}</p>
+            <p class="team-coord-week-nav__label" id="team-day-label">${escapeHtml(dayLabelRaw)}</p>
             <p class="team-coord-week-nav__parity">Semaine ${week}</p>
           </div>
-          <button type="button" class="btn btn-sm btn-ghost team-coord-week-nav__arrow" id="btn-team-week-next" aria-label="Semaine suivante">▶</button>
+          <button type="button" class="btn btn-sm btn-ghost team-coord-week-nav__arrow" id="btn-team-day-next" aria-label="Jour suivant">▶</button>
         </div>`;
 
       const teacherFilter = `<div class="team-coord-filter-bar team-coord-filter-bar--teacher">
@@ -15859,34 +15914,31 @@
       const col2Title = "Cours";
 
       let daysHtml = "";
-      if (timeSlots.length) {
-        daysHtml = `<div class="team-coord-days-v2">${[0, 1, 2, 3, 4]
-          .map((dayIndex) => {
-            const rows = timeSlots
-              .map((ts) => {
-                const dayISO = teamCoordDateForDayIndex(dayIndex);
-                let occupants = teamSlotOccupants(dayIndex, ts.id, week, "", dayISO);
-                if (filterId) occupants = occupants.filter((o) => o.teacherId === filterId);
-                const conflictTeacherMarkers = teamConflictTeacherMarkers(dayIndex, ts.id, week, "", dayISO);
-                const lines = occupants.length
-                  ? occupants
-                      .map((o) => {
-                        const line = filterId
-                          ? [o.className || "—", o.apsa || "—", o.venue || "—"].join(" — ")
-                          : formatTeamOccupantLine(o);
-                        const teacherColor = teamTeacherColor(o.teacherId);
-                        const sharedColor = conflictTeacherMarkers.get(o.teacherId) || "";
-                        const lineClass = sharedColor ? " team-coord-occupant-line--conflict" : "";
-                        const mark = sharedColor
-                          ? `<span class="team-coord-occupant-line__conflict-mark" style="--shared-venue-color:${escapeHtml(sharedColor)}" aria-hidden="true">★</span>`
-                          : "";
-                        return `<span class="team-coord-occupant-line${lineClass}" style="color:${escapeHtml(teacherColor)}">${mark}${escapeHtml(line)}</span>`;
-                      })
-                      .join("")
-                  : `<span class="team-coord-occupants-empty">${filterId ? "+ Ajouter un cours" : "+ Ajouter des professeurs"}</span>`;
-                const start = normalizeTimeHHMM(ts.startTime || "");
-                const end = normalizeTimeHHMM(ts.endTime || "");
-                return `<tr>
+      if (timeSlots.length && dayIndex >= 0 && dayIndex <= 4) {
+        const rows = timeSlots
+          .map((ts) => {
+            let occupants = teamSlotOccupants(dayIndex, ts.id, week, "", dayISO);
+            if (filterId) occupants = occupants.filter((o) => o.teacherId === filterId);
+            const conflictTeacherMarkers = teamConflictTeacherMarkers(dayIndex, ts.id, week, "", dayISO);
+            const lines = occupants.length
+              ? occupants
+                  .map((o) => {
+                    const line = filterId
+                      ? [o.className || "—", o.apsa || "—", o.venue || "—"].join(" — ")
+                      : formatTeamOccupantLine(o);
+                    const teacherColor = teamTeacherColor(o.teacherId);
+                    const sharedColor = conflictTeacherMarkers.get(o.teacherId) || "";
+                    const lineClass = sharedColor ? " team-coord-occupant-line--conflict" : "";
+                    const mark = sharedColor
+                      ? `<span class="team-coord-occupant-line__conflict-mark" style="--shared-venue-color:${escapeHtml(sharedColor)}" aria-hidden="true">★</span>`
+                      : "";
+                    return `<span class="team-coord-occupant-line${lineClass}" style="color:${escapeHtml(teacherColor)}">${mark}${escapeHtml(line)}</span>`;
+                  })
+                  .join("")
+              : `<span class="team-coord-occupants-empty">${filterId ? "+ Ajouter un cours" : "+ Ajouter des professeurs"}</span>`;
+            const start = normalizeTimeHHMM(ts.startTime || "");
+            const end = normalizeTimeHHMM(ts.endTime || "");
+            return `<tr>
                   <td class="team-coord-slot-time"><span class="team-coord-slot-time__start">${escapeHtml(start)}</span><span class="team-coord-slot-time__end">${escapeHtml(end)}</span></td>
                   <td>
                     <button type="button" class="team-coord-occupants-btn btn-team-edit-slot"
@@ -15896,10 +15948,10 @@
                       data-date-iso="${escapeHtml(dayISO)}">${lines}</button>
                   </td>
                 </tr>`;
-              })
-              .join("");
-            const dayHead = `${escapeHtml(DOW[dayIndex])}${filterTeacher ? ` · ${escapeHtml(filterTeacher.name || "")}` : ""}`;
-            return `<section class="team-coord-day-v2">
+          })
+          .join("");
+        const dayHead = `${escapeHtml(DOW[dayIndex])}${filterTeacher ? ` · ${escapeHtml(filterTeacher.name || "")}` : ""}`;
+        daysHtml = `<div class="team-coord-days-v2"><section class="team-coord-day-v2">
               <table class="team-coord-day-v2-table">
                 <thead>
                   <tr><th colspan="2" class="team-coord-day-v2__title">${dayHead}</th></tr>
@@ -15907,11 +15959,11 @@
                 </thead>
                 <tbody>${rows}</tbody>
               </table>
-            </section>`;
-          })
-          .join("")}</div>`;
-      } else {
+            </section></div>`;
+      } else if (!timeSlots.length) {
         daysHtml = `<p class="kpi-sub" style="margin:0">Aucun créneau horaire. Paramétrez-les dans la case « Créneaux horaires des cours d'EPS ».</p>`;
+      } else {
+        daysHtml = `<p class="kpi-sub" style="margin:0">Aucun jour ouvré sélectionné.</p>`;
       }
 
       const annualParity = teamCoordAnnualParity === "B" ? "B" : teamCoordAnnualParity === "A" ? "A" : "";
@@ -16003,7 +16055,7 @@
         <div class="team-coord-consult-bar">
           ${teacherFilter}
         </div>
-        ${weekSelect}
+        ${daySelect}
         ${daysHtml}
         ${parityToggle}
         ${annualViewHtml}
@@ -17791,7 +17843,7 @@
               <li>Les jours sont <strong>côte à côte</strong> : faites glisser horizontalement pour passer de lundi à vendredi. Le nom du jour est centré en en-tête.</li>
               <li>Tableau : colonne <strong>Créneau</strong> + colonne <strong>Cours</strong>. Chaque professeur garde sa <strong>couleur</strong> pour repérer rapidement sa présence.</li>
               <li>Cliquez une case pour ajouter les professeurs du créneau ; pour chacun : classe, niveau, puis <strong>APSA + lieu pour chaque période</strong> du niveau choisi. Pour un cours différent en <strong>sem. A</strong> et <strong>sem. B</strong>, ajoutez <strong>deux lignes</strong> du même professeur (une par semaine).</li>
-              <li>Semaine affichée avec des <strong>flèches ◀ ▶</strong> (dates sur une ligne, <strong>Semaine A</strong> ou <strong>B</strong> en dessous), par défaut sur la semaine en cours. Pour chaque professeur, l'app utilise la <strong>période de son niveau</strong> (ex. 6e et 5e peuvent avoir des dates différentes). Filtre <strong>Professeur</strong> : Tous = équipe ; un nom = planning personnel. La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
+              <li>Jour affiché avec des <strong>flèches ◀ ▶</strong> (par défaut <strong>aujourd'hui</strong>), avec <strong>Semaine A</strong> ou <strong>B</strong> en dessous. Pour chaque professeur, l'app utilise la <strong>période de son niveau</strong> (ex. 6e et 5e peuvent avoir des dates différentes). Filtre <strong>Professeur</strong> : Tous = équipe ; un nom = planning personnel. La <strong>×</strong> à droite du menu supprime le professeur sélectionné.</li>
               <li><strong>Profil Accueil</strong> (une seule fois) lie cet appareil à un professeur. Ce choix est <strong>définitif</strong> pour les non-coordonnateurs. Les <strong>coordonnateurs EPS</strong> peuvent ensuite consulter le profil des autres professeurs. Tous les professeurs peuvent paramétrer l’établissement (lieux, périodes, calendrier, programmation…). L’<strong>Association sportive</strong> reste individualisée : chaque professeur ne voit que les activités où il est encadrant (le coordonnateur voit tout).</li>
               <li>Chaque professeur s'affiche dans <strong>sa couleur</strong> (sans encadré). Si une installation est partagée, les lignes concernées affichent une petite <strong>étoile colorée</strong> au début ; même installation = même couleur d'étoile. L'information reste visible aussi sur l'Accueil (🤝).</li>
             </ul>
@@ -18896,15 +18948,14 @@
         }
       });
 
-      const shiftTeamWeek = (deltaDays) => {
-        const base = parseISODate(ensureTeamCoordWeekStartISO());
-        if (!base || Number.isNaN(base.getTime())) return;
-        teamCoordWeekStartISO = fmtISODate(addDays(base, deltaDays));
-        teamCoordWeekParity = weekParityForDate(teamCoordWeekStartISO);
+      main.querySelector("#btn-team-day-prev")?.addEventListener("click", () => {
+        shiftTeamCoordDay(-1);
         render();
-      };
-      main.querySelector("#btn-team-week-prev")?.addEventListener("click", () => shiftTeamWeek(-7));
-      main.querySelector("#btn-team-week-next")?.addEventListener("click", () => shiftTeamWeek(7));
+      });
+      main.querySelector("#btn-team-day-next")?.addEventListener("click", () => {
+        shiftTeamCoordDay(1);
+        render();
+      });
       main.querySelector("#btn-team-parity-A")?.addEventListener("click", () => {
         teamCoordAnnualParity = teamCoordAnnualParity === "A" ? "" : "A";
         render();
