@@ -2457,6 +2457,48 @@
     [data-theme="light"] .dash-block--sequences { background: linear-gradient(160deg, rgba(5, 150, 105, 0.09) 0%, #ffffff 32%); }
     .dash-block--sequences .dash-block__title { color: var(--success); }
     .dash-block--sequences .dashboard-classes { margin-top: 0; }
+    .dash-block--venues-occ {
+      background: linear-gradient(160deg, rgba(14, 165, 233, 0.16) 0%, var(--card) 36%);
+      cursor: pointer;
+    }
+    .dash-block--venues-occ .dash-block__title { color: #0ea5e9; }
+    [data-theme="light"] .dash-block--venues-occ {
+      background: linear-gradient(160deg, rgba(14, 165, 233, 0.1) 0%, #ffffff 32%);
+    }
+    .venue-occ-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.35rem;
+    }
+    .venue-occ-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 0.85rem;
+      background: var(--surface, var(--card));
+      border-left: 4px solid #0ea5e9;
+    }
+    .venue-occ-card h4 {
+      margin: 0 0 0.45rem;
+      font-size: 1rem;
+    }
+    .venue-occ-slot {
+      font-size: 0.88rem;
+      line-height: 1.45;
+      padding: 0.25rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .venue-occ-slot:first-of-type { border-top: none; }
+    .venue-occ-slot__time {
+      font-weight: 700;
+      color: var(--accent);
+      margin-right: 0.35rem;
+    }
+    .venue-occ-empty {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin: 0;
+    }
     .dash-weather--compact { margin: 0 0 0.5rem; }
     .dash-weather--compact .dash-weather-line { font-size: 0.78rem; }
     @media (max-width: 480px) and (orientation: portrait) {
@@ -6069,6 +6111,8 @@
     let teamCoordAnnualParity = "";
     let teamOrgTeachersOpen = false;
     let teamOrgSlotsOpen = false;
+    /** Jour consulté dans Occupation des installations (ISO). */
+    let venueOccupancyDateISO = "";
     /** Case Association sportive sur l'accueil (repliée par défaut). */
     let dashAssociationStripOpen = false;
     /** Sous-onglet par activité sur l'accueil AS : planning | admin */
@@ -7705,6 +7749,170 @@
 
     function formatTeamOccupantLine(o) {
       return [o.teacherName || "—", o.className || "—", o.apsa || "—", o.venue || "—"].join(" — ");
+    }
+
+    function normalizeVenueOccupancyKey(name) {
+      return String(name || "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ");
+    }
+
+    function formatVenueOccupancyClock(hhmm) {
+      const t = normalizeTimeHHMM(hhmm || "");
+      if (!t) return "—";
+      const [h, m] = t.split(":");
+      const hour = String(Number(h));
+      if (m === "00") return hour + "h";
+      return hour + "h" + m;
+    }
+
+    function ensureVenueOccupancyDateISO() {
+      const iso = coerceISODateString(venueOccupancyDateISO);
+      if (iso) return iso;
+      venueOccupancyDateISO = dashboardDateISO() || fmtISODate(new Date());
+      return venueOccupancyDateISO;
+    }
+
+    /**
+     * Occupation des installations pour une date, d'après la programmation établissement.
+     * Retourne [{ name, slots: [{ startTime, endTime, teacherName, apsa, className }] }]
+     */
+    function listVenueOccupancyForDate(dateISO) {
+      const iso = coerceISODateString(dateISO) || "";
+      const d = parseISODate(iso);
+      const byVenue = new Map();
+      (appData.venues || []).forEach((v) => {
+        const name = String(v.name || "").trim();
+        if (!name) return;
+        byVenue.set(normalizeVenueOccupancyKey(name), { name, slots: [] });
+      });
+      if (!d || Number.isNaN(d.getTime())) {
+        return [...byVenue.values()].sort((a, b) => a.name.localeCompare(b.name, "fr"));
+      }
+      const dayIndex = dayIndexMon0(d);
+      if (dayIndex >= 0 && dayIndex <= 4) {
+        const week = weekParityForDate(iso) === "B" ? "B" : "A";
+        const tc = ensureTeamCoordination();
+        (tc.timeSlots || []).forEach((ts) => {
+          const occupants = teamSlotOccupants(dayIndex, ts.id, week, "", iso);
+          occupants.forEach((o) => {
+            const venue = String(o.venue || "").trim();
+            if (!venue) return;
+            const key = normalizeVenueOccupancyKey(venue);
+            if (!byVenue.has(key)) byVenue.set(key, { name: venue, slots: [] });
+            byVenue.get(key).slots.push({
+              startTime: normalizeTimeHHMM(ts.startTime || ""),
+              endTime: normalizeTimeHHMM(ts.endTime || ""),
+              teacherName: o.teacherName || "—",
+              apsa: o.apsa || "",
+              className: o.className || "",
+              teacherId: o.teacherId || "",
+            });
+          });
+        });
+      }
+      const list = [...byVenue.values()].sort((a, b) => a.name.localeCompare(b.name, "fr"));
+      list.forEach((v) => {
+        v.slots.sort(
+          (a, b) =>
+            String(a.startTime).localeCompare(String(b.startTime)) ||
+            String(a.teacherName).localeCompare(String(b.teacherName), "fr")
+        );
+      });
+      return list;
+    }
+
+    function formatVenueOccupancySlotLine(slot) {
+      const time =
+        "de " +
+        formatVenueOccupancyClock(slot.startTime) +
+        " à " +
+        formatVenueOccupancyClock(slot.endTime);
+      const parts = [slot.teacherName || "—", slot.apsa || "", slot.className || ""].filter((p) =>
+        String(p || "").trim()
+      );
+      return { time, detail: parts.join(" · ") };
+    }
+
+    function dashVenueOccupancyCardHtml() {
+      return `<div class="dash-block dash-block--venues-occ no-print" id="btn-dash-venue-occupancy" role="button" tabindex="0" aria-label="Occupation des installations">
+          <h3 class="dash-block__title">🏟️ Occupation des installations</h3>
+          <p class="kpi-sub" style="margin:0;line-height:1.45">Voir l’occupation de chaque lieu de pratique selon la programmation de l’établissement.</p>
+        </div>`;
+    }
+
+    function openVenueOccupancyPage(dateISO) {
+      venueOccupancyDateISO = coerceISODateString(dateISO) || dashboardDateISO() || fmtISODate(new Date());
+      navigateTo("dashboard:venues-occupancy");
+    }
+
+    function viewVenueOccupancyPage() {
+      const iso = ensureVenueOccupancyDateISO();
+      const d = parseISODate(iso);
+      const week = weekParityForDate(iso) === "B" ? "B" : "A";
+      const dayIndex = d && !Number.isNaN(d.getTime()) ? dayIndexMon0(d) : -1;
+      const dateLong =
+        d && !Number.isNaN(d.getTime())
+          ? d.toLocaleDateString("fr-FR", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })
+          : fmtDateFr(iso);
+      const dateCapitalized = dateLong.charAt(0).toUpperCase() + dateLong.slice(1);
+      const isToday = iso === fmtISODate(new Date());
+      const venues = listVenueOccupancyForDate(iso);
+      const weekendNote =
+        dayIndex > 4
+          ? `<p class="kpi-sub" style="margin:0 0 .65rem">Week-end : aucun créneau de programmation établissement (lundi–vendredi).</p>`
+          : "";
+      const body =
+        venues.length === 0
+          ? `<p class="kpi-sub">Aucun lieu de pratique renseigné. Ajoutez-en dans Réglages → Organisation EPS → Lieux de pratique, et indiquez les lieux dans la programmation établissement.</p>`
+          : `<div class="venue-occ-list">${venues
+              .map((v) => {
+                const slotsHtml = v.slots.length
+                  ? v.slots
+                      .map((s) => {
+                        const line = formatVenueOccupancySlotLine(s);
+                        return `<div class="venue-occ-slot"><span class="venue-occ-slot__time">${escapeHtml(
+                          line.time
+                        )}</span>${escapeHtml(line.detail)}</div>`;
+                      })
+                      .join("")
+                  : `<p class="venue-occ-empty">Libre — aucun cours programmé ce jour</p>`;
+                return `<article class="venue-occ-card">
+              <h4>${escapeHtml(v.name)}</h4>
+              ${slotsHtml}
+            </article>`;
+              })
+              .join("")}</div>`;
+
+      return (
+        renderTopbar("🏟️ Occupation des installations", "") +
+        `<div class="card no-print" style="border-left:4px solid #0ea5e9">
+          <div class="dash-date-nav${isToday ? " dash-date-nav--today" : ""}" style="margin-bottom:.75rem">
+            <div class="dash-date-nav__side dash-date-nav__side--left"></div>
+            <div class="dash-date-nav__center">
+              <div class="dash-date-nav__date-row">
+                <button type="button" class="btn btn-sm btn-ghost dash-date-nav__arrow" id="venue-occ-prev-day" aria-label="Jour précédent">◀</button>
+                <p class="dash-date-label${isToday ? " dash-date-label--today" : ""}" id="venue-occ-date-pick" role="button" tabindex="0" aria-label="Choisir une date" style="cursor:pointer">${escapeHtml(dateCapitalized)}</p>
+                <button type="button" class="btn btn-sm btn-ghost dash-date-nav__arrow" id="venue-occ-next-day" aria-label="Jour suivant">▶</button>
+              </div>
+              <p class="kpi-sub" style="margin:.25rem 0 0">Semaine ${week}</p>
+              ${isToday ? "" : `<button type="button" class="btn btn-sm btn-ghost dash-date-nav__today" id="venue-occ-today" style="margin-top:.35rem">Aujourd'hui</button>`}
+            </div>
+            <div class="dash-date-nav__side dash-date-nav__side--right"></div>
+          </div>
+          ${weekendNote}
+          <p class="kpi-sub" style="margin:0 0 .65rem;line-height:1.45">Occupation d’après la <strong>programmation de l’établissement</strong> (créneaux, professeurs, APSA, classes et lieux).</p>
+          ${body}
+        </div>`
+      );
     }
 
     function periodsCoveringDate(dateStr) {
@@ -10211,6 +10419,7 @@
       if (!snap) return "◀ Retour";
       if (snap.view === "dashboard") return "◀ Accueil";
       if (snap.view === "dashboard:association") return "◀ Association sportive";
+      if (snap.view === "dashboard:venues-occupancy") return "◀ Occupation des installations";
       if (snap.view === "calendar:visual") return "◀ Calendrier";
       if (snap.view === "classes") return "◀ Classes";
       if (snap.view === "tools") {
@@ -15241,6 +15450,7 @@
           <h3 class="dash-block__title">📚 ${profile ? "Classes du profil" : "Séquences en cours"}</h3>
           <div class="dashboard-classes">${classCards || (profile ? '<p class="kpi-sub">Aucune classe pour ce professeur dans la Programmation de l\'établissement.</p>' : '<p class="kpi-sub">Aucune classe — Réglages → Mes classes.</p>')}</div>
         </div>
+        ${dashVenueOccupancyCardHtml()}
         </section>
         <div class="print-only"><h1>EPS — Tableau de bord</h1><p>Généré le ${escapeHtml(dISO)}</p></div>`;
     }
@@ -18262,6 +18472,51 @@
       main.querySelector("#dash-association-toggle")?.addEventListener("click", () => {
         navigateTo("dashboard:association");
       });
+      const openVenueOcc = () => openVenueOccupancyPage(dashboardDateISO());
+      main.querySelector("#btn-dash-venue-occupancy")?.addEventListener("click", openVenueOcc);
+      main.querySelector("#btn-dash-venue-occupancy")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openVenueOcc();
+        }
+      });
+      main.querySelector("#venue-occ-prev-day")?.addEventListener("click", () => {
+        const d = parseISODate(ensureVenueOccupancyDateISO());
+        if (!d) return;
+        venueOccupancyDateISO = fmtISODate(addDays(d, -1));
+        render();
+      });
+      main.querySelector("#venue-occ-next-day")?.addEventListener("click", () => {
+        const d = parseISODate(ensureVenueOccupancyDateISO());
+        if (!d) return;
+        venueOccupancyDateISO = fmtISODate(addDays(d, 1));
+        render();
+      });
+      main.querySelector("#venue-occ-today")?.addEventListener("click", () => {
+        venueOccupancyDateISO = fmtISODate(new Date());
+        render();
+      });
+      const openVenueOccDatePicker = () => {
+        const body = el(`<div>
+          <div class="form-group">
+            <label>Choisir une date</label>
+            <input type="date" id="f-venue-occ-date" value="${escapeHtml(ensureVenueOccupancyDateISO())}" />
+          </div>
+        </div>`);
+        openModal("Aller à une date", body, () => {
+          const value = body.querySelector("#f-venue-occ-date").value;
+          if (!value) return false;
+          venueOccupancyDateISO = value;
+          render();
+        });
+      };
+      main.querySelector("#venue-occ-date-pick")?.addEventListener("click", openVenueOccDatePicker);
+      main.querySelector("#venue-occ-date-pick")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openVenueOccDatePicker();
+        }
+      });
       if (currentView === "dashboard") {
         requestAnimationFrame(() => fitDashAssociationStripText());
       }
@@ -20503,6 +20758,7 @@
     function viewClassName(view) {
       if (view === "dashboard") return "main main--dashboard";
       if (view === "dashboard:association") return "main main--dashboard";
+      if (view === "dashboard:venues-occupancy") return "main main--dashboard";
       if (view === "calendar:visual") return "main main--dashboard main--calendar";
       if (view === "classes") return "main main--classes";
       if (view === "tools") return "main main--tools";
@@ -20582,6 +20838,8 @@
         body = viewCalendarFullPage();
       } else if (currentView === "dashboard:association") {
         body = viewAssociationUpcomingPage();
+      } else if (currentView === "dashboard:venues-occupancy") {
+        body = viewVenueOccupancyPage();
       } else if (currentView === "classes") {
         body = viewClasses();
       } else if (currentView === "tools") {
