@@ -6237,6 +6237,11 @@
       }
     }
 
+    /** Sauvegarde légère (appel, oublis, résumé) sans régénérer toutes les séances. */
+    function persistLight() {
+      saveData({ skipAutoRegen: true });
+    }
+
     /** Sérialise appData avec la couche partagée (pas l'overlay profil) pour ne jamais écraser les réglages établissement. */
     function persistAppDataToStorage() {
       flushEstablishmentOverlayToProfile();
@@ -8541,9 +8546,13 @@
       injectPreviousAbsentReminder(body.querySelector("#cp-prev-absent-reminder"), session);
       body.appendChild(buildAttendanceBlock(session));
       body.appendChild(buildSessionPdfBlock(session));
-      openModal("Résumé de séance", body, () => {
+      const persistSummary = () => {
         session.summary = body.querySelector("#f-summary").value;
-        saveData();
+        persistLight();
+      };
+      body.querySelector("#f-summary").addEventListener("input", persistSummary);
+      openModal("Résumé de séance", body, () => {
+        persistSummary();
         render();
       });
     }
@@ -9755,7 +9764,7 @@
       const panel = el(`<div class="as-student-edit-panel" data-student-idx="${index}">
         <button type="button" class="btn btn-sm btn-ghost btn-as-student-edit-cancel" style="margin-bottom:.5rem">← Retour à la liste</button>
         ${associationStudentFormHtml()}
-        <p class="kpi-sub" style="margin:.55rem 0 0">Cliquez sur <strong>Valider</strong> pour enregistrer les modifications.</p>
+        <p class="kpi-sub" style="margin:.55rem 0 0">Les modifications sont enregistrées automatiquement. Fermez la fenêtre ou revenez à la liste quand vous avez terminé.</p>
       </div>`);
       fillAssociationStudentForm(panel, activity.students[index]);
       listRoot.innerHTML = "";
@@ -10943,6 +10952,8 @@
 
     /** Période sélectionnée par classe dans l'onglet classe (null = période en cours auto). */
     const classSelectedPeriod = {};
+    const forgottenGearQuickOpen = {};
+    const forgottenGearQuickDate = {};
 
     let forgottenGearThreshold = parseInt(lsGet("eps_fg_threshold"), 10) || 3;
 
@@ -11378,9 +11389,21 @@
       return root;
     }
 
-    function closeModal() {
+    let modalOnClose = null;
+
+    function closeModal(opts) {
+      opts = opts || {};
       const root = document.getElementById("modal-root");
       if (!root) return;
+      const onClose = modalOnClose;
+      modalOnClose = null;
+      if (!opts.skipAutosave && typeof onClose === "function") {
+        try {
+          onClose();
+        } catch (e) {
+          console.error(e);
+        }
+      }
       unbindFullscreenInsetSync();
       root.classList.remove("open", "modal-backdrop--calendar-fullscreen");
       root.innerHTML = "";
@@ -11390,6 +11413,7 @@
 
     function openModal(title, bodyNode, onConfirm, options) {
       options = options || {};
+      closeModal();
       const root = document.getElementById("modal-root");
       root.innerHTML = "";
       root.classList.add("open");
@@ -11405,36 +11429,45 @@
       wrap.querySelector(".modal-title").textContent = title;
       wrap.querySelector(".modal-body").appendChild(bodyNode);
       const foot = wrap.querySelector(".modal-footer");
-      if (options.infoOnly) {
+      const confirmDanger = !!options.confirmDanger;
+      const infoOnly = !!options.infoOnly;
+      const autosave = options.autosave !== false && !confirmDanger && !infoOnly;
+      if (autosave && typeof onConfirm === "function") modalOnClose = onConfirm;
+      const dismiss = () => closeModal(autosave ? {} : { skipAutosave: true });
+      if (infoOnly) {
         if (!options.noDismiss) {
           const bClose = el(`<button type="button" class="btn btn-primary">Fermer</button>`);
           foot.append(bClose);
-          bClose.onclick = closeModal;
+          bClose.onclick = dismiss;
         } else {
           foot.style.display = "none";
         }
+      } else if (autosave) {
+        const bClose = el(`<button type="button" class="btn btn-primary">Fermer</button>`);
+        foot.append(bClose);
+        bClose.onclick = dismiss;
       } else {
         const bCancel = el(`<button type="button" class="btn btn-ghost">Annuler</button>`);
         const bOk = el(
-          `<button type="button" class="btn ${options.confirmDanger ? "btn-danger" : "btn-primary"}"></button>`
+          `<button type="button" class="btn ${confirmDanger ? "btn-danger" : "btn-primary"}"></button>`
         );
         bOk.textContent = options.confirmLabel || "Valider";
         if (options.noDismiss) {
           foot.append(bOk);
         } else {
           foot.append(bCancel, bOk);
-          bCancel.onclick = closeModal;
+          bCancel.onclick = dismiss;
         }
         bOk.onclick = () => {
           const keepOpen = onConfirm && onConfirm() === false;
-          if (!keepOpen) closeModal();
+          if (!keepOpen) closeModal({ skipAutosave: true });
         };
       }
       const closeBtn = wrap.querySelector(".modal-close");
-      if (closeBtn) closeBtn.onclick = closeModal;
+      if (closeBtn) closeBtn.onclick = dismiss;
       root.appendChild(wrap);
       root.onclick = (e) => {
-        if (e.target === root && !options.noDismiss) closeModal();
+        if (e.target === root && !options.noDismiss) dismiss();
       };
     }
 
@@ -11504,6 +11537,7 @@
       const root = document.getElementById("modal-root");
       if (!root) return;
       if (root.classList.contains("open") && root.querySelector(".calendar-fullscreen-modal")) return;
+      modalOnClose = null;
       root.innerHTML = "";
       openFullscreenBackdrop();
       const wrap = el(`<div class="modal calendar-fullscreen-modal">
@@ -11683,7 +11717,7 @@
       body.querySelector("#btn-as-hours-reset")?.addEventListener("click", () => {
         setAssociationSessionTimeOverride(event, "", "");
         saveData();
-        closeModal();
+        closeModal({ skipAutosave: true });
         refreshAssociationDashPlanning();
       });
       openModal("Modifier les horaires", body, () => {
@@ -11796,7 +11830,7 @@
         saveData();
         refreshAssociationDashPlanning();
         return true;
-      });
+      }, { autosave: false });
     }
 
     function wireAssociationPlanningTableInteractions(root) {
@@ -12311,7 +12345,7 @@
             const val = b.getAttribute("data-val");
             session.attendance[name] = session.attendance[name] === val ? undefined : val;
             if (session.attendance[name] === undefined) delete session.attendance[name];
-            saveData();
+            persistLight();
             renderUI();
           });
         });
@@ -12319,7 +12353,7 @@
         if (allBtn) {
           allBtn.addEventListener("click", () => {
             students.forEach((n) => { session.attendance[n] = "present"; });
-            saveData();
+            persistLight();
             renderUI();
           });
         }
@@ -13846,7 +13880,7 @@
         } else {
           render();
         }
-      });
+      }, { autosave: false });
     }
 
     function buildAssociationTimelineByActivity(weeksAhead, opts) {
@@ -14940,7 +14974,7 @@
         });
         saveData();
         render();
-      });
+      }, { autosave: false });
     }
 
     function openAddAssociationActivityModal() {
@@ -17845,6 +17879,55 @@
       return (appData.forgottenGear || []).filter((f) => f.classId === classId);
     }
 
+    function forgottenGearExists(classId, studentName, date, item) {
+      return (appData.forgottenGear || []).some(
+        (f) => f.classId === classId && f.studentName === studentName && f.date === date && f.item === item
+      );
+    }
+
+    function setForgottenGearFlag(classId, studentName, date, item, on) {
+      if (!classId || !studentName || !date || !item) return;
+      if (!Array.isArray(appData.forgottenGear)) appData.forgottenGear = [];
+      const eq = (f) => f.classId === classId && f.studentName === studentName && f.date === date && f.item === item;
+      if (on) {
+        if (!appData.forgottenGear.some(eq)) {
+          appData.forgottenGear.push({ id: uid(), classId, studentName, date, item });
+        }
+      } else {
+        appData.forgottenGear = appData.forgottenGear.filter((f) => !eq(f));
+      }
+      persistLight();
+    }
+
+    function wireForgottenGearCheckboxes(root, classId, getDate, onAfterChange) {
+      if (!root) return;
+      const sync = () => {
+        const date = getDate();
+        root.querySelectorAll(".fg-quick-cb, .td-fg-quick-cb").forEach((cb) => {
+          cb.checked = forgottenGearExists(
+            classId,
+            cb.getAttribute("data-student"),
+            date,
+            cb.getAttribute("data-item")
+          );
+        });
+      };
+      sync();
+      root.querySelectorAll(".fg-quick-cb, .td-fg-quick-cb").forEach((cb) => {
+        cb.addEventListener("change", () => {
+          setForgottenGearFlag(
+            classId,
+            cb.getAttribute("data-student"),
+            getDate(),
+            cb.getAttribute("data-item"),
+            cb.checked
+          );
+          if (typeof onAfterChange === "function") onAfterChange();
+        });
+      });
+      return sync;
+    }
+
     function renderForgottenGearBlock(classId, activePeriod) {
       let items = forgottenGearForClass(classId);
       if (activePeriod) {
@@ -17878,23 +17961,24 @@
       const cl = getClassById(classId);
       const students = (cl && cl.students) || [];
       const todayISO = fmtISODate(new Date());
+      const dateISO = forgottenGearQuickDate[classId] || todayISO;
       const GEAR_ITEMS = ["Gourde", "Tenue", "Baskets"];
       const quickAddRows = students.map((s) =>
         `<tr><td style="padding:2px 6px;font-size:.82rem;white-space:nowrap">${escapeHtml(s)}</td>${GEAR_ITEMS.map((item) =>
-          `<td style="padding:2px 4px;text-align:center"><input type="checkbox" class="fg-quick-cb" data-student="${escapeHtml(s)}" data-item="${item}" style="width:18px;height:18px;margin:0;cursor:pointer" /></td>`
+          `<td style="padding:2px 4px;text-align:center"><input type="checkbox" class="fg-quick-cb" data-student="${escapeHtml(s)}" data-item="${item}" style="width:18px;height:18px;margin:0;cursor:pointer"${forgottenGearExists(classId, s, dateISO, item) ? " checked" : ""} /></td>`
         ).join("")}</tr>`
       ).join("");
+      const quickOpen = forgottenGearQuickOpen[classId] ? " open" : "";
       const quickAddHtml = students.length
-        ? `<details class="fg-quick-add-details no-print" style="margin-top:.75rem">
+        ? `<details class="fg-quick-add-details no-print" data-classid="${classId}" style="margin-top:.75rem"${quickOpen}>
             <summary style="cursor:pointer;font-weight:700;color:#d97706;font-size:.92rem;user-select:none">+ Signaler un oubli</summary>
             <div style="margin-top:.5rem">
-              <div class="form-group" style="margin-bottom:.4rem"><label style="font-size:.85rem">Date</label><input type="date" id="f-fg-quick-date" value="${todayISO}" style="font-size:.9rem;padding:.3rem .4rem" /></div>
+              <div class="form-group" style="margin-bottom:.4rem"><label style="font-size:.85rem">Date</label><input type="date" id="f-fg-quick-date" value="${dateISO}" style="font-size:.9rem;padding:.3rem .4rem" /></div>
               <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="width:100%;border-collapse:collapse;font-size:.82rem" id="fg-quick-table">
                 <thead><tr><th style="padding:2px 6px;text-align:left">Élève</th>${GEAR_ITEMS.map((i) => `<th style="padding:2px 4px;text-align:center;font-size:.75rem">${escapeHtml(i.slice(0,1))}</th>`).join("")}</tr></thead>
                 <tbody>${quickAddRows}</tbody>
               </table></div>
-              <p style="margin:.25rem 0 0;font-size:.72rem;color:#94a3b8">G = Gourde · T = Tenue · B = Baskets</p>
-              <button type="button" class="btn btn-sm" id="btn-fg-quick-save" data-classid="${classId}" style="margin-top:.5rem;font-weight:700;background:#d97706;color:#fff;width:100%">Valider les oublis</button>
+              <p style="margin:.25rem 0 0;font-size:.72rem;color:#94a3b8">G = Gourde · T = Tenue · B = Baskets — enregistré dès la case cochée</p>
             </div>
           </details>`
         : `<button type="button" class="btn btn-sm no-print" id="btn-add-forgotten" data-classid="${classId}" style="margin-top:.75rem;font-weight:700;background:#d97706;color:#fff">+ Ajouter un oubli</button>`;
@@ -19228,18 +19312,19 @@
           });
         });
       });
-      main.querySelector("#btn-fg-quick-save")?.addEventListener("click", () => {
-        const cid = main.querySelector("#btn-fg-quick-save").getAttribute("data-classid");
-        const date = (main.querySelector("#f-fg-quick-date") || {}).value || fmtISODate(new Date());
-        if (!date) return;
-        const cbs = main.querySelectorAll(".fg-quick-cb:checked");
-        if (!cbs.length) { alert("Cochez au moins un oubli."); return; }
-        cbs.forEach((cb) => {
-          appData.forgottenGear.push({ id: uid(), classId: cid, studentName: cb.getAttribute("data-student"), date, item: cb.getAttribute("data-item") });
+      const fgDetails = main.querySelector(".fg-quick-add-details");
+      if (fgDetails) {
+        const cid = fgDetails.getAttribute("data-classid");
+        const getDate = () => main.querySelector("#f-fg-quick-date")?.value || fmtISODate(new Date());
+        const syncFg = wireForgottenGearCheckboxes(fgDetails, cid, getDate, () => render());
+        fgDetails.addEventListener("toggle", () => {
+          forgottenGearQuickOpen[cid] = fgDetails.open;
         });
-        saveData();
-        render();
-      });
+        main.querySelector("#f-fg-quick-date")?.addEventListener("change", () => {
+          forgottenGearQuickDate[cid] = getDate();
+          if (syncFg) syncFg();
+        });
+      }
       /* Fallback ancien bouton si pas d'élèves */
       main.querySelector("#btn-add-forgotten")?.addEventListener("click", () => {
         const cid = main.querySelector("#btn-add-forgotten").getAttribute("data-classid");
@@ -20602,15 +20687,21 @@
               <textarea id="f-td-summary" rows="5" style="font-size:.9rem;line-height:1.5" placeholder="Contenu de la séance, observations, points à retenir…"></textarea>
             </div>
             <div class="sm-section sm-section--forgotten">
-              <p class="sm-section__title">🎒 Oubli de matériel</p>
-              <div class="sm-form-row">
-                <div class="form-group" style="flex:1;min-width:8rem"><label>Élève</label>${studentPickerHtml(s.classId, "f-td-fg-name")}</div>
-                <div class="form-group" style="min-width:7rem"><label>Objet oublié</label>
-                  <select id="f-td-fg-item"><option value="Gourde">Gourde</option><option value="Tenue">Tenue</option><option value="Baskets">Baskets</option></select>
+              <details class="fg-quick-add-details">
+                <summary style="cursor:pointer;font-weight:600;font-size:.92rem;user-select:none">🎒 Oubli de matériel</summary>
+                <div style="margin-top:.4rem;overflow-x:auto;-webkit-overflow-scrolling:touch">
+                  <table style="width:100%;border-collapse:collapse;font-size:.82rem" id="td-fg-quick-table">
+                    <thead><tr><th style="padding:2px 6px;text-align:left">Élève</th><th style="padding:2px 4px;text-align:center;font-size:.75rem">G</th><th style="padding:2px 4px;text-align:center;font-size:.75rem">T</th><th style="padding:2px 4px;text-align:center;font-size:.75rem">B</th></tr></thead>
+                    <tbody>${((getClassById(s.classId)||{}).students||[]).map(st =>
+                      '<tr><td style="padding:2px 6px;font-size:.82rem;white-space:nowrap">'+escapeHtml(st)+'</td>'+
+                      ["Gourde","Tenue","Baskets"].map(item =>
+                        '<td style="padding:2px 4px;text-align:center"><input type="checkbox" class="td-fg-quick-cb" data-student="'+escapeHtml(st)+'" data-item="'+item+'" style="width:18px;height:18px;margin:0;cursor:pointer"'+(forgottenGearExists(s.classId, st, s.date, item) ? " checked" : "")+' /></td>'
+                      ).join('')+'</tr>'
+                    ).join('')}</tbody>
+                  </table>
+                  <p style="margin:.25rem 0 0;font-size:.72rem;color:#94a3b8">G = Gourde · T = Tenue · B = Baskets — enregistré dès la case cochée</p>
                 </div>
-                <button type="button" class="btn btn-sm sm-btn-add-forgotten" id="btn-td-add-fg">+ Ajouter</button>
-              </div>
-              <div id="td-fg-list" class="sm-list"></div>
+              </details>
             </div>
             <div class="sm-section sm-section--exemption">
               <p class="sm-section__title">🏥 Dispense élève</p>
@@ -20651,25 +20742,33 @@
             sessionDate: s.date,
             defaultChecked: true,
           });
-          const exList = [];
+          const exAdded = [];
           const renderExList = () => {
             const container = body.querySelector("#td-ex-list");
-            container.innerHTML = exList.length
-              ? exList.map((ex, i) => {
+            container.innerHTML = exAdded.length
+              ? exAdded.map((ex, i) => {
                   const lbl = ex.sansCertificat && ex.sessionId ? "Sans certificat · ce cours" : (ex.sansCertificat ? "Sans certificat · " + fmtDateFr(ex.startDate) : ex.days + "j (" + fmtDateFr(ex.startDate) + " → " + fmtDateFr(ex.endDate) + ")");
-                  return `<div class="sm-list-item sm-list-item--ex"><span>✓ <strong>${escapeHtml(ex.name)}</strong> — ${escapeHtml(lbl)}</span><button type="button" class="btn btn-sm btn-danger td-ex-del" data-idx="${i}" style="padding:.15rem .4rem;font-size:.7rem">✕</button></div>`;
+                  return `<div class="sm-list-item sm-list-item--ex"><span>✓ <strong>${escapeHtml(ex.studentName)}</strong> — ${escapeHtml(lbl)}</span><button type="button" class="btn btn-sm btn-danger td-ex-del" data-idx="${i}" style="padding:.15rem .4rem;font-size:.7rem">✕</button></div>`;
                 }).join("")
               : "";
             container.querySelectorAll(".td-ex-del").forEach((b) => {
-              b.addEventListener("click", () => { exList.splice(parseInt(b.getAttribute("data-idx"), 10), 1); renderExList(); });
+              b.addEventListener("click", () => {
+                const idx = parseInt(b.getAttribute("data-idx"), 10);
+                const rec = exAdded[idx];
+                if (rec && rec.id) appData.exemptions = appData.exemptions.filter((e) => e.id !== rec.id);
+                exAdded.splice(idx, 1);
+                persistLight();
+                renderExList();
+              });
             });
           };
           body.querySelector("#btn-td-add-ex").addEventListener("click", () => {
             const name = body.querySelector("#f-td-ex-name").value.trim();
             if (!name) return;
             const sansCert = body.querySelector("#f-td-ex-sans-cert").checked;
+            let rec;
             if (sansCert) {
-              exList.push({ name, sansCertificat: true, sessionId: s.id, startDate: s.date, endDate: s.date, days: 1, certDate: null });
+              rec = { id: uid(), classId: s.classId, studentName: name, sansCertificat: true, sessionId: s.id, startDate: s.date, endDate: s.date, days: 1, certDate: null };
             } else {
               const certDate = body.querySelector("#f-td-ex-certdate").value;
               if (!certDate) return;
@@ -20683,28 +20782,18 @@
                 if (!endDate || endDate < certDate) return;
                 days = Math.max(1, Math.round((parseISODate(endDate).getTime() - parseISODate(certDate).getTime()) / 86400000) + 1);
               }
-              exList.push({ name, sansCertificat: false, sessionId: null, certDate, startDate: certDate, days, endDate });
+              rec = { id: uid(), classId: s.classId, studentName: name, sansCertificat: false, sessionId: null, certDate, startDate: certDate, days, endDate };
             }
+            appData.exemptions.push(rec);
+            exAdded.push(rec);
+            persistLight();
             body.querySelector("#f-td-ex-name").value = "";
             renderExList();
           });
-          const fgList = [];
-          const renderFgList = () => {
-            const container = body.querySelector("#td-fg-list");
-            container.innerHTML = fgList.length
-              ? fgList.map((f, i) => `<div class="sm-list-item sm-list-item--fg"><span>✓ <strong>${escapeHtml(f.name)}</strong> — ${escapeHtml(f.item)}</span><button type="button" class="btn btn-sm btn-danger td-fg-del" data-idx="${i}" style="padding:.15rem .4rem;font-size:.7rem">✕</button></div>`).join("")
-              : "";
-            container.querySelectorAll(".td-fg-del").forEach((b) => {
-              b.addEventListener("click", () => { fgList.splice(parseInt(b.getAttribute("data-idx"), 10), 1); renderFgList(); });
-            });
-          };
-          body.querySelector("#btn-td-add-fg").addEventListener("click", () => {
-            const name = body.querySelector("#f-td-fg-name").value.trim();
-            const item = body.querySelector("#f-td-fg-item").value;
-            if (!name) return;
-            fgList.push({ name, item });
-            body.querySelector("#f-td-fg-name").value = "";
-            renderFgList();
+          wireForgottenGearCheckboxes(body, s.classId, () => s.date);
+          body.querySelector("#f-td-summary").addEventListener("input", () => {
+            s.summary = body.querySelector("#f-td-summary").value;
+            persistLight();
           });
           body.appendChild(buildAttendanceBlock(s, { styled: true }));
           body.appendChild(buildSessionPdfBlock(s, { compactHeader: true }));
@@ -20714,30 +20803,13 @@
           });
           body.querySelector("#btn-td-uncancel-session")?.addEventListener("click", () => {
             appData.cancellations = appData.cancellations.filter((c) => c.sessionId !== s.id);
-            saveData();
-            closeModal();
+            persistLight();
+            closeModal({ skipAutosave: true });
             render();
           });
           openModal("Cours du jour", body, () => {
             s.summary = body.querySelector("#f-td-summary").value;
-            const todayISO = fmtISODate(new Date());
-            fgList.forEach((f) => {
-              appData.forgottenGear.push({ id: uid(), classId: s.classId, studentName: f.name, date: todayISO, item: f.item });
-            });
-            exList.forEach((ex) => {
-              appData.exemptions.push({
-                id: uid(),
-                classId: s.classId,
-                studentName: ex.name,
-                certDate: ex.certDate || null,
-                startDate: ex.startDate,
-                days: ex.days,
-                endDate: ex.endDate,
-                sansCertificat: !!ex.sansCertificat,
-                sessionId: ex.sessionId || null,
-              });
-            });
-            saveData();
+            persistLight();
             render();
           }, { wide: true });
         });
