@@ -6324,7 +6324,20 @@
       reader.onload = () => {
         try {
           const o = JSON.parse(reader.result);
-          const isTeamShare = o && o.shareKind === TEAM_SHARE_KIND;
+          if (!o || typeof o !== "object") {
+            alert("Fichier JSON invalide.");
+            return;
+          }
+          // Packs partiels : rediriger vers l'import dédié (ne pas écraser tout appData).
+          if (o.kind === EPS_ORG_SHARE_KIND) {
+            importEpsOrgJSONFromObject(o);
+            return;
+          }
+          if (o.kind === ASSOCIATION_SHARE_KIND) {
+            importAssociationJSONFromObject(o);
+            return;
+          }
+          const isTeamShare = o.shareKind === TEAM_SHARE_KIND;
           Object.keys(appData).forEach((k) => {
             if (o[k] !== undefined) appData[k] = o[k];
           });
@@ -6376,50 +6389,53 @@
      * Ne touche jamais aux classes, EDT, réglages, profils, lieux, ni aux appels locaux
      * (attendanceRecords / associationByTeacher).
      */
+    function importAssociationJSONFromObject(o) {
+      if (!o || typeof o !== "object" || o.kind !== ASSOCIATION_SHARE_KIND) {
+        alert(
+          "Ce fichier n’est pas un export Association sportive.\nUtilisez « Export AS » dans Association sportive (pas l’export complet de Sauvegarde)."
+        );
+        return;
+      }
+      if (!o.association || typeof o.association !== "object") {
+        alert("Fichier Association sportive invalide (données manquantes).");
+        return;
+      }
+      if (
+        !confirm(
+          "Remplacer les activités, créneaux, compétitions, annulations et informations AS ?\n\nLes autres réglages (classes, emploi du temps, programmation…) et les appels déjà saisis ne seront pas modifiés."
+        )
+      ) {
+        return;
+      }
+      if (!appData.association || typeof appData.association !== "object") {
+        appData.association = {};
+      }
+      const keepAttendance =
+        appData.association.attendanceRecords &&
+        typeof appData.association.attendanceRecords === "object"
+          ? appData.association.attendanceRecords
+          : {};
+      appData.association.activities = Array.isArray(o.association.activities)
+        ? JSON.parse(JSON.stringify(o.association.activities))
+        : [];
+      appData.association.cancellations = Array.isArray(o.association.cancellations)
+        ? JSON.parse(JSON.stringify(o.association.cancellations))
+        : [];
+      appData.association.notices = Array.isArray(o.association.notices)
+        ? JSON.parse(JSON.stringify(o.association.notices))
+        : [];
+      appData.association.attendanceRecords = keepAttendance;
+      migrateDataModel();
+      saveData();
+      render();
+      alert("Association sportive importée. Aucun autre réglage n’a été modifié.");
+    }
+
     function importAssociationJSONFile(file) {
       const reader = new FileReader();
       reader.onload = () => {
         try {
-          const o = JSON.parse(reader.result);
-          if (!o || typeof o !== "object" || o.kind !== ASSOCIATION_SHARE_KIND) {
-            alert(
-              "Ce fichier n’est pas un export Association sportive.\nUtilisez « Export AS » dans Association sportive (pas l’export complet de Sauvegarde)."
-            );
-            return;
-          }
-          if (!o.association || typeof o.association !== "object") {
-            alert("Fichier Association sportive invalide (données manquantes).");
-            return;
-          }
-          if (
-            !confirm(
-              "Remplacer les activités, créneaux, compétitions, annulations et informations AS ?\n\nLes autres réglages (classes, emploi du temps, programmation…) et les appels déjà saisis ne seront pas modifiés."
-            )
-          ) {
-            return;
-          }
-          if (!appData.association || typeof appData.association !== "object") {
-            appData.association = {};
-          }
-          const keepAttendance =
-            appData.association.attendanceRecords &&
-            typeof appData.association.attendanceRecords === "object"
-              ? appData.association.attendanceRecords
-              : {};
-          appData.association.activities = Array.isArray(o.association.activities)
-            ? JSON.parse(JSON.stringify(o.association.activities))
-            : [];
-          appData.association.cancellations = Array.isArray(o.association.cancellations)
-            ? JSON.parse(JSON.stringify(o.association.cancellations))
-            : [];
-          appData.association.notices = Array.isArray(o.association.notices)
-            ? JSON.parse(JSON.stringify(o.association.notices))
-            : [];
-          appData.association.attendanceRecords = keepAttendance;
-          migrateDataModel();
-          saveData();
-          render();
-          alert("Association sportive importée. Aucun autre réglage n’a été modifié.");
+          importAssociationJSONFromObject(JSON.parse(reader.result));
         } catch {
           alert("Fichier JSON invalide.");
         }
@@ -6486,62 +6502,65 @@
      * Import pack Organisation EPS : lieux, périodes, calendrier, programmation établissement.
      * Ne modifie pas les classes, EDT, APSA, appels, dispenses, oublis ni l'AS.
      */
+    function importEpsOrgJSONFromObject(o) {
+      if (!o || typeof o !== "object" || o.kind !== EPS_ORG_SHARE_KIND) {
+        alert(
+          "Ce fichier n’est pas un export Organisation EPS.\nUtilisez « Export pack EPS » dans Organisation de l’EPS (pas l’export complet de Sauvegarde)."
+        );
+        return;
+      }
+      const pack = o.pack;
+      if (!pack || typeof pack !== "object") {
+        alert("Fichier Organisation EPS invalide (données manquantes).");
+        return;
+      }
+      const importMsg =
+        "Remplacer les lieux, périodes, calendrier (vacances, trimestres) et programmation de l’établissement ?\n\nVos classes, appels, dispenses, oublis et l’association sportive ne seront pas modifiés.";
+      if (!confirm(importMsg)) return;
+      appData.venues = Array.isArray(pack.venues) ? deepCloneJson(pack.venues) : [];
+      appData.periods = Array.isArray(pack.periods) ? deepCloneJson(pack.periods) : [];
+      appData.holidays = Array.isArray(pack.holidays) ? deepCloneJson(pack.holidays) : [];
+      appData.schoolCalendarEvents = Array.isArray(pack.schoolCalendarEvents)
+        ? deepCloneJson(pack.schoolCalendarEvents)
+        : [];
+      if (pack.schoolTermSchedule && typeof pack.schoolTermSchedule === "object") {
+        appData.schoolTermSchedule = deepCloneJson(pack.schoolTermSchedule);
+      }
+      if (pack.teamCoordination && typeof pack.teamCoordination === "object") {
+        appData.teamCoordination = {
+          teachers: Array.isArray(pack.teamCoordination.teachers)
+            ? deepCloneJson(pack.teamCoordination.teachers)
+            : [],
+          timeSlots: Array.isArray(pack.teamCoordination.timeSlots)
+            ? deepCloneJson(pack.teamCoordination.timeSlots)
+            : [],
+          cells:
+            pack.teamCoordination.cells && typeof pack.teamCoordination.cells === "object"
+              ? deepCloneJson(pack.teamCoordination.cells)
+              : {},
+        };
+      }
+      if (pack.progEtabPdf !== undefined) appData.progEtabPdf = pack.progEtabPdf || null;
+      if (pack.settings && typeof pack.settings === "object") {
+        if (pack.settings.schoolYearStart != null) appData.settings.schoolYearStart = pack.settings.schoolYearStart;
+        if (pack.settings.schoolYearEnd != null) appData.settings.schoolYearEnd = pack.settings.schoolYearEnd;
+        if (pack.settings.academy != null) appData.settings.academy = pack.settings.academy;
+        if (pack.settings.calendarSchoolYear != null) {
+          appData.settings.calendarSchoolYear = pack.settings.calendarSchoolYear;
+        }
+      }
+      migrateDataModel();
+      regenerateSessions();
+      saveData();
+      render();
+      alert("Pack Organisation EPS importé. Vos données de classes et de suivi élèves sont intactes.");
+    }
+
     function importEpsOrgJSONFile(file) {
       const reader = new FileReader();
       reader.onload = () => {
         try {
-          const o = JSON.parse(reader.result);
-          if (!o || typeof o !== "object" || o.kind !== EPS_ORG_SHARE_KIND) {
-            alert(
-              "Ce fichier n’est pas un export Organisation EPS.\nUtilisez « Export pack EPS » dans Organisation de l’EPS (pas l’export complet de Sauvegarde)."
-            );
-            return;
-          }
-          const pack = o.pack;
-          if (!pack || typeof pack !== "object") {
-            alert("Fichier Organisation EPS invalide (données manquantes).");
-            return;
-          }
-          const importMsg =
-            "Remplacer les lieux, périodes, calendrier (vacances, trimestres) et programmation de l’établissement ?\n\nVos classes, appels, dispenses, oublis et l’association sportive ne seront pas modifiés.";
-          if (!confirm(importMsg)) return;
-          appData.venues = Array.isArray(pack.venues) ? deepCloneJson(pack.venues) : [];
-          appData.periods = Array.isArray(pack.periods) ? deepCloneJson(pack.periods) : [];
-          appData.holidays = Array.isArray(pack.holidays) ? deepCloneJson(pack.holidays) : [];
-          appData.schoolCalendarEvents = Array.isArray(pack.schoolCalendarEvents)
-            ? deepCloneJson(pack.schoolCalendarEvents)
-            : [];
-          if (pack.schoolTermSchedule && typeof pack.schoolTermSchedule === "object") {
-            appData.schoolTermSchedule = deepCloneJson(pack.schoolTermSchedule);
-          }
-          if (pack.teamCoordination && typeof pack.teamCoordination === "object") {
-            appData.teamCoordination = {
-              teachers: Array.isArray(pack.teamCoordination.teachers)
-                ? deepCloneJson(pack.teamCoordination.teachers)
-                : [],
-              timeSlots: Array.isArray(pack.teamCoordination.timeSlots)
-                ? deepCloneJson(pack.teamCoordination.timeSlots)
-                : [],
-              cells:
-                pack.teamCoordination.cells && typeof pack.teamCoordination.cells === "object"
-                  ? deepCloneJson(pack.teamCoordination.cells)
-                  : {},
-            };
-          }
-          if (pack.progEtabPdf !== undefined) appData.progEtabPdf = pack.progEtabPdf || null;
-          if (pack.settings && typeof pack.settings === "object") {
-            if (pack.settings.schoolYearStart != null) appData.settings.schoolYearStart = pack.settings.schoolYearStart;
-            if (pack.settings.schoolYearEnd != null) appData.settings.schoolYearEnd = pack.settings.schoolYearEnd;
-            if (pack.settings.academy != null) appData.settings.academy = pack.settings.academy;
-            if (pack.settings.calendarSchoolYear != null) {
-              appData.settings.calendarSchoolYear = pack.settings.calendarSchoolYear;
-            }
-          }
-          migrateDataModel();
-          regenerateSessions();
-          saveData();
-          render();
-          alert("Pack Organisation EPS importé. Vos données de classes et de suivi élèves sont intactes.");
+          importEpsOrgJSONFromObject(JSON.parse(reader.result));
         } catch {
           alert("Fichier JSON invalide.");
         }
@@ -17405,9 +17424,10 @@
         </div>
         <div class="card">
           <p class="kpi-sub" style="line-height:1.5">Sauvegarde automatique dans ce navigateur pour cette origine (voir encadré ci-dessus). Pensez à exporter un fichier JSON avant de changer d’ordinateur, de navigateur ou de mode d’ouverture du fichier.</p>
+          <p class="kpi-sub" style="line-height:1.5;margin-top:.45rem"><strong>Import JSON</strong> accepte aussi un <strong>pack Organisation EPS</strong> ou un <strong>Export AS</strong> : seuls ces réglages sont mis à jour, sans écraser vos classes ni vos appels.</p>
           <div class="flex-row" style="margin-top:.75rem">
             <button type="button" class="btn btn-primary" id="btn-export">Export JSON (copie perso)</button>
-            <label class="btn btn-ghost" style="border:1px solid var(--border);cursor:pointer">Import JSON<input type="file" id="inp-import" accept="application/json" class="hidden" /></label>
+            <label class="btn btn-ghost" style="border:1px solid var(--border);cursor:pointer">Import JSON<input type="file" id="inp-import" accept="application/json,.json" class="hidden" /></label>
             <button type="button" class="btn btn-ghost" id="btn-seed-demo" style="border:1px solid var(--border)">Charger un jeu de test EPS</button>
             <button type="button" class="btn btn-danger" id="btn-reset">Reset données</button>
           </div>
