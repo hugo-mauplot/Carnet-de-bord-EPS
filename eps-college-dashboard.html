@@ -7789,13 +7789,29 @@
         if (!name) return;
         byVenue.set(normalizeVenueOccupancyKey(name), { name, slots: [] });
       });
+      const tc = ensureTeamCoordination();
+      (tc.teachers || []).forEach((teacher) => {
+        [0, 1, 2, 3, 4].forEach((dayIndex) => {
+          ["A", "B"].forEach((week) => {
+            (tc.timeSlots || []).forEach((ts) => {
+              const cell = getTeamCell(teacher.id, dayIndex, ts.id, week);
+              const byPeriod = cell && cell.byPeriod && typeof cell.byPeriod === "object" ? Object.values(cell.byPeriod) : [];
+              byPeriod.forEach((entry) => {
+                const venue = String(entry && entry.venue ? entry.venue : "").trim();
+                if (!venue) return;
+                const key = normalizeVenueOccupancyKey(venue);
+                if (!byVenue.has(key)) byVenue.set(key, { name: venue, slots: [] });
+              });
+            });
+          });
+        });
+      });
       if (!d || Number.isNaN(d.getTime())) {
         return [...byVenue.values()].sort((a, b) => a.name.localeCompare(b.name, "fr"));
       }
       const dayIndex = dayIndexMon0(d);
       if (dayIndex >= 0 && dayIndex <= 4) {
         const week = weekParityForDate(iso) === "B" ? "B" : "A";
-        const tc = ensureTeamCoordination();
         (tc.timeSlots || []).forEach((ts) => {
           const occupants = teamSlotOccupants(dayIndex, ts.id, week, "", iso);
           occupants.forEach((o) => {
@@ -7838,10 +7854,10 @@
     }
 
     function dashVenueOccupancyCardHtml() {
-      return `<div class="dash-block dash-block--venues-occ no-print" id="btn-dash-venue-occupancy" role="button" tabindex="0" aria-label="Occupation des installations">
+      return `<button type="button" class="dash-block dash-block--venues-occ no-print" id="btn-dash-venue-occupancy" aria-label="Occupation des installations" style="width:100%;text-align:left;border:none">
           <h3 class="dash-block__title">🏟️ Occupation des installations</h3>
           <p class="kpi-sub" style="margin:0;line-height:1.45">Voir l’occupation de chaque lieu de pratique selon la programmation de l’établissement.</p>
-        </div>`;
+        </button>`;
     }
 
     function openVenueOccupancyPage(dateISO) {
