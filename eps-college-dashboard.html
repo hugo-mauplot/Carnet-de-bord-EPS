@@ -17874,12 +17874,37 @@
         })
         .join("");
 
+      /* Quick-add table: one row per student, 3 checkbox columns */
+      const cl = getClassById(classId);
+      const students = (cl && cl.students) || [];
+      const todayISO = fmtISODate(new Date());
+      const GEAR_ITEMS = ["Gourde", "Tenue", "Baskets"];
+      const quickAddRows = students.map((s) =>
+        `<tr><td style="padding:2px 6px;font-size:.82rem;white-space:nowrap">${escapeHtml(s)}</td>${GEAR_ITEMS.map((item) =>
+          `<td style="padding:2px 4px;text-align:center"><input type="checkbox" class="fg-quick-cb" data-student="${escapeHtml(s)}" data-item="${item}" style="width:18px;height:18px;margin:0;cursor:pointer" /></td>`
+        ).join("")}</tr>`
+      ).join("");
+      const quickAddHtml = students.length
+        ? `<details class="fg-quick-add-details no-print" style="margin-top:.75rem">
+            <summary style="cursor:pointer;font-weight:700;color:#d97706;font-size:.92rem;user-select:none">+ Signaler un oubli</summary>
+            <div style="margin-top:.5rem">
+              <div class="form-group" style="margin-bottom:.4rem"><label style="font-size:.85rem">Date</label><input type="date" id="f-fg-quick-date" value="${todayISO}" style="font-size:.9rem;padding:.3rem .4rem" /></div>
+              <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="width:100%;border-collapse:collapse;font-size:.82rem" id="fg-quick-table">
+                <thead><tr><th style="padding:2px 6px;text-align:left">Élève</th>${GEAR_ITEMS.map((i) => `<th style="padding:2px 4px;text-align:center;font-size:.75rem">${escapeHtml(i.slice(0,1))}</th>`).join("")}</tr></thead>
+                <tbody>${quickAddRows}</tbody>
+              </table></div>
+              <p style="margin:.25rem 0 0;font-size:.72rem;color:#94a3b8">G = Gourde · T = Tenue · B = Baskets</p>
+              <button type="button" class="btn btn-sm" id="btn-fg-quick-save" data-classid="${classId}" style="margin-top:.5rem;font-weight:700;background:#d97706;color:#fff;width:100%">Valider les oublis</button>
+            </div>
+          </details>`
+        : `<button type="button" class="btn btn-sm no-print" id="btn-add-forgotten" data-classid="${classId}" style="margin-top:.75rem;font-weight:700;background:#d97706;color:#fff">+ Ajouter un oubli</button>`;
+
       return `<div class="card" style="border-left:5px solid #d97706">
         <h3 style="margin-bottom:.5rem">Oublis de matériel${activePeriod ? " — " + escapeHtml(activePeriod.name) : ""} (${items.length})</h3>
         ${studentRows
           ? `<div class="table-wrap"><table><thead><tr><th>Élève</th><th>Nb oublis</th><th>Dates & objets</th><th class="no-print">Suppr.</th></tr></thead><tbody>${studentRows}</tbody></table></div>`
           : '<p class="kpi-sub">Aucun oubli enregistré sur cette période.</p>'}
-        <button type="button" class="btn btn-sm no-print" id="btn-add-forgotten" data-classid="${classId}" style="margin-top:.75rem;font-weight:700;background:#d97706;color:#fff">+ Ajouter un oubli</button>
+        ${quickAddHtml}
       </div>`;
     }
 
@@ -19203,6 +19228,19 @@
           });
         });
       });
+      main.querySelector("#btn-fg-quick-save")?.addEventListener("click", () => {
+        const cid = main.querySelector("#btn-fg-quick-save").getAttribute("data-classid");
+        const date = (main.querySelector("#f-fg-quick-date") || {}).value || fmtISODate(new Date());
+        if (!date) return;
+        const cbs = main.querySelectorAll(".fg-quick-cb:checked");
+        if (!cbs.length) { alert("Cochez au moins un oubli."); return; }
+        cbs.forEach((cb) => {
+          appData.forgottenGear.push({ id: uid(), classId: cid, studentName: cb.getAttribute("data-student"), date, item: cb.getAttribute("data-item") });
+        });
+        saveData();
+        render();
+      });
+      /* Fallback ancien bouton si pas d'élèves */
       main.querySelector("#btn-add-forgotten")?.addEventListener("click", () => {
         const cid = main.querySelector("#btn-add-forgotten").getAttribute("data-classid");
         const todayISO = fmtISODate(new Date());
