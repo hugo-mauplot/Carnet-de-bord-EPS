@@ -4216,20 +4216,26 @@
       color: var(--text);
     }
     .btn-dash-fg-quick {
-      margin-left: auto;
       flex-shrink: 0;
+      align-self: center;
       border: 1px solid rgba(217, 119, 6, 0.35);
       background: rgba(217, 119, 6, 0.12);
       color: #b45309;
       font-weight: 700;
-      font-size: 0.75rem;
-      padding: 0.2rem 0.45rem;
-      border-radius: 999px;
+      font-size: 0.78rem;
+      padding: 0.45rem 0.55rem;
+      border-radius: 10px;
       line-height: 1.2;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 0.2rem;
+      min-width: 2.4rem;
+      min-height: 2.4rem;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      z-index: 2;
     }
     .btn-dash-fg-quick:hover,
     .btn-dash-fg-quick:focus-visible {
@@ -4242,6 +4248,70 @@
     }
     [data-theme="light"] .btn-dash-fg-quick { color: #92400e; }
     [data-theme="light"] .btn-dash-fg-quick.has-fg { color: #fff; }
+    .fg-item-dd {
+      position: relative;
+      display: inline-block;
+      min-width: 7.2rem;
+      max-width: 100%;
+    }
+    .fg-item-dd__summary {
+      list-style: none;
+      cursor: pointer;
+      font-size: 0.78rem;
+      padding: 0.28rem 0.45rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card, #fff);
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      user-select: none;
+    }
+    .fg-item-dd__summary::-webkit-details-marker { display: none; }
+    .fg-item-dd[open] .fg-item-dd__summary {
+      border-color: #d97706;
+      box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15);
+    }
+    .fg-item-dd__menu {
+      position: absolute;
+      z-index: 20;
+      left: 0;
+      right: 0;
+      top: calc(100% + 2px);
+      min-width: 8.5rem;
+      padding: 0.35rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card, #fff);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14);
+    }
+    .fg-item-dd__opt {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.28rem 0.3rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin: 0;
+    }
+    .fg-item-dd__opt:hover { background: var(--hover, rgba(148, 163, 184, 0.15)); }
+    .fg-item-dd__opt input { width: 16px; height: 16px; margin: 0; flex-shrink: 0; }
+    .dash-session-row-wrap {
+      display: flex;
+      align-items: stretch;
+      gap: 0.35rem;
+      border-top: 1px solid var(--border);
+      padding: 0.15rem 0;
+    }
+    .dash-session-row-wrap:first-child { border-top: none; }
+    .dash-session-row-wrap > .dash-session-row {
+      flex: 1;
+      min-width: 0;
+      border-top: none;
+      margin-top: 0;
+    }
     .dash-session-venue,
     .dash-session-apsa {
       font-size: 0.82rem;
@@ -13061,24 +13131,26 @@
         const fgDayCount = forgottenGearOccurrences(
           (appData.forgottenGear || []).filter((f) => f.classId === s.classId && f.date === s.date)
         ).length;
-        const fgQuickBtn = `<button type="button" class="btn-dash-fg-quick${fgDayCount ? " has-fg" : ""}" data-session-id="${s.id}" title="Relever les oublis de matériel" aria-label="Relever les oublis de matériel">🎒${fgDayCount ? ` ${fgDayCount}` : ""}</button>`;
-        return `<div class="btn-today-session dash-session-row" data-session-id="${s.id}" style="--session-c:${classColor}">
-          <div class="dash-session-line dash-session-line--primary">
-            <span class="dash-session-time">${s.startTime || ""}–${s.endTime || ""}</span>
-            <span class="dash-session-class">${escapeHtml(cl ? cl.name : "—")}</span>
-            <span class="dash-session-venue">${escapeHtml(s.venue || "")}</span>
-            ${fgQuickBtn}
+        const fgQuickBtn = `<button type="button" class="btn-dash-fg-quick${fgDayCount ? " has-fg" : ""}" data-session-id="${escapeHtml(s.id)}" title="Relever les oublis de matériel" aria-label="Relever les oublis de matériel">🎒${fgDayCount ? ` ${fgDayCount}` : ""}</button>`;
+        return `<div class="dash-session-row-wrap">
+          <div class="btn-today-session dash-session-row" data-session-id="${s.id}" role="button" tabindex="0" style="--session-c:${classColor}">
+            <div class="dash-session-line dash-session-line--primary">
+              <span class="dash-session-time">${s.startTime || ""}–${s.endTime || ""}</span>
+              <span class="dash-session-class">${escapeHtml(cl ? cl.name : "—")}</span>
+              <span class="dash-session-venue">${escapeHtml(s.venue || "")}</span>
+            </div>
+            <div class="dash-session-line dash-session-line--secondary">
+              <span class="dash-session-apsa">${act ? escapeHtml(act.name) : "—"}</span>
+              ${sessionNumBadge}
+              ${statusHtml}
+              ${motif ? `<span style="font-size:.78rem;color:var(--text-muted)">(${escapeHtml(motif)})</span>` : ""}
+              ${hasSummary ? '<span style="font-size:.85rem" title="Résumé rédigé">📝</span>' : ""}
+              ${s.sessionPdf ? '<span style="font-size:.85rem" title="PDF joint">📄</span>' : ""}
+              ${attHtml}
+            </div>
+            ${shareHtml ? `<div class="dash-session-line dash-session-line--share">${shareHtml}</div>` : ""}
           </div>
-          <div class="dash-session-line dash-session-line--secondary">
-            <span class="dash-session-apsa">${act ? escapeHtml(act.name) : "—"}</span>
-            ${sessionNumBadge}
-            ${statusHtml}
-            ${motif ? `<span style="font-size:.78rem;color:var(--text-muted)">(${escapeHtml(motif)})</span>` : ""}
-            ${hasSummary ? '<span style="font-size:.85rem" title="Résumé rédigé">📝</span>' : ""}
-            ${s.sessionPdf ? '<span style="font-size:.85rem" title="PDF joint">📄</span>' : ""}
-            ${attHtml}
-          </div>
-          ${shareHtml ? `<div class="dash-session-line dash-session-line--share">${shareHtml}</div>` : ""}
+          ${fgQuickBtn}
         </div>`;
       }).join("");
       const blockingEventCount = dayEvents.filter((h) => h.blocksSessions).length + daySchoolBlocking.length;
@@ -18136,15 +18208,52 @@
 
     const FORGOTTEN_GEAR_ITEMS = ["Gourde", "Tenue", "Baskets"];
 
-    function forgottenGearItemOptionsHtml(selected) {
-      const sel = String(selected || "");
-      return (
-        `<option value="">— Objet (optionnel) —</option>` +
-        FORGOTTEN_GEAR_ITEMS.map(
-          (item) =>
-            `<option value="${escapeHtml(item)}"${item === sel ? " selected" : ""}>${escapeHtml(item)}</option>`
-        ).join("")
-      );
+    function normalizeForgottenGearItems(raw) {
+      let list = [];
+      if (Array.isArray(raw)) {
+        list = raw.map((x) => String(x || "").trim()).filter(Boolean);
+      } else {
+        const s = String(raw || "").trim();
+        if (s) {
+          list = FORGOTTEN_GEAR_ITEMS.includes(s)
+            ? [s]
+            : s.split(/[,;|/]+/).map((x) => x.trim()).filter(Boolean);
+        }
+      }
+      return FORGOTTEN_GEAR_ITEMS.filter((item) => list.includes(item));
+    }
+
+    function forgottenGearItemsDropdownHtml(studentName, selectedItems, opts) {
+      opts = opts || {};
+      const selected = normalizeForgottenGearItems(selectedItems);
+      const label =
+        selected.length === 0
+          ? "— Objets —"
+          : selected.length === 1
+            ? selected[0]
+            : selected.map((x) => x.slice(0, 1)).join("+") + " (" + selected.length + ")";
+      const options = FORGOTTEN_GEAR_ITEMS.map(
+        (item) =>
+          `<label class="fg-item-dd__opt">
+            <input type="checkbox" class="fg-quick-item-cb" data-student="${escapeHtml(studentName)}" data-item="${escapeHtml(item)}"${selected.includes(item) ? " checked" : ""} />
+            <span>${escapeHtml(item)}</span>
+          </label>`
+      ).join("");
+      return `<details class="fg-item-dd"${opts.open ? " open" : ""}>
+        <summary class="fg-item-dd__summary" title="Choisir un ou plusieurs objets">${escapeHtml(label)}</summary>
+        <div class="fg-item-dd__menu">${options}</div>
+      </details>`;
+    }
+
+    function forgottenGearItemOptionsHtml(selectedItems) {
+      const selected = new Set(normalizeForgottenGearItems(selectedItems));
+      return FORGOTTEN_GEAR_ITEMS.map(
+        (item) =>
+          `<label style="display:inline-flex;align-items:center;gap:.25rem;margin-right:.55rem;font-size:.85rem;cursor:pointer">
+            <input type="checkbox" class="f-fg-item-cb" value="${escapeHtml(item)}"${selected.has(item) ? " checked" : ""} style="width:16px;height:16px;margin:0" />
+            ${escapeHtml(item)}
+          </label>`
+      ).join("");
     }
 
     /** Un oubli = 1 élève + 1 date (plusieurs objets le même jour = 1 seul oubli). */
@@ -18165,8 +18274,9 @@
         }
         const occ = map.get(key);
         if (f.id && !occ.ids.includes(f.id)) occ.ids.push(f.id);
-        const item = String(f.item || "").trim();
-        if (item && !occ.items.includes(item)) occ.items.push(item);
+        normalizeForgottenGearItems([...(Array.isArray(f.items) ? f.items : []), f.item]).forEach((item) => {
+          if (!occ.items.includes(item)) occ.items.push(item);
+        });
       });
       return [...map.values()].sort(
         (a, b) =>
@@ -18184,6 +18294,54 @@
       return byStudent;
     }
 
+    /** Nombre d'oublis (1/jour) de l'élève sur la période pédagogique en cours. */
+    function forgottenGearPeriodCountForStudent(classId, studentName, refDateStr) {
+      const ref = coerceISODateString(refDateStr) || fmtISODate(new Date());
+      let items = (appData.forgottenGear || []).filter(
+        (f) => f.classId === classId && f.studentName === studentName
+      );
+      const period = currentPeriodForClass(classId, ref);
+      if (period) {
+        const { start, end } = periodDatesForClass(period, classId);
+        items = items.filter((f) => f.date >= start && f.date <= end);
+      }
+      return forgottenGearOccurrences(items).length;
+    }
+
+    function forgottenGearPeriodCountBadgeHtml(count) {
+      const n = Number(count) || 0;
+      if (n <= 0) return "";
+      let color;
+      let bg;
+      let border;
+      if (n >= 3) {
+        color = "#b91c1c";
+        bg = "rgba(220,38,38,.16)";
+        border = "#fca5a5";
+      } else if (n === 2) {
+        color = "#c2410c";
+        bg = "rgba(234,88,12,.16)";
+        border = "#fdba74";
+      } else {
+        color = "#a16207";
+        bg = "rgba(234,179,8,.2)";
+        border = "#facc15";
+      }
+      return `<span class="fg-period-count" style="display:inline-flex;align-items:center;justify-content:center;min-width:1.2rem;height:1.2rem;padding:0 .32rem;border-radius:999px;font-size:.7rem;font-weight:800;line-height:1;color:${color};background:${bg};border:1px solid ${border};margin-left:.35rem;vertical-align:middle" title="${n} oubli(s) sur la période en cours">${n}</span>`;
+    }
+
+    function updateForgottenGearPeriodCountBadge(root, classId, studentName, refDateStr) {
+      if (!root) return;
+      const cb = [...root.querySelectorAll(".fg-quick-cb, .td-fg-quick-cb")].find(
+        (el) => el.getAttribute("data-student") === studentName
+      );
+      const row = cb && cb.closest("tr");
+      const nameCell = row && row.querySelector("td");
+      if (!nameCell) return;
+      const count = forgottenGearPeriodCountForStudent(classId, studentName, refDateStr);
+      nameCell.innerHTML = `${escapeHtml(studentName)}${forgottenGearPeriodCountBadgeHtml(count)}`;
+    }
+
     function findForgottenGearOccurrence(classId, studentName, date) {
       return forgottenGearOccurrences(
         (appData.forgottenGear || []).filter(
@@ -18196,7 +18354,7 @@
       return !!findForgottenGearOccurrence(classId, studentName, date);
     }
 
-    function setForgottenGearOccurrence(classId, studentName, date, on, item) {
+    function setForgottenGearOccurrence(classId, studentName, date, on, itemsOrItem) {
       if (!classId || !studentName || !date) return;
       if (!Array.isArray(appData.forgottenGear)) appData.forgottenGear = [];
       const match = (f) => f.classId === classId && f.studentName === studentName && f.date === date;
@@ -18205,81 +18363,156 @@
         persistLight();
         return;
       }
+      const items = normalizeForgottenGearItems(itemsOrItem);
       const existing = appData.forgottenGear.filter(match);
-      const itemVal = String(item || "").trim();
-      if (existing.length) {
-        const keep = existing[0];
-        keep.item = itemVal;
-        appData.forgottenGear = appData.forgottenGear.filter((f) => !match(f) || f === keep);
-      } else {
-        appData.forgottenGear.push({
-          id: uid(),
-          classId,
-          studentName,
-          date,
-          item: itemVal,
-        });
-      }
+      const keep = existing[0] || null;
+      appData.forgottenGear = appData.forgottenGear.filter((f) => !match(f));
+      appData.forgottenGear.push({
+        id: keep && keep.id ? keep.id : uid(),
+        classId,
+        studentName,
+        date,
+        item: items[0] || "",
+        items,
+      });
       persistLight();
     }
 
     function forgottenGearStudentRowHtml(studentName, classId, date, cbClass) {
       const occ = findForgottenGearOccurrence(classId, studentName, date);
       const checked = occ ? " checked" : "";
-      const item = occ && occ.items.length === 1 ? occ.items[0] : occ && occ.items.length ? occ.items[0] : "";
+      const selectedItems = occ ? occ.items.slice() : [];
+      const periodCount = forgottenGearPeriodCountForStudent(classId, studentName, date);
       return `<tr>
-        <td style="padding:2px 6px;font-size:.82rem;white-space:nowrap">${escapeHtml(studentName)}</td>
+        <td style="padding:2px 6px;font-size:.82rem;white-space:nowrap">${escapeHtml(studentName)}${forgottenGearPeriodCountBadgeHtml(periodCount)}</td>
         <td style="padding:2px 4px;text-align:center">
           <input type="checkbox" class="${cbClass}" data-student="${escapeHtml(studentName)}" style="width:18px;height:18px;margin:0;cursor:pointer"${checked} title="Signaler un oubli" />
         </td>
-        <td style="padding:2px 4px">
-          <select class="fg-quick-item" data-student="${escapeHtml(studentName)}" style="font-size:.78rem;padding:2px 4px;max-width:7.5rem">${forgottenGearItemOptionsHtml(item)}</select>
-        </td>
+        <td style="padding:2px 4px;min-width:7.5rem">${forgottenGearItemsDropdownHtml(studentName, selectedItems)}</td>
       </tr>`;
     }
 
     function wireForgottenGearCheckboxes(root, classId, getDate, onAfterChange) {
       if (!root) return;
-      const findItemSelect = (student) =>
-        [...root.querySelectorAll(".fg-quick-item")].find((el) => el.getAttribute("data-student") === student) || null;
       const findCb = (student) =>
         [...root.querySelectorAll(".fg-quick-cb, .td-fg-quick-cb")].find((el) => el.getAttribute("data-student") === student) ||
         null;
+      const findDropdown = (student) => {
+        const itemCb = [...root.querySelectorAll(".fg-quick-item-cb")].find((el) => el.getAttribute("data-student") === student);
+        return itemCb ? itemCb.closest(".fg-item-dd") : null;
+      };
+      const getSelectedItems = (student) =>
+        [...root.querySelectorAll(".fg-quick-item-cb")]
+          .filter((el) => el.getAttribute("data-student") === student && el.checked)
+          .map((el) => el.getAttribute("data-item"))
+          .filter(Boolean);
+      const refreshDropdownLabel = (student) => {
+        const dd = findDropdown(student);
+        if (!dd) return;
+        const selected = normalizeForgottenGearItems(getSelectedItems(student));
+        const summary = dd.querySelector(".fg-item-dd__summary");
+        if (!summary) return;
+        summary.textContent =
+          selected.length === 0
+            ? "— Objets —"
+            : selected.length === 1
+              ? selected[0]
+              : selected.map((x) => x.slice(0, 1)).join("+") + " (" + selected.length + ")";
+      };
+      const syncItemCbs = (student, items) => {
+        const selected = new Set(normalizeForgottenGearItems(items));
+        root.querySelectorAll(".fg-quick-item-cb").forEach((el) => {
+          if (el.getAttribute("data-student") !== student) return;
+          el.checked = selected.has(el.getAttribute("data-item"));
+        });
+        refreshDropdownLabel(student);
+      };
+      const persistStudent = (student, on) => {
+        const items = getSelectedItems(student);
+        setForgottenGearOccurrence(classId, student, getDate(), on, items);
+        updateForgottenGearPeriodCountBadge(root, classId, student, getDate());
+        refreshDropdownLabel(student);
+        if (typeof onAfterChange === "function") onAfterChange();
+      };
       const sync = () => {
         const date = getDate();
         root.querySelectorAll(".fg-quick-cb, .td-fg-quick-cb").forEach((cb) => {
           const student = cb.getAttribute("data-student");
           const occ = findForgottenGearOccurrence(classId, student, date);
           cb.checked = !!occ;
-          const sel = findItemSelect(student);
-          if (sel) {
-            const item = occ && occ.items.length ? occ.items[0] : "";
-            sel.value = FORGOTTEN_GEAR_ITEMS.includes(item) ? item : "";
-          }
+          syncItemCbs(student, occ ? occ.items : []);
+          updateForgottenGearPeriodCountBadge(root, classId, student, date);
         });
       };
       sync();
       root.querySelectorAll(".fg-quick-cb, .td-fg-quick-cb").forEach((cb) => {
         cb.addEventListener("change", () => {
           const student = cb.getAttribute("data-student");
-          const sel = findItemSelect(student);
-          setForgottenGearOccurrence(classId, student, getDate(), cb.checked, sel ? sel.value : "");
-          if (typeof onAfterChange === "function") onAfterChange();
+          if (!cb.checked) {
+            syncItemCbs(student, []);
+            persistStudent(student, false);
+            return;
+          }
+          persistStudent(student, true);
         });
       });
-      root.querySelectorAll(".fg-quick-item").forEach((sel) => {
-        sel.addEventListener("change", () => {
-          const student = sel.getAttribute("data-student");
+      root.querySelectorAll(".fg-quick-item-cb").forEach((itemCb) => {
+        itemCb.addEventListener("change", () => {
+          const student = itemCb.getAttribute("data-student");
           const cb = findCb(student);
+          const items = getSelectedItems(student);
           if (!cb) return;
-          if (cb.checked || sel.value) {
+          if (items.length || cb.checked) {
             cb.checked = true;
-            setForgottenGearOccurrence(classId, student, getDate(), true, sel.value);
-            if (typeof onAfterChange === "function") onAfterChange();
+            persistStudent(student, true);
+          } else {
+            cb.checked = false;
+            persistStudent(student, false);
           }
+        });
+        itemCb.addEventListener("click", (e) => e.stopPropagation());
+      });
+      root.querySelectorAll(".fg-item-dd").forEach((dd) => {
+        dd.addEventListener("toggle", () => {
+          if (!dd.open) return;
+          root.querySelectorAll(".fg-item-dd[open]").forEach((other) => {
+            if (other !== dd) other.open = false;
+          });
         });
       });
       return sync;
+    }
+
+    function openForgottenGearQuickModal(session) {
+      if (!session) return;
+      const cl = getClassById(session.classId);
+      const students = (cl && cl.students) || [];
+      if (!students.length) {
+        alert("Aucun élève dans cette classe. Ajoutez-les dans Réglages → Mes classes.");
+        return;
+      }
+      const act = activityById(session.activityId);
+      const titleBits = [
+        cl ? cl.name : "Classe",
+        (session.startTime || "") + (session.endTime ? "–" + session.endTime : ""),
+        act ? act.name : "",
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      const body = el(`<div>
+        <p class="kpi-sub" style="margin:0 0 .55rem;line-height:1.4"><strong>${escapeHtml(titleBits)}</strong><br>${escapeHtml(fmtDateFr(session.date))}</p>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+          <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+            <thead><tr><th style="padding:2px 6px;text-align:left">Élève</th><th style="padding:2px 4px;text-align:center">Oubli</th><th style="padding:2px 4px;text-align:left">Objets</th></tr></thead>
+            <tbody>${students.map((st) => forgottenGearStudentRowHtml(st, session.classId, session.date, "fg-quick-cb")).join("")}</tbody>
+          </table>
+        </div>
+        <p style="margin:.35rem 0 0;font-size:.72rem;color:#94a3b8">1 case = 1 oubli · objets via liste déroulante (plusieurs possibles) — enregistré dès la case cochée</p>
+      </div>`);
+      wireForgottenGearCheckboxes(body, session.classId, () => session.date);
+      openModal("🎒 Oublis de matériel", body, () => {
+        render();
+      });
     }
 
     function renderForgottenGearBlock(classId, activePeriod) {
@@ -18334,10 +18567,10 @@
             <div style="margin-top:.5rem">
               <div class="form-group" style="margin-bottom:.4rem"><label style="font-size:.85rem">Date</label><input type="date" id="f-fg-quick-date" value="${dateISO}" style="font-size:.9rem;padding:.3rem .4rem" /></div>
               <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="width:100%;border-collapse:collapse;font-size:.82rem" id="fg-quick-table">
-                <thead><tr><th style="padding:2px 6px;text-align:left">Élève</th><th style="padding:2px 4px;text-align:center">Oubli</th><th style="padding:2px 4px;text-align:left">Objet</th></tr></thead>
+                <thead><tr><th style="padding:2px 6px;text-align:left">Élève</th><th style="padding:2px 4px;text-align:center">Oubli</th><th style="padding:2px 4px;text-align:left">Objets</th></tr></thead>
                 <tbody>${quickAddRows}</tbody>
               </table></div>
-              <p style="margin:.25rem 0 0;font-size:.72rem;color:#94a3b8">1 case = 1 oubli (objet optionnel) — enregistré dès la case cochée</p>
+              <p style="margin:.25rem 0 0;font-size:.72rem;color:#94a3b8">1 case = 1 oubli · objets via liste déroulante (plusieurs possibles) — enregistré dès la case cochée</p>
             </div>
           </details>`
         : `<button type="button" class="btn btn-sm no-print" id="btn-add-forgotten" data-classid="${classId}" style="margin-top:.75rem;font-weight:700;background:#d97706;color:#fff">+ Ajouter un oubli</button>`;
@@ -19707,16 +19940,17 @@
         const body = el(`<div>
           <div class="form-group"><label>Élève</label>${studentPickerHtml(cid, "f-fg-name")}</div>
           <div class="form-group"><label>Date de l'oubli</label><input type="date" id="f-fg-date" value="${todayISO}" /></div>
-          <div class="form-group"><label>Objet oublié (optionnel)</label>
-            <select id="f-fg-item">${forgottenGearItemOptionsHtml("")}</select>
+          <div class="form-group"><label>Objets oubliés (optionnel)</label>
+            <div id="f-fg-items">${forgottenGearItemOptionsHtml([])}</div>
+            <p class="kpi-sub" style="margin:.3rem 0 0">Vous pouvez cocher plusieurs objets ; cela compte pour 1 seul oubli.</p>
           </div>
         </div>`);
         openModal("Signaler un oubli de matériel", body, () => {
           const name = body.querySelector("#f-fg-name").value.trim();
           const date = body.querySelector("#f-fg-date").value;
-          const item = body.querySelector("#f-fg-item").value;
+          const items = [...body.querySelectorAll(".f-fg-item-cb:checked")].map((el) => el.value);
           if (!name || !date) return;
-          setForgottenGearOccurrence(cid, name, date, true, item);
+          setForgottenGearOccurrence(cid, name, date, true, items);
           render();
         });
       });
@@ -21033,8 +21267,26 @@
           openModal("Cours (profil)", body, () => true, { infoOnly: true });
         });
       });
+      if (!main.dataset.dashFgQuickWired) {
+        main.dataset.dashFgQuickWired = "1";
+        main.addEventListener(
+          "click",
+          (e) => {
+            const btn = e.target.closest(".btn-dash-fg-quick");
+            if (!btn || !main.contains(btn)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            const sid = btn.getAttribute("data-session-id");
+            const s = appData.sessions.find((x) => x.id === sid);
+            if (s) openForgottenGearQuickModal(s);
+          },
+          true
+        );
+      }
       main.querySelectorAll(".btn-today-session").forEach((row) => {
-        row.addEventListener("click", () => {
+        row.addEventListener("click", (e) => {
+          if (e.target.closest(".btn-dash-fg-quick")) return;
           const sid = row.getAttribute("data-session-id");
           const s = appData.sessions.find((x) => x.id === sid);
           if (!s) return;
@@ -21071,10 +21323,10 @@
                 <summary style="cursor:pointer;font-weight:600;font-size:.92rem;user-select:none">🎒 Oubli de matériel</summary>
                 <div style="margin-top:.4rem;overflow-x:auto;-webkit-overflow-scrolling:touch">
                   <table style="width:100%;border-collapse:collapse;font-size:.82rem" id="td-fg-quick-table">
-                    <thead><tr><th style="padding:2px 6px;text-align:left">Élève</th><th style="padding:2px 4px;text-align:center">Oubli</th><th style="padding:2px 4px;text-align:left">Objet</th></tr></thead>
+                    <thead><tr><th style="padding:2px 6px;text-align:left">Élève</th><th style="padding:2px 4px;text-align:center">Oubli</th><th style="padding:2px 4px;text-align:left">Objets</th></tr></thead>
                     <tbody>${((getClassById(s.classId)||{}).students||[]).map((st) => forgottenGearStudentRowHtml(st, s.classId, s.date, "td-fg-quick-cb")).join("")}</tbody>
                   </table>
-                  <p style="margin:.25rem 0 0;font-size:.72rem;color:#94a3b8">1 case = 1 oubli (objet optionnel) — enregistré dès la case cochée</p>
+                  <p style="margin:.25rem 0 0;font-size:.72rem;color:#94a3b8">1 case = 1 oubli · objets via liste déroulante (plusieurs possibles) — enregistré dès la case cochée</p>
                 </div>
               </details>
             </div>
