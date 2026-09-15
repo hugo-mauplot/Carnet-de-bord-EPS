@@ -4215,6 +4215,33 @@
       background: color-mix(in srgb, var(--session-c, var(--accent)) 32%, transparent);
       color: var(--text);
     }
+    .btn-dash-fg-quick {
+      margin-left: auto;
+      flex-shrink: 0;
+      border: 1px solid rgba(217, 119, 6, 0.35);
+      background: rgba(217, 119, 6, 0.12);
+      color: #b45309;
+      font-weight: 700;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.45rem;
+      border-radius: 999px;
+      line-height: 1.2;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+    }
+    .btn-dash-fg-quick:hover,
+    .btn-dash-fg-quick:focus-visible {
+      background: rgba(217, 119, 6, 0.22);
+    }
+    .btn-dash-fg-quick.has-fg {
+      background: #d97706;
+      border-color: #d97706;
+      color: #fff;
+    }
+    [data-theme="light"] .btn-dash-fg-quick { color: #92400e; }
+    [data-theme="light"] .btn-dash-fg-quick.has-fg { color: #fff; }
     .dash-session-venue,
     .dash-session-apsa {
       font-size: 0.82rem;
@@ -7322,13 +7349,19 @@
               periodId: pid,
               apsa,
               venue: "",
+              venueByDay: {},
+              venueBySlot: {},
               dayIndices: new Set(),
             });
           }
           const actInfo = entry.acts.get(actKey);
           actInfo.dayIndices.add(dayIndex);
           const venue = String((part && part.venue) || "").trim();
-          if (venue) actInfo.venue = venue;
+          if (venue) {
+            actInfo.venueByDay[String(dayIndex)] = venue;
+            if (startTime) actInfo.venueBySlot[activitySlotVenueKey(dayIndex, startTime)] = venue;
+            if (!actInfo.venue) actInfo.venue = venue;
+          }
         });
       });
 
@@ -7417,6 +7450,8 @@
               startDate: pStart,
               endDate: pEnd,
               venue: String(actInfo.venue || "").trim(),
+              venueByDay: Object.assign({}, actInfo.venueByDay || {}),
+              venueBySlot: Object.assign({}, actInfo.venueBySlot || {}),
               objectives: "",
               competencies: "",
               plannedSessions: 0,
@@ -7428,6 +7463,8 @@
             appData.activities.push(act);
           } else {
             act.venue = String(actInfo.venue || act.venue || "").trim();
+            act.venueByDay = Object.assign({}, act.venueByDay || {}, actInfo.venueByDay || {});
+            act.venueBySlot = Object.assign({}, act.venueBySlot || {}, actInfo.venueBySlot || {});
             act.startDate = pStart;
             act.endDate = pEnd;
             act.dayIndices = days;
@@ -8382,6 +8419,28 @@
       return pool[0];
     }
 
+    /** Clé jour|horaire pour une installation distincte par créneau EDT. */
+    function activitySlotVenueKey(dayIndex, startTime) {
+      return `${Number(dayIndex)}|${normalizeTimeHHMM(startTime || "")}`;
+    }
+
+    /** Installation de l'APSA pour un créneau précis (évite de recopier le 1er créneau sur le 2e). */
+    function activityVenueForSlot(activity, dayIndex, startTime) {
+      if (!activity) return "";
+      const bySlot = activity.venueBySlot && typeof activity.venueBySlot === "object" ? activity.venueBySlot : null;
+      if (bySlot) {
+        const slotKey = activitySlotVenueKey(dayIndex, startTime);
+        const fromSlot = String(bySlot[slotKey] || "").trim();
+        if (fromSlot) return fromSlot;
+      }
+      const byDay = activity.venueByDay && typeof activity.venueByDay === "object" ? activity.venueByDay : null;
+      if (byDay) {
+        const fromDay = String(byDay[String(dayIndex)] || byDay[dayIndex] || "").trim();
+        if (fromDay) return fromDay;
+      }
+      return String(activity.venue || "").trim();
+    }
+
     function pickActivityForDate(classId, dateStr) {
       const d = parseISODate(dateStr);
       return pickActivityForSession(classId, dateStr, dayIndexMon0(d));
@@ -8504,8 +8563,25 @@
       activeEx.sort((a, b) => a.studentName.localeCompare(b.studentName, "fr"));
       container.innerHTML = `<div class="session-exempt-notice" role="note">
         <p class="session-exempt-notice__title">🏥 Élèves dispensés · ${activeEx.length}</p>
-        ${activeEx.map((e) => `<p class="session-exempt-notice__item"><strong>${escapeHtml(e.studentName)}</strong> <span>${escapeHtml(formatExemptionDetailLabel(e))}</span></p>`).join("")}
+        ${activeEx
+          .map(
+            (e) =>
+              `<p class="session-exempt-notice__item"><strong>${escapeHtml(e.studentName)}</strong> <span>${escapeHtml(formatExemptionDetailLabel(e))}</span>${
+                exemptionHasCertPhoto(e)
+                  ? ` <button type="button" class="btn btn-sm btn-ghost btn-view-ex-cert-inline" data-id="${e.id}" style="padding:.05rem .3rem;font-size:.75rem" title="Voir le certificat">📷</button>`
+                  : ""
+              }</p>`
+          )
+          .join("")}
       </div>`;
+      container.querySelectorAll(".btn-view-ex-cert-inline").forEach((b) => {
+        b.addEventListener("click", (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          const ex = (appData.exemptions || []).find((x) => x.id === b.getAttribute("data-id"));
+          if (ex && ex.certPhoto) openExemptionCertPhotoViewer(ex.certPhoto);
+        });
+      });
     }
 
     /** Texte discret (jaune, sans encadré) : absents du dernier cours de la même APSA. */
@@ -8580,6 +8656,7 @@
       appData.exemptions.forEach((ex) => {
         if (ex.sansCertificat === undefined) ex.sansCertificat = false;
         if (ex.sessionId === undefined) ex.sessionId = null;
+        if (ex.certPhoto === undefined) ex.certPhoto = null;
       });
       if (!Array.isArray(appData.periods)) appData.periods = [];
       appData.periods.forEach((p) => {
@@ -9884,6 +9961,159 @@
       return ex.days + " jour(s)";
     }
 
+    function exemptionHasCertPhoto(ex) {
+      return !!(ex && ex.certPhoto);
+    }
+
+    function isExemptionCertPdf(dataUrl) {
+      return String(dataUrl || "").startsWith("data:application/pdf");
+    }
+
+    function openExemptionCertPhotoViewer(photoData) {
+      if (!photoData) return;
+      let overlay = document.getElementById("ex-cert-photo-overlay");
+      if (!overlay) {
+        overlay = document.createElement("div");
+        overlay.id = "ex-cert-photo-overlay";
+        overlay.style.cssText =
+          "position:fixed;inset:0;z-index:10050;background:rgba(15,23,42,.72);display:flex;align-items:center;justify-content:center;padding:1rem;-webkit-overflow-scrolling:touch";
+        document.body.appendChild(overlay);
+      }
+      const inner = isExemptionCertPdf(photoData)
+        ? `<iframe src="${photoData}" style="width:min(920px,100%);height:min(80vh,640px);border:none;border-radius:10px;background:#fff" title="Certificat médical"></iframe>`
+        : `<img src="${photoData}" alt="Certificat médical" style="max-width:100%;max-height:85vh;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:#fff" />`;
+      overlay.innerHTML = `<div style="position:relative;max-width:100%;max-height:100%;display:flex;flex-direction:column;align-items:center;gap:.65rem">
+        <button type="button" id="ex-cert-photo-overlay-close" class="btn btn-sm btn-primary" style="align-self:flex-end">Fermer</button>
+        ${inner}
+      </div>`;
+      overlay.style.display = "flex";
+      const close = () => {
+        overlay.style.display = "none";
+        overlay.innerHTML = "";
+      };
+      overlay.querySelector("#ex-cert-photo-overlay-close").onclick = close;
+      overlay.onclick = (e) => {
+        if (e.target === overlay) close();
+      };
+    }
+
+    /** Compresse une photo pour localStorage ; accepte aussi un PDF. */
+    function readExemptionCertFile(file, onDone) {
+      if (!file || typeof onDone !== "function") return;
+      const isImage = /^image\//.test(file.type) || /\.(jpe?g|png|heic|webp|gif)$/i.test(file.name || "");
+      const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name || "");
+      if (!isImage && !isPdf) {
+        alert("Choisissez une photo (JPEG, PNG…) ou un PDF du certificat.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onerror = () => alert("Impossible de lire le fichier.");
+      reader.onload = () => {
+        const raw = reader.result;
+        if (isPdf || !isImage) {
+          onDone(raw);
+          return;
+        }
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const maxW = 1280;
+            let w = img.naturalWidth || img.width;
+            let h = img.naturalHeight || img.height;
+            if (!w || !h) {
+              onDone(raw);
+              return;
+            }
+            if (w > maxW) {
+              h = Math.round((h * maxW) / w);
+              w = maxW;
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, w, h);
+            onDone(canvas.toDataURL("image/jpeg", 0.72));
+          } catch (_) {
+            onDone(raw);
+          }
+        };
+        img.onerror = () => onDone(raw);
+        img.src = raw;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function exemptionCertPhotoControlsHtml(photoData, opts) {
+      opts = opts || {};
+      const prefix = opts.prefix || "ex-cert";
+      const has = !!photoData;
+      return `<div class="form-group exemption-cert-photo" data-prefix="${escapeHtml(prefix)}" style="margin-top:.55rem">
+        <label>Photo du certificat <span class="kpi-sub">(optionnel)</span></label>
+        <div class="ex-cert-photo-preview" style="margin-top:.35rem"></div>
+        <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin-top:.35rem">
+          <label class="btn btn-sm btn-ghost" style="cursor:pointer;margin:0">
+            <span class="ex-cert-photo-label">${has ? "Remplacer la photo" : "Joindre une photo"}</span>
+            <input type="file" accept="image/*,application/pdf" capture="environment" class="ex-cert-photo-input" style="display:none" />
+          </label>
+          <button type="button" class="btn btn-sm btn-ghost ex-cert-photo-view" style="${has ? "" : "display:none"}">Voir</button>
+          <button type="button" class="btn btn-sm btn-danger ex-cert-photo-del" style="${has ? "" : "display:none"}">Supprimer</button>
+        </div>
+        <p class="kpi-sub" style="margin:.3rem 0 0">Prenez une photo ou choisissez une image / un PDF.</p>
+      </div>`;
+    }
+
+    function wireExemptionCertPhotoControls(root, state) {
+      if (!root || !state) return () => {};
+      const wrap = root.querySelector(".exemption-cert-photo");
+      if (!wrap) return () => {};
+      const preview = wrap.querySelector(".ex-cert-photo-preview");
+      const label = wrap.querySelector(".ex-cert-photo-label");
+      const viewBtn = wrap.querySelector(".ex-cert-photo-view");
+      const delBtn = wrap.querySelector(".ex-cert-photo-del");
+      const input = wrap.querySelector(".ex-cert-photo-input");
+      const refresh = () => {
+        const photo = state.certPhoto || null;
+        if (!photo) {
+          preview.innerHTML = "";
+          if (label) label.textContent = "Joindre une photo";
+          if (viewBtn) viewBtn.style.display = "none";
+          if (delBtn) delBtn.style.display = "none";
+          return;
+        }
+        if (isExemptionCertPdf(photo)) {
+          preview.innerHTML = `<p class="kpi-sub" style="margin:0">📄 PDF du certificat joint</p>`;
+        } else {
+          preview.innerHTML = `<img alt="Aperçu certificat" style="max-width:100%;max-height:160px;border-radius:8px;border:1px solid var(--border);display:block" />`;
+          preview.querySelector("img").src = photo;
+        }
+        if (label) label.textContent = "Remplacer la photo";
+        if (viewBtn) viewBtn.style.display = "";
+        if (delBtn) delBtn.style.display = "";
+      };
+      if (!wrap.dataset.exCertWired) {
+        wrap.dataset.exCertWired = "1";
+        input?.addEventListener("change", () => {
+          const file = input.files && input.files[0];
+          input.value = "";
+          if (!file) return;
+          readExemptionCertFile(file, (dataUrl) => {
+            state.certPhoto = dataUrl;
+            refresh();
+          });
+        });
+        viewBtn?.addEventListener("click", () => openExemptionCertPhotoViewer(state.certPhoto));
+        delBtn?.addEventListener("click", () => {
+          state.certPhoto = null;
+          refresh();
+        });
+      }
+      wrap._exCertState = state;
+      wrap._exCertRefresh = refresh;
+      refresh();
+      return refresh;
+    }
+
     function attachExemptionSansCertificatToggle(body, opts) {
       const cb = body.querySelector(opts.checkboxSelector);
       const blocks = body.querySelector(opts.durationBlocksSelector);
@@ -9896,6 +10126,10 @@
         if (blocks) blocks.style.display = on ? "none" : "";
         if (certWrap) certWrap.style.display = on && opts.hideCertWhenSansCert ? "none" : "";
         if (certInput && opts.sessionDate && on) certInput.value = opts.sessionDate;
+        const photoWrap = opts.photoWrapSelector
+          ? body.querySelector(opts.photoWrapSelector)
+          : body.querySelector(".exemption-cert-photo");
+        if (photoWrap) photoWrap.style.display = on ? "none" : "";
       };
       cb.addEventListener("change", sync);
       sync();
@@ -10071,7 +10305,7 @@
                   date: dateStr,
                   startTime: slot.startTime,
                   endTime: slot.endTime,
-                  venue: act ? act.venue || "" : "",
+                  venue: act ? activityVenueForSlot(act, slot.dayIndex, slot.startTime) || slot.venue || "" : (slot.venue || ""),
                   comment: (prevS && prevS.comment) || "",
                 };
                 if (prevS) {
@@ -12824,11 +13058,16 @@
           const l = keys.filter((k) => att[k] === "late").length;
           return `<span class="att-badge" title="Appel effectué">${p}P${l ? " " + l + "R" : ""}${a ? " " + a + "A" : ""}</span>`;
         })();
+        const fgDayCount = forgottenGearOccurrences(
+          (appData.forgottenGear || []).filter((f) => f.classId === s.classId && f.date === s.date)
+        ).length;
+        const fgQuickBtn = `<button type="button" class="btn-dash-fg-quick${fgDayCount ? " has-fg" : ""}" data-session-id="${s.id}" title="Relever les oublis de matériel" aria-label="Relever les oublis de matériel">🎒${fgDayCount ? ` ${fgDayCount}` : ""}</button>`;
         return `<div class="btn-today-session dash-session-row" data-session-id="${s.id}" style="--session-c:${classColor}">
           <div class="dash-session-line dash-session-line--primary">
             <span class="dash-session-time">${s.startTime || ""}–${s.endTime || ""}</span>
             <span class="dash-session-class">${escapeHtml(cl ? cl.name : "—")}</span>
             <span class="dash-session-venue">${escapeHtml(s.venue || "")}</span>
+            ${fgQuickBtn}
           </div>
           <div class="dash-session-line dash-session-line--secondary">
             <span class="dash-session-apsa">${act ? escapeHtml(act.name) : "—"}</span>
@@ -15360,10 +15599,7 @@
         const items = (appData.forgottenGear || []).filter(
           (f) => f.classId === cl.id && f.date >= range.startDate && f.date <= range.endDate
         );
-        const byStudent = {};
-        items.forEach((f) => {
-          byStudent[f.studentName] = (byStudent[f.studentName] || 0) + 1;
-        });
+        const byStudent = forgottenGearCountByStudent(items);
         Object.entries(byStudent).forEach(([name, count]) => {
           if (count >= threshold) alerts.push({ name, className: cl.name, classId: cl.id, count });
         });
@@ -15864,7 +16100,9 @@
                             )
                           )
                           .join("");
-                        const currentVenue = current ? current.venue || "" : "";
+                        const currentVenue = current
+                          ? activityVenueForSlot(current, s.dayIndex, s.startTime)
+                          : "";
                         const currentVenueOptions = venueOptions.replace(
                           `value="${escapeHtml(currentVenue)}"`,
                           `value="${escapeHtml(currentVenue)}" selected`
@@ -15876,8 +16114,8 @@
                             <span class="level-program-slot-name">${DOW[s.dayIndex]} · ${s.startTime}</span>
                             <span class="level-program-slot-summary"><strong>${escapeHtml(apsaLabel)}</strong><br>${escapeHtml(venueLabel)}</span>
                           </button>
-                          <select class="level-program-apsa level-program-hidden-select" data-day="${s.dayIndex}" data-color="${colors[slotIdx % colors.length]}">${apsaOptions}</select>
-                          <select class="level-program-venue level-program-hidden-select">${currentVenueOptions}</select>
+                          <select class="level-program-apsa level-program-hidden-select" data-day="${s.dayIndex}" data-start="${escapeHtml(normalizeTimeHHMM(s.startTime || ""))}" data-color="${colors[slotIdx % colors.length]}">${apsaOptions}</select>
+                          <select class="level-program-venue level-program-hidden-select" data-day="${s.dayIndex}" data-start="${escapeHtml(normalizeTimeHHMM(s.startTime || ""))}">${currentVenueOptions}</select>
                         </div>`;
                       })
                       .join("")
@@ -16019,6 +16257,11 @@
           const select = slotRow.querySelector(".level-program-apsa");
           const venueSelect = slotRow.querySelector(".level-program-venue");
           const dayIndex = Number(select ? select.getAttribute("data-day") : "");
+          const startTime = normalizeTimeHHMM(
+            (select && select.getAttribute("data-start")) ||
+              (venueSelect && venueSelect.getAttribute("data-start")) ||
+              ""
+          );
           const apsaName = select ? select.value : "";
           const venueName = venueSelect ? venueSelect.value : "";
           if (!apsaName || !Number.isInteger(dayIndex)) return;
@@ -16034,6 +16277,8 @@
               startDate: start,
               endDate: end,
               venue: venueName,
+              venueByDay: {},
+              venueBySlot: {},
               objectives: "",
               competencies: "",
               plannedSessions: 0,
@@ -16044,7 +16289,13 @@
           }
           const item = planned.get(key);
           if (!item.dayIndices.includes(dayIndex)) item.dayIndices.push(dayIndex);
-          if (!item.venue && venueName) item.venue = venueName;
+          if (!item.venueByDay || typeof item.venueByDay !== "object") item.venueByDay = {};
+          if (!item.venueBySlot || typeof item.venueBySlot !== "object") item.venueBySlot = {};
+          if (venueName) {
+            item.venueByDay[String(dayIndex)] = venueName;
+            if (startTime) item.venueBySlot[activitySlotVenueKey(dayIndex, startTime)] = venueName;
+            if (!item.venue) item.venue = venueName;
+          }
         });
       });
       planned.forEach((payload) => {
@@ -16132,7 +16383,7 @@
           acts.forEach((a) => {
             byPeriod[a.periodId] = {
               apsa: String(a.name || "").trim(),
-              venue: String(a.venue || "").trim(),
+              venue: activityVenueForSlot(a, dayIndex, st),
             };
           });
           if (!Object.values(byPeriod).some((p) => p.apsa || p.venue)) return;
@@ -17856,7 +18107,11 @@
           const remainingLabel = exemptionRemainingLabel(ex);
           return `<tr>
             <td><strong>${escapeHtml(ex.studentName)}</strong></td>
-            <td>${ex.sansCertificat ? "—" : (ex.certDate ? fmtDateFr(ex.certDate) : "—")}</td>
+            <td>${ex.sansCertificat ? "—" : (ex.certDate ? fmtDateFr(ex.certDate) : "—")}${
+              exemptionHasCertPhoto(ex)
+                ? ` <button type="button" class="btn btn-sm btn-ghost btn-view-ex-cert" data-id="${ex.id}" title="Voir le certificat" style="padding:.1rem .35rem;margin-left:.15rem">📷</button>`
+                : ""
+            }</td>
             <td>${formatExemptionDurationCell(ex)}</td>
             <td>${fmtDateFr(ex.startDate)}</td>
             <td>${fmtDateFr(ex.endDate)}</td>
@@ -17879,53 +18134,184 @@
       return (appData.forgottenGear || []).filter((f) => f.classId === classId);
     }
 
-    function forgottenGearExists(classId, studentName, date, item) {
-      return (appData.forgottenGear || []).some(
-        (f) => f.classId === classId && f.studentName === studentName && f.date === date && f.item === item
+    const FORGOTTEN_GEAR_ITEMS = ["Gourde", "Tenue", "Baskets"];
+
+    function forgottenGearItemOptionsHtml(selected) {
+      const sel = String(selected || "");
+      return (
+        `<option value="">— Objet (optionnel) —</option>` +
+        FORGOTTEN_GEAR_ITEMS.map(
+          (item) =>
+            `<option value="${escapeHtml(item)}"${item === sel ? " selected" : ""}>${escapeHtml(item)}</option>`
+        ).join("")
       );
     }
 
-    function setForgottenGearFlag(classId, studentName, date, item, on) {
-      if (!classId || !studentName || !date || !item) return;
-      if (!Array.isArray(appData.forgottenGear)) appData.forgottenGear = [];
-      const eq = (f) => f.classId === classId && f.studentName === studentName && f.date === date && f.item === item;
-      if (on) {
-        if (!appData.forgottenGear.some(eq)) {
-          appData.forgottenGear.push({ id: uid(), classId, studentName, date, item });
+    /** Un oubli = 1 élève + 1 date (plusieurs objets le même jour = 1 seul oubli). */
+    function forgottenGearOccurrences(items) {
+      const map = new Map();
+      (items || []).forEach((f) => {
+        if (!f) return;
+        const key = `${f.classId || ""}|${f.studentName || ""}|${f.date || ""}`;
+        if (!map.has(key)) {
+          map.set(key, {
+            id: f.id,
+            ids: [f.id],
+            classId: f.classId,
+            studentName: f.studentName,
+            date: f.date,
+            items: [],
+          });
         }
+        const occ = map.get(key);
+        if (f.id && !occ.ids.includes(f.id)) occ.ids.push(f.id);
+        const item = String(f.item || "").trim();
+        if (item && !occ.items.includes(item)) occ.items.push(item);
+      });
+      return [...map.values()].sort(
+        (a, b) =>
+          String(a.date).localeCompare(String(b.date)) ||
+          String(a.studentName).localeCompare(String(b.studentName), "fr")
+      );
+    }
+
+    function forgottenGearCountByStudent(items) {
+      const byStudent = {};
+      forgottenGearOccurrences(items).forEach((occ) => {
+        const name = occ.studentName || "";
+        byStudent[name] = (byStudent[name] || 0) + 1;
+      });
+      return byStudent;
+    }
+
+    function findForgottenGearOccurrence(classId, studentName, date) {
+      return forgottenGearOccurrences(
+        (appData.forgottenGear || []).filter(
+          (f) => f.classId === classId && f.studentName === studentName && f.date === date
+        )
+      )[0] || null;
+    }
+
+    function forgottenGearExists(classId, studentName, date) {
+      return !!findForgottenGearOccurrence(classId, studentName, date);
+    }
+
+    function setForgottenGearOccurrence(classId, studentName, date, on, item) {
+      if (!classId || !studentName || !date) return;
+      if (!Array.isArray(appData.forgottenGear)) appData.forgottenGear = [];
+      const match = (f) => f.classId === classId && f.studentName === studentName && f.date === date;
+      if (!on) {
+        appData.forgottenGear = appData.forgottenGear.filter((f) => !match(f));
+        persistLight();
+        return;
+      }
+      const existing = appData.forgottenGear.filter(match);
+      const itemVal = String(item || "").trim();
+      if (existing.length) {
+        const keep = existing[0];
+        keep.item = itemVal;
+        appData.forgottenGear = appData.forgottenGear.filter((f) => !match(f) || f === keep);
       } else {
-        appData.forgottenGear = appData.forgottenGear.filter((f) => !eq(f));
+        appData.forgottenGear.push({
+          id: uid(),
+          classId,
+          studentName,
+          date,
+          item: itemVal,
+        });
       }
       persistLight();
     }
 
+    function forgottenGearStudentRowHtml(studentName, classId, date, cbClass) {
+      const occ = findForgottenGearOccurrence(classId, studentName, date);
+      const checked = occ ? " checked" : "";
+      const item = occ && occ.items.length === 1 ? occ.items[0] : occ && occ.items.length ? occ.items[0] : "";
+      return `<tr>
+        <td style="padding:2px 6px;font-size:.82rem;white-space:nowrap">${escapeHtml(studentName)}</td>
+        <td style="padding:2px 4px;text-align:center">
+          <input type="checkbox" class="${cbClass}" data-student="${escapeHtml(studentName)}" style="width:18px;height:18px;margin:0;cursor:pointer"${checked} title="Signaler un oubli" />
+        </td>
+        <td style="padding:2px 4px">
+          <select class="fg-quick-item" data-student="${escapeHtml(studentName)}" style="font-size:.78rem;padding:2px 4px;max-width:7.5rem">${forgottenGearItemOptionsHtml(item)}</select>
+        </td>
+      </tr>`;
+    }
+
     function wireForgottenGearCheckboxes(root, classId, getDate, onAfterChange) {
       if (!root) return;
+      const findItemSelect = (student) =>
+        [...root.querySelectorAll(".fg-quick-item")].find((el) => el.getAttribute("data-student") === student) || null;
+      const findCb = (student) =>
+        [...root.querySelectorAll(".fg-quick-cb, .td-fg-quick-cb")].find((el) => el.getAttribute("data-student") === student) ||
+        null;
       const sync = () => {
         const date = getDate();
         root.querySelectorAll(".fg-quick-cb, .td-fg-quick-cb").forEach((cb) => {
-          cb.checked = forgottenGearExists(
-            classId,
-            cb.getAttribute("data-student"),
-            date,
-            cb.getAttribute("data-item")
-          );
+          const student = cb.getAttribute("data-student");
+          const occ = findForgottenGearOccurrence(classId, student, date);
+          cb.checked = !!occ;
+          const sel = findItemSelect(student);
+          if (sel) {
+            const item = occ && occ.items.length ? occ.items[0] : "";
+            sel.value = FORGOTTEN_GEAR_ITEMS.includes(item) ? item : "";
+          }
         });
       };
       sync();
       root.querySelectorAll(".fg-quick-cb, .td-fg-quick-cb").forEach((cb) => {
         cb.addEventListener("change", () => {
-          setForgottenGearFlag(
-            classId,
-            cb.getAttribute("data-student"),
-            getDate(),
-            cb.getAttribute("data-item"),
-            cb.checked
-          );
+          const student = cb.getAttribute("data-student");
+          const sel = findItemSelect(student);
+          setForgottenGearOccurrence(classId, student, getDate(), cb.checked, sel ? sel.value : "");
           if (typeof onAfterChange === "function") onAfterChange();
         });
       });
+      root.querySelectorAll(".fg-quick-item").forEach((sel) => {
+        sel.addEventListener("change", () => {
+          const student = sel.getAttribute("data-student");
+          const cb = findCb(student);
+          if (!cb) return;
+          if (cb.checked || sel.value) {
+            cb.checked = true;
+            setForgottenGearOccurrence(classId, student, getDate(), true, sel.value);
+            if (typeof onAfterChange === "function") onAfterChange();
+          }
+        });
+      });
       return sync;
+    }
+
+    function openForgottenGearQuickModal(session) {
+      if (!session) return;
+      const cl = getClassById(session.classId);
+      const students = (cl && cl.students) || [];
+      if (!students.length) {
+        alert("Aucun élève dans cette classe. Ajoutez-les dans Réglages → Mes classes.");
+        return;
+      }
+      const act = activityById(session.activityId);
+      const titleBits = [
+        cl ? cl.name : "Classe",
+        (session.startTime || "") + (session.endTime ? "–" + session.endTime : ""),
+        act ? act.name : "",
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      const body = el(`<div>
+        <p class="kpi-sub" style="margin:0 0 .55rem;line-height:1.4"><strong>${escapeHtml(titleBits)}</strong><br>${escapeHtml(fmtDateFr(session.date))}</p>
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+          <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+            <thead><tr><th style="padding:2px 6px;text-align:left">Élève</th><th style="padding:2px 4px;text-align:center">Oubli</th><th style="padding:2px 4px;text-align:left">Objet</th></tr></thead>
+            <tbody>${students.map((st) => forgottenGearStudentRowHtml(st, session.classId, session.date, "fg-quick-cb")).join("")}</tbody>
+          </table>
+        </div>
+        <p style="margin:.35rem 0 0;font-size:.72rem;color:#94a3b8">1 case = 1 oubli (objet optionnel) — enregistré dès la case cochée</p>
+      </div>`);
+      wireForgottenGearCheckboxes(body, session.classId, () => session.date);
+      openModal("🎒 Oublis de matériel", body, () => {
+        render();
+      });
     }
 
     function renderForgottenGearBlock(classId, activePeriod) {
@@ -17934,17 +18320,23 @@
         const { start, end } = periodDatesForClass(activePeriod, classId);
         items = items.filter((f) => f.date >= start && f.date <= end);
       }
-      const countByStudent = {};
-      items.forEach((f) => {
-        const key = f.studentName;
-        if (!countByStudent[key]) countByStudent[key] = [];
-        countByStudent[key].push(f);
+      const occurrences = forgottenGearOccurrences(items);
+      const byStudent = {};
+      occurrences.forEach((occ) => {
+        const key = occ.studentName;
+        if (!byStudent[key]) byStudent[key] = [];
+        byStudent[key].push(occ);
       });
-      const studentRows = Object.keys(countByStudent)
-        .sort((a, b) => countByStudent[b].length - countByStudent[a].length)
+      const studentRows = Object.keys(byStudent)
+        .sort((a, b) => byStudent[b].length - byStudent[a].length)
         .map((name) => {
-          const entries = countByStudent[name].sort((a, b) => a.date.localeCompare(b.date));
-          const details = entries.map((f) => `${fmtDateFr(f.date)} (${escapeHtml(f.item || "—")})`).join(", ");
+          const entries = byStudent[name].slice().sort((a, b) => a.date.localeCompare(b.date));
+          const details = entries
+            .map((occ) => {
+              const objs = occ.items.length ? ` (${escapeHtml(occ.items.join(", "))})` : "";
+              return `${fmtDateFr(occ.date)}${objs}`;
+            })
+            .join(", ");
           const count = entries.length;
           const countStyle = count >= 3 ? "color:var(--danger);font-weight:700" : count >= 2 ? "color:#d97706;font-weight:600" : "";
           const rowStyle = count >= 3 ? "background:rgba(220,38,38,.12);color:var(--danger);font-weight:600" : "";
@@ -17952,22 +18344,21 @@
             <td><strong>${escapeHtml(name)}</strong></td>
             <td style="${countStyle}">${count}</td>
             <td class="kpi-sub">${details}</td>
-            <td class="no-print">${entries.map((f) => `<button type="button" class="btn btn-sm btn-danger btn-del-forgotten" data-id="${f.id}" style="margin:.1rem">✕</button>`).join("")}</td>
+            <td class="no-print">${entries
+              .map(
+                (occ) =>
+                  `<button type="button" class="btn btn-sm btn-danger btn-del-forgotten" data-ids="${escapeHtml(occ.ids.join(","))}" style="margin:.1rem" title="Supprimer l'oubli du ${fmtDateFr(occ.date)}">✕</button>`
+              )
+              .join("")}</td>
           </tr>`;
         })
         .join("");
 
-      /* Quick-add table: one row per student, 3 checkbox columns */
       const cl = getClassById(classId);
       const students = (cl && cl.students) || [];
       const todayISO = fmtISODate(new Date());
       const dateISO = forgottenGearQuickDate[classId] || todayISO;
-      const GEAR_ITEMS = ["Gourde", "Tenue", "Baskets"];
-      const quickAddRows = students.map((s) =>
-        `<tr><td style="padding:2px 6px;font-size:.82rem;white-space:nowrap">${escapeHtml(s)}</td>${GEAR_ITEMS.map((item) =>
-          `<td style="padding:2px 4px;text-align:center"><input type="checkbox" class="fg-quick-cb" data-student="${escapeHtml(s)}" data-item="${item}" style="width:18px;height:18px;margin:0;cursor:pointer"${forgottenGearExists(classId, s, dateISO, item) ? " checked" : ""} /></td>`
-        ).join("")}</tr>`
-      ).join("");
+      const quickAddRows = students.map((s) => forgottenGearStudentRowHtml(s, classId, dateISO, "fg-quick-cb")).join("");
       const quickOpen = forgottenGearQuickOpen[classId] ? " open" : "";
       const quickAddHtml = students.length
         ? `<details class="fg-quick-add-details no-print" data-classid="${classId}" style="margin-top:.75rem"${quickOpen}>
@@ -17975,16 +18366,16 @@
             <div style="margin-top:.5rem">
               <div class="form-group" style="margin-bottom:.4rem"><label style="font-size:.85rem">Date</label><input type="date" id="f-fg-quick-date" value="${dateISO}" style="font-size:.9rem;padding:.3rem .4rem" /></div>
               <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table style="width:100%;border-collapse:collapse;font-size:.82rem" id="fg-quick-table">
-                <thead><tr><th style="padding:2px 6px;text-align:left">Élève</th>${GEAR_ITEMS.map((i) => `<th style="padding:2px 4px;text-align:center;font-size:.75rem">${escapeHtml(i.slice(0,1))}</th>`).join("")}</tr></thead>
+                <thead><tr><th style="padding:2px 6px;text-align:left">Élève</th><th style="padding:2px 4px;text-align:center">Oubli</th><th style="padding:2px 4px;text-align:left">Objet</th></tr></thead>
                 <tbody>${quickAddRows}</tbody>
               </table></div>
-              <p style="margin:.25rem 0 0;font-size:.72rem;color:#94a3b8">G = Gourde · T = Tenue · B = Baskets — enregistré dès la case cochée</p>
+              <p style="margin:.25rem 0 0;font-size:.72rem;color:#94a3b8">1 case = 1 oubli (objet optionnel) — enregistré dès la case cochée</p>
             </div>
           </details>`
         : `<button type="button" class="btn btn-sm no-print" id="btn-add-forgotten" data-classid="${classId}" style="margin-top:.75rem;font-weight:700;background:#d97706;color:#fff">+ Ajouter un oubli</button>`;
 
       return `<div class="card" style="border-left:5px solid #d97706">
-        <h3 style="margin-bottom:.5rem">Oublis de matériel${activePeriod ? " — " + escapeHtml(activePeriod.name) : ""} (${items.length})</h3>
+        <h3 style="margin-bottom:.5rem">Oublis de matériel${activePeriod ? " — " + escapeHtml(activePeriod.name) : ""} (${occurrences.length})</h3>
         ${studentRows
           ? `<div class="table-wrap"><table><thead><tr><th>Élève</th><th>Nb oublis</th><th>Dates & objets</th><th class="no-print">Suppr.</th></tr></thead><tbody>${studentRows}</tbody></table></div>`
           : '<p class="kpi-sub">Aucun oubli enregistré sur cette période.</p>'}
@@ -19112,7 +19503,10 @@
           <div id="ex-block-date" class="form-group" style="display:none"><label>Date de fin (inscrite sur le certificat)</label><input type="date" id="f-ex-enddate" />
           </div>
           </div>
+          ${exemptionCertPhotoControlsHtml(null)}
         </div>`);
+        const photoState = { certPhoto: null };
+        wireExemptionCertPhotoControls(body, photoState);
         const modeSelect = body.querySelector("#f-ex-mode");
         modeSelect.addEventListener("change", () => {
           const isDays = modeSelect.value === "days";
@@ -19144,6 +19538,7 @@
               certDate: null,
               sansCertificat: true,
               sessionId: null,
+              certPhoto: null,
             });
           } else {
             let endDate, days;
@@ -19168,6 +19563,7 @@
               certDate,
               sansCertificat: false,
               sessionId: null,
+              certPhoto: photoState.certPhoto || null,
             });
           }
           saveData();
@@ -19248,7 +19644,10 @@
             <div id="ex-block-days" class="form-group"><label>Nombre de jours</label><input type="number" id="f-ex-days" min="1" value="${ex.days || 1}" /></div>
             <div id="ex-block-date" class="form-group" style="display:none"><label>Date de fin</label><input type="date" id="f-ex-enddate" value="${ex.endDate}" /></div>
             </div>
+            ${ex.sessionId ? "" : exemptionCertPhotoControlsHtml(ex.certPhoto || null)}
           </div>`);
+          const photoState = { certPhoto: ex.certPhoto || null };
+          if (!ex.sessionId) wireExemptionCertPhotoControls(body, photoState);
           const modeSelect = body.querySelector("#f-ex-mode");
           modeSelect.addEventListener("change", () => {
             const isDays = modeSelect.value === "days";
@@ -19287,6 +19686,7 @@
               ex.startDate = certDate;
               ex.endDate = certDate;
               ex.days = 1;
+              ex.certPhoto = null;
             } else {
               let endDate, days;
               if (modeSelect.value === "days") {
@@ -19306,10 +19706,17 @@
               ex.startDate = certDate;
               ex.days = days;
               ex.endDate = endDate;
+              ex.certPhoto = photoState.certPhoto || null;
             }
             saveData();
             render();
           });
+        });
+      });
+      main.querySelectorAll(".btn-view-ex-cert").forEach((b) => {
+        b.addEventListener("click", () => {
+          const ex = appData.exemptions.find((e) => e.id === b.getAttribute("data-id"));
+          if (ex && ex.certPhoto) openExemptionCertPhotoViewer(ex.certPhoto);
         });
       });
       const fgDetails = main.querySelector(".fg-quick-add-details");
@@ -19332,12 +19739,8 @@
         const body = el(`<div>
           <div class="form-group"><label>Élève</label>${studentPickerHtml(cid, "f-fg-name")}</div>
           <div class="form-group"><label>Date de l'oubli</label><input type="date" id="f-fg-date" value="${todayISO}" /></div>
-          <div class="form-group"><label>Objet oublié</label>
-            <select id="f-fg-item">
-              <option value="Gourde">Gourde</option>
-              <option value="Tenue">Tenue</option>
-              <option value="Baskets">Baskets</option>
-            </select>
+          <div class="form-group"><label>Objet oublié (optionnel)</label>
+            <select id="f-fg-item">${forgottenGearItemOptionsHtml("")}</select>
           </div>
         </div>`);
         openModal("Signaler un oubli de matériel", body, () => {
@@ -19345,16 +19748,20 @@
           const date = body.querySelector("#f-fg-date").value;
           const item = body.querySelector("#f-fg-item").value;
           if (!name || !date) return;
-          appData.forgottenGear.push({ id: uid(), classId: cid, studentName: name, date, item });
-          saveData();
+          setForgottenGearOccurrence(cid, name, date, true, item);
           render();
         });
       });
       main.querySelectorAll(".btn-del-forgotten").forEach((b) => {
         b.addEventListener("click", () => {
-          const fid = b.getAttribute("data-id");
-          appData.forgottenGear = appData.forgottenGear.filter((f) => f.id !== fid);
-          saveData();
+          const ids = String(b.getAttribute("data-ids") || b.getAttribute("data-id") || "")
+            .split(",")
+            .map((x) => x.trim())
+            .filter(Boolean);
+          if (!ids.length) return;
+          const idSet = new Set(ids);
+          appData.forgottenGear = appData.forgottenGear.filter((f) => !idSet.has(f.id));
+          persistLight();
           render();
         });
       });
@@ -20397,6 +20804,11 @@
             a.endDate = body.querySelector("#f-d2").value;
             a.dayIndices = collectDayIndicesFromForm(body, "edit-act-dayi");
             a.venue = body.querySelector("#f-v").value;
+            if (!a.venueByDay || typeof a.venueByDay !== "object") a.venueByDay = {};
+            if (!a.venueBySlot || typeof a.venueBySlot !== "object") a.venueBySlot = {};
+            (a.dayIndices || []).forEach((di) => {
+              a.venueByDay[String(di)] = a.venue;
+            });
             regenerateSessions();
             saveData();
             render();
@@ -20653,8 +21065,18 @@
           openModal("Cours (profil)", body, () => true, { infoOnly: true });
         });
       });
+      main.querySelectorAll(".btn-dash-fg-quick").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const sid = btn.getAttribute("data-session-id");
+          const s = appData.sessions.find((x) => x.id === sid);
+          if (s) openForgottenGearQuickModal(s);
+        });
+      });
       main.querySelectorAll(".btn-today-session").forEach((row) => {
-        row.addEventListener("click", () => {
+        row.addEventListener("click", (e) => {
+          if (e.target.closest(".btn-dash-fg-quick")) return;
           const sid = row.getAttribute("data-session-id");
           const s = appData.sessions.find((x) => x.id === sid);
           if (!s) return;
@@ -20691,15 +21113,10 @@
                 <summary style="cursor:pointer;font-weight:600;font-size:.92rem;user-select:none">🎒 Oubli de matériel</summary>
                 <div style="margin-top:.4rem;overflow-x:auto;-webkit-overflow-scrolling:touch">
                   <table style="width:100%;border-collapse:collapse;font-size:.82rem" id="td-fg-quick-table">
-                    <thead><tr><th style="padding:2px 6px;text-align:left">Élève</th><th style="padding:2px 4px;text-align:center;font-size:.75rem">G</th><th style="padding:2px 4px;text-align:center;font-size:.75rem">T</th><th style="padding:2px 4px;text-align:center;font-size:.75rem">B</th></tr></thead>
-                    <tbody>${((getClassById(s.classId)||{}).students||[]).map(st =>
-                      '<tr><td style="padding:2px 6px;font-size:.82rem;white-space:nowrap">'+escapeHtml(st)+'</td>'+
-                      ["Gourde","Tenue","Baskets"].map(item =>
-                        '<td style="padding:2px 4px;text-align:center"><input type="checkbox" class="td-fg-quick-cb" data-student="'+escapeHtml(st)+'" data-item="'+item+'" style="width:18px;height:18px;margin:0;cursor:pointer"'+(forgottenGearExists(s.classId, st, s.date, item) ? " checked" : "")+' /></td>'
-                      ).join('')+'</tr>'
-                    ).join('')}</tbody>
+                    <thead><tr><th style="padding:2px 6px;text-align:left">Élève</th><th style="padding:2px 4px;text-align:center">Oubli</th><th style="padding:2px 4px;text-align:left">Objet</th></tr></thead>
+                    <tbody>${((getClassById(s.classId)||{}).students||[]).map((st) => forgottenGearStudentRowHtml(st, s.classId, s.date, "td-fg-quick-cb")).join("")}</tbody>
                   </table>
-                  <p style="margin:.25rem 0 0;font-size:.72rem;color:#94a3b8">G = Gourde · T = Tenue · B = Baskets — enregistré dès la case cochée</p>
+                  <p style="margin:.25rem 0 0;font-size:.72rem;color:#94a3b8">1 case = 1 oubli (objet optionnel) — enregistré dès la case cochée</p>
                 </div>
               </details>
             </div>
@@ -20723,12 +21140,15 @@
                 <div class="form-group" id="td-ex-block-date" style="min-width:8rem;display:none"><label>Date de fin</label><input type="date" id="f-td-ex-enddate" /></div>
                 <button type="button" class="btn btn-sm btn-danger sm-btn-add-ex" id="btn-td-add-ex">+ Dispense</button>
               </div>
+              ${exemptionCertPhotoControlsHtml(null)}
               <div id="td-ex-list" class="sm-list"></div>
             </div>
           </div>`);
           body.querySelector("#f-td-summary").value = s.summary || "";
           injectPreviousAbsentReminder(body.querySelector("#td-prev-absent-reminder"), s);
           injectSessionExemptionsInfo(body.querySelector("#td-ex-info"), s.classId, s.date, s.id);
+          const tdExPhotoState = { certPhoto: null };
+          const refreshTdExPhoto = wireExemptionCertPhotoControls(body, tdExPhotoState);
           const tdExMode = body.querySelector("#f-td-ex-mode");
           tdExMode.addEventListener("change", () => {
             body.querySelector("#td-ex-block-days").style.display = tdExMode.value === "days" ? "" : "none";
@@ -20748,7 +21168,10 @@
             container.innerHTML = exAdded.length
               ? exAdded.map((ex, i) => {
                   const lbl = ex.sansCertificat && ex.sessionId ? "Sans certificat · ce cours" : (ex.sansCertificat ? "Sans certificat · " + fmtDateFr(ex.startDate) : ex.days + "j (" + fmtDateFr(ex.startDate) + " → " + fmtDateFr(ex.endDate) + ")");
-                  return `<div class="sm-list-item sm-list-item--ex"><span>✓ <strong>${escapeHtml(ex.studentName)}</strong> — ${escapeHtml(lbl)}</span><button type="button" class="btn btn-sm btn-danger td-ex-del" data-idx="${i}" style="padding:.15rem .4rem;font-size:.7rem">✕</button></div>`;
+                  const photoBtn = exemptionHasCertPhoto(ex)
+                    ? `<button type="button" class="btn btn-sm btn-ghost td-ex-view-cert" data-idx="${i}" style="padding:.15rem .4rem;font-size:.7rem" title="Voir le certificat">📷</button>`
+                    : "";
+                  return `<div class="sm-list-item sm-list-item--ex"><span>✓ <strong>${escapeHtml(ex.studentName)}</strong> — ${escapeHtml(lbl)}</span><span style="display:flex;gap:.25rem">${photoBtn}<button type="button" class="btn btn-sm btn-danger td-ex-del" data-idx="${i}" style="padding:.15rem .4rem;font-size:.7rem">✕</button></span></div>`;
                 }).join("")
               : "";
             container.querySelectorAll(".td-ex-del").forEach((b) => {
@@ -20761,6 +21184,12 @@
                 renderExList();
               });
             });
+            container.querySelectorAll(".td-ex-view-cert").forEach((b) => {
+              b.addEventListener("click", () => {
+                const rec = exAdded[parseInt(b.getAttribute("data-idx"), 10)];
+                if (rec && rec.certPhoto) openExemptionCertPhotoViewer(rec.certPhoto);
+              });
+            });
           };
           body.querySelector("#btn-td-add-ex").addEventListener("click", () => {
             const name = body.querySelector("#f-td-ex-name").value.trim();
@@ -20768,7 +21197,7 @@
             const sansCert = body.querySelector("#f-td-ex-sans-cert").checked;
             let rec;
             if (sansCert) {
-              rec = { id: uid(), classId: s.classId, studentName: name, sansCertificat: true, sessionId: s.id, startDate: s.date, endDate: s.date, days: 1, certDate: null };
+              rec = { id: uid(), classId: s.classId, studentName: name, sansCertificat: true, sessionId: s.id, startDate: s.date, endDate: s.date, days: 1, certDate: null, certPhoto: null };
             } else {
               const certDate = body.querySelector("#f-td-ex-certdate").value;
               if (!certDate) return;
@@ -20782,12 +21211,14 @@
                 if (!endDate || endDate < certDate) return;
                 days = Math.max(1, Math.round((parseISODate(endDate).getTime() - parseISODate(certDate).getTime()) / 86400000) + 1);
               }
-              rec = { id: uid(), classId: s.classId, studentName: name, sansCertificat: false, sessionId: null, certDate, startDate: certDate, days, endDate };
+              rec = { id: uid(), classId: s.classId, studentName: name, sansCertificat: false, sessionId: null, certDate, startDate: certDate, days, endDate, certPhoto: tdExPhotoState.certPhoto || null };
             }
             appData.exemptions.push(rec);
             exAdded.push(rec);
             persistLight();
             body.querySelector("#f-td-ex-name").value = "";
+            tdExPhotoState.certPhoto = null;
+            if (typeof refreshTdExPhoto === "function") refreshTdExPhoto();
             renderExList();
           });
           wireForgottenGearCheckboxes(body, s.classId, () => s.date);
