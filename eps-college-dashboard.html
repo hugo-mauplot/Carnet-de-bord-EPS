@@ -4298,6 +4298,30 @@
     }
     .fg-item-dd__opt:hover { background: var(--hover, rgba(148, 163, 184, 0.15)); }
     .fg-item-dd__opt input { width: 16px; height: 16px; margin: 0; flex-shrink: 0; }
+    .fg-block-details > .fg-block-summary {
+      list-style: none;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .fg-block-details > .fg-block-summary::-webkit-details-marker { display: none; }
+    .fg-block-details > .fg-block-summary::before {
+      content: "▸";
+      color: #d97706;
+      font-weight: 800;
+      font-size: 0.95rem;
+      line-height: 1;
+      transition: transform 0.15s ease;
+    }
+    .fg-block-details[open] > .fg-block-summary::before {
+      transform: rotate(90deg);
+    }
+    .fg-block-details > .fg-block-summary h3 {
+      flex: 1;
+      min-width: 0;
+    }
     .dash-session-row-wrap {
       display: flex;
       align-items: stretch;
@@ -11258,6 +11282,7 @@
     const classSelectedPeriod = {};
     const forgottenGearQuickOpen = {};
     const forgottenGearQuickDate = {};
+    const forgottenGearBlockOpen = {};
 
     let forgottenGearThreshold = parseInt(lsGet("eps_fg_threshold"), 10) || 3;
 
@@ -18575,13 +18600,18 @@
           </details>`
         : `<button type="button" class="btn btn-sm no-print" id="btn-add-forgotten" data-classid="${classId}" style="margin-top:.75rem;font-weight:700;background:#d97706;color:#fff">+ Ajouter un oubli</button>`;
 
-      return `<div class="card" style="border-left:5px solid #d97706">
-        <h3 style="margin-bottom:.5rem">Oublis de matériel${activePeriod ? " — " + escapeHtml(activePeriod.name) : ""} (${occurrences.length})</h3>
-        ${studentRows
-          ? `<div class="table-wrap"><table><thead><tr><th>Élève</th><th>Nb oublis</th><th>Dates & objets</th><th class="no-print">Suppr.</th></tr></thead><tbody>${studentRows}</tbody></table></div>`
-          : '<p class="kpi-sub">Aucun oubli enregistré sur cette période.</p>'}
-        ${quickAddHtml}
-      </div>`;
+      const blockOpen = forgottenGearBlockOpen[classId] ? " open" : "";
+      return `<details class="card fg-block-details" data-classid="${classId}" style="border-left:5px solid #d97706"${blockOpen}>
+        <summary class="fg-block-summary">
+          <h3 style="margin:0">Oublis de matériel${activePeriod ? " — " + escapeHtml(activePeriod.name) : ""} (${occurrences.length})</h3>
+        </summary>
+        <div class="fg-block-body" style="margin-top:.65rem">
+          ${studentRows
+            ? `<div class="table-wrap"><table><thead><tr><th>Élève</th><th>Nb oublis</th><th>Dates & objets</th><th class="no-print">Suppr.</th></tr></thead><tbody>${studentRows}</tbody></table></div>`
+            : '<p class="kpi-sub">Aucun oubli enregistré sur cette période.</p>'}
+          ${quickAddHtml}
+        </div>
+      </details>`;
     }
 
     /**
@@ -19920,13 +19950,25 @@
           if (ex && ex.certPhoto) openExemptionCertPhotoViewer(ex.certPhoto);
         });
       });
+      const fgBlock = main.querySelector(".fg-block-details");
+      if (fgBlock) {
+        const blockCid = fgBlock.getAttribute("data-classid");
+        fgBlock.addEventListener("toggle", () => {
+          forgottenGearBlockOpen[blockCid] = fgBlock.open;
+        });
+      }
       const fgDetails = main.querySelector(".fg-quick-add-details");
       if (fgDetails) {
         const cid = fgDetails.getAttribute("data-classid");
         const getDate = () => main.querySelector("#f-fg-quick-date")?.value || fmtISODate(new Date());
-        const syncFg = wireForgottenGearCheckboxes(fgDetails, cid, getDate, () => render());
+        const syncFg = wireForgottenGearCheckboxes(fgDetails, cid, getDate, () => {
+          forgottenGearBlockOpen[cid] = true;
+          forgottenGearQuickOpen[cid] = true;
+          render();
+        });
         fgDetails.addEventListener("toggle", () => {
           forgottenGearQuickOpen[cid] = fgDetails.open;
+          if (fgDetails.open) forgottenGearBlockOpen[cid] = true;
         });
         main.querySelector("#f-fg-quick-date")?.addEventListener("change", () => {
           forgottenGearQuickDate[cid] = getDate();
