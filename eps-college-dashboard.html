@@ -2458,12 +2458,56 @@
     .dash-block--sequences .dash-block__title { color: var(--success); }
     .dash-block--sequences .dashboard-classes { margin-top: 0; }
     .dash-block--venues-occ {
-      background: linear-gradient(160deg, rgba(14, 165, 233, 0.16) 0%, var(--card) 36%);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      width: 100%;
+      margin: 0;
+      padding: 0.45rem 0.85rem;
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      border-left: 4px solid #0ea5e9;
+      border-radius: var(--radius);
+      background: linear-gradient(90deg, rgba(14, 165, 233, 0.16) 0%, var(--card) 70%);
+      color: inherit;
+      font: inherit;
       cursor: pointer;
+      box-shadow: none;
+      text-align: left;
     }
-    .dash-block--venues-occ .dash-block__title { color: #0ea5e9; }
+    .dash-block--venues-occ .dash-block__title {
+      margin: 0;
+      color: #0ea5e9;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+    }
     [data-theme="light"] .dash-block--venues-occ {
-      background: linear-gradient(160deg, rgba(14, 165, 233, 0.1) 0%, #ffffff 32%);
+      background: linear-gradient(90deg, rgba(14, 165, 233, 0.12) 0%, #ffffff 70%);
+    }
+    .dash-block--ressources-eps {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      width: 100%;
+      margin: 0.15rem 0 0;
+      padding: 0.45rem 0.85rem;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-left: 4px solid #f59e0b;
+      border-radius: var(--radius);
+      background: linear-gradient(90deg, rgba(245, 158, 11, 0.16) 0%, var(--card) 70%);
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      box-shadow: none;
+      text-align: left;
+    }
+    .dash-block--ressources-eps .dash-block__title {
+      margin: 0;
+      color: #d97706;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+    }
+    [data-theme="light"] .dash-block--ressources-eps {
+      background: linear-gradient(90deg, rgba(245, 158, 11, 0.12) 0%, #ffffff 70%);
     }
     .venue-occ-list {
       display: flex;
@@ -6185,6 +6229,7 @@
         schoolYearEnd: "2026-07-05",
         calendarSchoolYear: "2025-2026",
         zone: "C",
+        ressourcesEpsUrl: "",
       },
       classes: [],
       schedules: [],
@@ -6613,7 +6658,7 @@
       reader.readAsText(file);
     }
 
-    /** Marqueur d'export pack Organisation EPS (lieux, périodes, calendrier, prog. établissement). */
+    /** Marqueur d'export pack Organisation EPS (lieux, périodes, calendrier, prog. établissement, lien Ressources EPS). */
     const EPS_ORG_SHARE_KIND = "eps-college-organisation-eps";
 
     function snapshotEpsOrgForExport() {
@@ -6649,6 +6694,7 @@
             schoolYearEnd: appData.settings.schoolYearEnd || "",
             academy: appData.settings.academy || "",
             calendarSchoolYear: appData.settings.calendarSchoolYear || "",
+            ressourcesEpsUrl: appData.settings.ressourcesEpsUrl || "",
           },
         },
       };
@@ -6665,11 +6711,17 @@
         alert("Choisissez d’abord votre profil pour exporter le pack Organisation EPS.");
         return;
       }
+      const inp = document.getElementById("inp-ressources-eps-url");
+      if (inp && appData.settings) {
+        const url = normalizeExternalHttpUrl(inp.value || "");
+        appData.settings.ressourcesEpsUrl = url;
+        saveData();
+      }
       downloadJsonFile(snapshotEpsOrgForExport(), `eps-organisation-${fmtISODate(new Date())}.json`);
     }
 
     /**
-     * Import pack Organisation EPS : lieux, périodes, calendrier, programmation établissement.
+     * Import pack Organisation EPS : lieux, périodes, calendrier, programmation établissement, lien Ressources EPS.
      * Ne modifie pas les classes, EDT, APSA, appels, dispenses, oublis ni l'AS.
      */
     function importEpsOrgJSONFromObject(o) {
@@ -6685,7 +6737,7 @@
         return;
       }
       const importMsg =
-        "Remplacer les lieux, périodes, calendrier (vacances, trimestres) et programmation de l’établissement ?\n\nVos classes, appels, dispenses, oublis et l’association sportive ne seront pas modifiés.";
+        "Remplacer les lieux, périodes, calendrier (vacances, trimestres), programmation de l’établissement et le lien Ressources EPS ?\n\nVos classes, appels, dispenses, oublis et l’association sportive ne seront pas modifiés.";
       if (!confirm(importMsg)) return;
       appData.venues = Array.isArray(pack.venues) ? deepCloneJson(pack.venues) : [];
       appData.periods = Array.isArray(pack.periods) ? deepCloneJson(pack.periods) : [];
@@ -6718,6 +6770,9 @@
         if (pack.settings.calendarSchoolYear != null) {
           appData.settings.calendarSchoolYear = pack.settings.calendarSchoolYear;
         }
+        if (pack.settings.ressourcesEpsUrl != null) {
+          appData.settings.ressourcesEpsUrl = String(pack.settings.ressourcesEpsUrl || "");
+        }
       }
       migrateDataModel();
       regenerateSessions();
@@ -6741,12 +6796,21 @@
     function epsOrgShareToolbarHtml() {
       const canExport = !!getBoundTeacherId();
       const hint = canExport
-        ? "Partage : fichier JSON <strong>pack Organisation EPS</strong> (lieux, périodes, calendrier, trimestres/semestres, programmation établissement). Exportez puis envoyez-le à l’équipe pour mettre à jour ces réglages sans toucher aux classes ni aux appels."
-        : "Choisissez votre profil pour exporter ou importer le pack Organisation EPS. L’import met à jour lieux, périodes, calendrier et programmation ; vos classes, appels, dispenses et oublis sont conservés.";
+        ? "Partage : fichier JSON <strong>pack Organisation EPS</strong> (lieux, périodes, calendrier, trimestres/semestres, programmation établissement, lien <strong>Ressources EPS</strong>). Exportez puis envoyez-le à l’équipe pour mettre à jour ces réglages sans toucher aux classes ni aux appels."
+        : "Choisissez votre profil pour exporter ou importer le pack Organisation EPS. L’import met à jour lieux, périodes, calendrier, programmation et le lien Ressources EPS ; vos classes, appels, dispenses et oublis sont conservés.";
+      const urlVal = escapeHtml(appData.settings.ressourcesEpsUrl || "");
       return `<div class="card no-print eps-org-share" style="border-left:5px solid #8ba4ff;margin-top:1rem;width:100%">
         <div class="card-header" style="margin-bottom:0;padding:0;border:none;flex-direction:column;align-items:stretch;gap:.35rem">
           <h3 style="margin:0;font-size:1rem">Partage Organisation EPS</h3>
           <p class="kpi-sub" style="margin:0;line-height:1.45">${hint}</p>
+          <div style="margin-top:.35rem;padding-top:.55rem;border-top:1px solid var(--border)">
+            <label for="inp-ressources-eps-url" style="display:block;font-size:.82rem;font-weight:700;margin-bottom:.3rem">📚 Lien Ressources EPS (inclus dans le pack)</label>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+              <input type="url" id="inp-ressources-eps-url" placeholder="https://…" value="${urlVal}" style="flex:1;min-width:14rem;padding:.45rem .65rem;border:1px solid var(--border);border-radius:var(--radius);font-size:.9rem;background:var(--card);color:var(--fg)" />
+              <button type="button" class="btn btn-sm btn-primary" id="btn-save-ressources-eps-url">Enregistrer</button>
+            </div>
+            <p class="kpi-sub" style="margin:.35rem 0 0;line-height:1.4">Ouvert par le bandeau en bas de l’accueil. Ce lien est exporté/importé avec le pack EPS.</p>
+          </div>
           <div class="flex-row" style="flex-wrap:wrap;gap:.4rem;margin-top:.15rem">
             ${
               canExport
@@ -7213,6 +7277,7 @@
           schoolYearEnd: appData.settings.schoolYearEnd,
           academy: appData.settings.academy || "",
           calendarSchoolYear: appData.settings.calendarSchoolYear || "",
+          ressourcesEpsUrl: appData.settings.ressourcesEpsUrl || "",
         },
       };
     }
@@ -7246,6 +7311,7 @@
         schoolYearEnd: appData.settings.schoolYearEnd,
         academy: appData.settings.academy || "",
         calendarSchoolYear: appData.settings.calendarSchoolYear || "",
+        ressourcesEpsUrl: appData.settings.ressourcesEpsUrl || "",
       };
       appData.profileEstablishment[establishmentOverlayTeacherId] = store;
     }
@@ -7990,10 +8056,42 @@
     }
 
     function dashVenueOccupancyCardHtml() {
-      return `<button type="button" class="dash-block dash-block--venues-occ no-print" id="btn-dash-venue-occupancy" aria-label="Occupation des installations" style="width:100%;text-align:left;border:none">
+      return `<button type="button" class="dash-block dash-block--venues-occ no-print" id="btn-dash-venue-occupancy" aria-label="Occupation des installations">
           <h3 class="dash-block__title">🏟️ Occupation des installations</h3>
-          <p class="kpi-sub" style="margin:0;line-height:1.45">Voir l’occupation de chaque lieu de pratique selon la programmation de l’établissement.</p>
         </button>`;
+    }
+
+    function dashRessourcesEpsCardHtml() {
+      return `<button type="button" class="dash-block dash-block--ressources-eps no-print" id="btn-dash-ressources-eps" aria-label="Ressources EPS">
+          <h3 class="dash-block__title">📚 Ressources EPS</h3>
+        </button>`;
+    }
+
+    function normalizeExternalHttpUrl(raw) {
+      const s = String(raw || "").trim();
+      if (!s) return "";
+      if (/^https?:\/\//i.test(s)) return s;
+      return "https://" + s;
+    }
+
+    function openRessourcesEpsUrl() {
+      if (!appData.settings) appData.settings = {};
+      let url = normalizeExternalHttpUrl(appData.settings.ressourcesEpsUrl);
+      if (!url) {
+        const entered = prompt(
+          "Indiquez l’adresse de la page Ressources EPS (ex. https://…)",
+          String(appData.settings.ressourcesEpsUrl || "")
+        );
+        if (entered == null) return;
+        url = normalizeExternalHttpUrl(entered);
+        if (!url) {
+          alert("Adresse invalide.");
+          return;
+        }
+        appData.settings.ressourcesEpsUrl = url;
+        saveData();
+      }
+      window.open(url, "_blank", "noopener,noreferrer");
     }
 
     function openVenueOccupancyPage(dateISO) {
@@ -8764,6 +8862,7 @@
       }
       ensureTeamCoordination();
       if (!appData.settings.myCoordinationTeacherId) appData.settings.myCoordinationTeacherId = "";
+      if (typeof appData.settings.ressourcesEpsUrl !== "string") appData.settings.ressourcesEpsUrl = "";
       if (!appData.settings.boundTeacherId) {
         // Rétrocompat : profil déjà choisi = identité liée
         appData.settings.boundTeacherId = String(appData.settings.myCoordinationTeacherId || "");
@@ -15649,6 +15748,10 @@
     }
 
     function dashScheduleHtml(dash) {
+      const hasAny = (dash.next3Weeks || []).some(
+        (w) => (w.cancelled && w.cancelled.length) || (w.extras && w.extras.length)
+      );
+      if (!hasAny) return "";
       const itemHtml = (item) => {
         const date = item.date ? fmtDateFr(item.date).slice(0, 5) : "";
         const day = item.dayName ? item.dayName.toLowerCase() : "";
@@ -15668,21 +15771,25 @@
           ${items.map(itemHtml).join("")}
         </div>`;
       };
-      const weeks = dash.next3Weeks.map((w, i) => {
-        const label = i === 0 ? "Cette semaine" : i === 1 ? "Semaine prochaine" : "Dans 2 semaines";
-        const dd = (d) => String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0");
-        const range = dd(w.start) + " – " + dd(w.end);
-        const cancPart = groupHtml("cancel", w.cancelled);
-        const extraPart = groupHtml("extra", w.extras);
-        const details = [cancPart, extraPart].filter(Boolean).join("");
-        return `<div class="dash-week-row${i === 0 ? " dash-week-row--current" : ""}">
+      const weeks = dash.next3Weeks
+        .map((w, i) => {
+          const cancPart = groupHtml("cancel", w.cancelled);
+          const extraPart = groupHtml("extra", w.extras);
+          const details = [cancPart, extraPart].filter(Boolean).join("");
+          if (!details) return "";
+          const label = i === 0 ? "Cette semaine" : i === 1 ? "Semaine prochaine" : "Dans 2 semaines";
+          const dd = (d) => String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0");
+          const range = dd(w.start) + " – " + dd(w.end);
+          return `<div class="dash-week-row${i === 0 ? " dash-week-row--current" : ""}">
           <div class="dash-week-head">
             <span class="dash-week-label">${label}</span>
             <span class="dash-week-range">${range}</span>
           </div>
-          ${details || '<div class="dash-edt-empty">Aucune modification prévue</div>'}
+          ${details}
         </div>`;
-      }).join("");
+        })
+        .filter(Boolean)
+        .join("");
       return `<div class="dash-block dash-block--schedule no-print"><h3 class="dash-block__title">📅 Modifications EDT à venir</h3><div style="display:flex;flex-direction:column;gap:.5rem">${weeks}</div></div>`;
     }
 
@@ -15844,6 +15951,7 @@
           ${dashCalendarKpiHtml("0.2s")}
           ${dashForgottenGearKpiHtml("0.22s")}
         </div>
+        ${dashVenueOccupancyCardHtml()}
         ${dashAssociationHtml()}
         ${dashTodayCoursesHtml(isToday, dISO)}
         ${dashScheduleHtml(dash)}
@@ -15867,7 +15975,7 @@
           <h3 class="dash-block__title">📚 ${profile ? "Classes du profil" : "Séquences en cours"}</h3>
           <div class="dashboard-classes">${classCards || (profile ? '<p class="kpi-sub">Aucune classe pour ce professeur dans la Programmation de l\'établissement.</p>' : '<p class="kpi-sub">Aucune classe — Réglages → Mes classes.</p>')}</div>
         </div>
-        ${dashVenueOccupancyCardHtml()}
+        ${dashRessourcesEpsCardHtml()}
         </section>
         <div class="print-only"><h1>EPS — Tableau de bord</h1><p>Généré le ${escapeHtml(dISO)}</p></div>`;
     }
@@ -18417,6 +18525,25 @@
       </tr>`;
     }
 
+    function ensureForgottenGearItemDropdownOutsideClose() {
+      if (document.documentElement.dataset.fgItemDdOutsideWired === "1") return;
+      document.documentElement.dataset.fgItemDdOutsideWired = "1";
+      document.addEventListener(
+        "pointerdown",
+        (e) => {
+          const openList = document.querySelectorAll(".fg-item-dd[open]");
+          if (!openList.length) return;
+          const inside = e.target && e.target.closest && e.target.closest(".fg-item-dd");
+          if (inside && inside.open) return;
+          openList.forEach((dd) => {
+            dd.open = false;
+          });
+        },
+        true
+      );
+    }
+    ensureForgottenGearItemDropdownOutsideClose();
+
     function wireForgottenGearCheckboxes(root, classId, getDate, onAfterChange) {
       if (!root) return;
       const findCb = (student) =>
@@ -19260,6 +19387,19 @@
           e.preventDefault();
           openVenueOcc();
         }
+      });
+      main.querySelector("#btn-dash-ressources-eps")?.addEventListener("click", () => openRessourcesEpsUrl());
+      main.querySelector("#btn-save-ressources-eps-url")?.addEventListener("click", () => {
+        if (!appData.settings) appData.settings = {};
+        const raw = main.querySelector("#inp-ressources-eps-url")?.value || "";
+        const url = normalizeExternalHttpUrl(raw);
+        if (raw.trim() && !url) {
+          alert("Adresse invalide.");
+          return;
+        }
+        appData.settings.ressourcesEpsUrl = url;
+        saveData();
+        alert(url ? "Lien Ressources EPS enregistré." : "Lien Ressources EPS effacé.");
       });
       main.querySelector("#venue-occ-prev-day")?.addEventListener("click", () => {
         const d = parseISODate(ensureVenueOccupancyDateISO());
