@@ -2457,10 +2457,37 @@
     [data-theme="light"] .dash-block--sequences { background: linear-gradient(160deg, rgba(5, 150, 105, 0.09) 0%, #ffffff 32%); }
     .dash-block--sequences .dash-block__title { color: var(--success); }
     .dash-block--sequences .dashboard-classes { margin-top: 0; }
+    .dash-quick-links {
+      display: flex;
+      gap: 0.4rem;
+      width: 100%;
+      align-items: stretch;
+    }
+    .dash-quick-links .dash-block--venues-occ,
+    .dash-quick-links .dash-block--ressources-eps {
+      flex: 1 1 0;
+      min-width: 0;
+      width: auto;
+      margin: 0;
+      padding: 0.4rem 0.45rem;
+      justify-content: center;
+      text-align: center;
+      border-left-width: 3px;
+    }
+    .dash-quick-links .dash-block__title {
+      font-size: clamp(0.58rem, 2.55vw, 0.72rem);
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
     .dash-block--venues-occ {
       display: flex;
       align-items: center;
-      gap: 0.45rem;
+      gap: 0.35rem;
       width: 100%;
       margin: 0;
       padding: 0.45rem 0.85rem;
@@ -2486,9 +2513,9 @@
     .dash-block--ressources-eps {
       display: flex;
       align-items: center;
-      gap: 0.45rem;
+      gap: 0.35rem;
       width: 100%;
-      margin: 0.15rem 0 0;
+      margin: 0;
       padding: 0.45rem 0.85rem;
       border: 1px solid rgba(245, 158, 11, 0.4);
       border-left: 4px solid #f59e0b;
@@ -6721,7 +6748,7 @@
     }
 
     /**
-     * Import pack Organisation EPS : lieux, périodes, calendrier, programmation établissement.
+     * Import pack Organisation EPS : lieux, périodes, calendrier, programmation établissement, lien Ressources EPS.
      * Ne modifie pas les classes, EDT, APSA, appels, dispenses, oublis ni l'AS.
      */
     function importEpsOrgJSONFromObject(o) {
@@ -8056,15 +8083,19 @@
     }
 
     function dashVenueOccupancyCardHtml() {
-      return `<button type="button" class="dash-block dash-block--venues-occ no-print" id="btn-dash-venue-occupancy" aria-label="Occupation des installations">
-          <h3 class="dash-block__title">🏟️ Occupation des installations</h3>
+      return `<button type="button" class="dash-block dash-block--venues-occ no-print" id="btn-dash-venue-occupancy" aria-label="Occupation des installations" title="Occupation des installations">
+          <h3 class="dash-block__title">🏟️ Installations</h3>
         </button>`;
     }
 
     function dashRessourcesEpsCardHtml() {
-      return `<button type="button" class="dash-block dash-block--ressources-eps no-print" id="btn-dash-ressources-eps" aria-label="Ressources EPS">
-          <h3 class="dash-block__title">📚 Ressources EPS</h3>
+      return `<button type="button" class="dash-block dash-block--ressources-eps no-print" id="btn-dash-ressources-eps" aria-label="Ressources EPS" title="Ressources EPS">
+          <h3 class="dash-block__title">📚 Ressources</h3>
         </button>`;
+    }
+
+    function dashQuickLinksRowHtml() {
+      return `<div class="dash-quick-links no-print">${dashVenueOccupancyCardHtml()}${dashRessourcesEpsCardHtml()}</div>`;
     }
 
     function normalizeExternalHttpUrl(raw) {
