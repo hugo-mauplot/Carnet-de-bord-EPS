@@ -15982,7 +15982,7 @@
           ${dashCalendarKpiHtml("0.2s")}
           ${dashForgottenGearKpiHtml("0.22s")}
         </div>
-        ${dashVenueOccupancyCardHtml()}
+        ${dashQuickLinksRowHtml()}
         ${dashAssociationHtml()}
         ${dashTodayCoursesHtml(isToday, dISO)}
         ${dashScheduleHtml(dash)}
@@ -16006,7 +16006,6 @@
           <h3 class="dash-block__title">📚 ${profile ? "Classes du profil" : "Séquences en cours"}</h3>
           <div class="dashboard-classes">${classCards || (profile ? '<p class="kpi-sub">Aucune classe pour ce professeur dans la Programmation de l\'établissement.</p>' : '<p class="kpi-sub">Aucune classe — Réglages → Mes classes.</p>')}</div>
         </div>
-        ${dashRessourcesEpsCardHtml()}
         </section>
         <div class="print-only"><h1>EPS — Tableau de bord</h1><p>Généré le ${escapeHtml(dISO)}</p></div>`;
     }
