@@ -2469,20 +2469,22 @@
       min-width: 0;
       width: auto;
       margin: 0;
-      padding: 0.4rem 0.45rem;
+      padding: 0.32rem 0.4rem;
       justify-content: center;
       text-align: center;
       border-left-width: 3px;
     }
     .dash-quick-links .dash-block__title {
-      font-size: clamp(0.58rem, 2.55vw, 0.72rem);
-      letter-spacing: 0.02em;
-      line-height: 1.2;
+      font-size: clamp(0.52rem, 2.2vw, 0.64rem);
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      line-height: 1.15;
       text-align: center;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 100%;
+      text-transform: none;
     }
     .dash-block--venues-occ {
       display: flex;
@@ -6764,7 +6766,7 @@
         return;
       }
       const importMsg =
-        "Remplacer les lieux, périodes, calendrier (vacances, trimestres), programmation de l’établissement et le lien Ressources EPS ?\n\nVos classes, appels, dispenses, oublis et l’association sportive ne seront pas modifiés.";
+        "Remplacer les lieux, périodes, calendrier (vacances, trimestres), programmation de l’établissement et le lien Drive EPS ?\n\nVos classes, appels, dispenses, oublis et l’association sportive ne seront pas modifiés.";
       if (!confirm(importMsg)) return;
       appData.venues = Array.isArray(pack.venues) ? deepCloneJson(pack.venues) : [];
       appData.periods = Array.isArray(pack.periods) ? deepCloneJson(pack.periods) : [];
@@ -6823,20 +6825,20 @@
     function epsOrgShareToolbarHtml() {
       const canExport = !!getBoundTeacherId();
       const hint = canExport
-        ? "Partage : fichier JSON <strong>pack Organisation EPS</strong> (lieux, périodes, calendrier, trimestres/semestres, programmation établissement, lien <strong>Ressources EPS</strong>). Exportez puis envoyez-le à l’équipe pour mettre à jour ces réglages sans toucher aux classes ni aux appels."
-        : "Choisissez votre profil pour exporter ou importer le pack Organisation EPS. L’import met à jour lieux, périodes, calendrier, programmation et le lien Ressources EPS ; vos classes, appels, dispenses et oublis sont conservés.";
+        ? "Partage : fichier JSON <strong>pack Organisation EPS</strong> (lieux, périodes, calendrier, trimestres/semestres, programmation établissement, lien <strong>Drive EPS</strong>). Exportez puis envoyez-le à l’équipe pour mettre à jour ces réglages sans toucher aux classes ni aux appels."
+        : "Choisissez votre profil pour exporter ou importer le pack Organisation EPS. L’import met à jour lieux, périodes, calendrier, programmation et le lien Drive EPS ; vos classes, appels, dispenses et oublis sont conservés.";
       const urlVal = escapeHtml(appData.settings.ressourcesEpsUrl || "");
       return `<div class="card no-print eps-org-share" style="border-left:5px solid #8ba4ff;margin-top:1rem;width:100%">
         <div class="card-header" style="margin-bottom:0;padding:0;border:none;flex-direction:column;align-items:stretch;gap:.35rem">
           <h3 style="margin:0;font-size:1rem">Partage Organisation EPS</h3>
           <p class="kpi-sub" style="margin:0;line-height:1.45">${hint}</p>
           <div style="margin-top:.35rem;padding-top:.55rem;border-top:1px solid var(--border)">
-            <label for="inp-ressources-eps-url" style="display:block;font-size:.82rem;font-weight:700;margin-bottom:.3rem">📚 Lien Ressources EPS (inclus dans le pack)</label>
+            <label for="inp-ressources-eps-url" style="display:block;font-size:.82rem;font-weight:700;margin-bottom:.3rem">📁 Lien Drive EPS (inclus dans le pack)</label>
             <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
               <input type="url" id="inp-ressources-eps-url" placeholder="https://…" value="${urlVal}" style="flex:1;min-width:14rem;padding:.45rem .65rem;border:1px solid var(--border);border-radius:var(--radius);font-size:.9rem;background:var(--card);color:var(--fg)" />
               <button type="button" class="btn btn-sm btn-primary" id="btn-save-ressources-eps-url">Enregistrer</button>
             </div>
-            <p class="kpi-sub" style="margin:.35rem 0 0;line-height:1.4">Ouvert par le bandeau en bas de l’accueil. Ce lien est exporté/importé avec le pack EPS.</p>
+            <p class="kpi-sub" style="margin:.35rem 0 0;line-height:1.4">Ouvert par le bandeau <strong>Drive EPS</strong> sur l’accueil. Ce lien est exporté/importé avec le pack EPS.</p>
           </div>
           <div class="flex-row" style="flex-wrap:wrap;gap:.4rem;margin-top:.15rem">
             ${
@@ -8089,8 +8091,8 @@
     }
 
     function dashRessourcesEpsCardHtml() {
-      return `<button type="button" class="dash-block dash-block--ressources-eps no-print" id="btn-dash-ressources-eps" aria-label="Ressources EPS" title="Ressources EPS">
-          <h3 class="dash-block__title">📚 Ressources</h3>
+      return `<button type="button" class="dash-block dash-block--ressources-eps no-print" id="btn-dash-ressources-eps" aria-label="Drive EPS" title="Drive EPS">
+          <h3 class="dash-block__title">📁 Drive EPS</h3>
         </button>`;
     }
 
@@ -8110,7 +8112,7 @@
       let url = normalizeExternalHttpUrl(appData.settings.ressourcesEpsUrl);
       if (!url) {
         const entered = prompt(
-          "Indiquez l’adresse de la page Ressources EPS (ex. https://…)",
+          "Indiquez l’adresse du Drive EPS (ex. https://…)",
           String(appData.settings.ressourcesEpsUrl || "")
         );
         if (entered == null) return;
@@ -19429,7 +19431,7 @@
         }
         appData.settings.ressourcesEpsUrl = url;
         saveData();
-        alert(url ? "Lien Ressources EPS enregistré." : "Lien Ressources EPS effacé.");
+        alert(url ? "Lien Drive EPS enregistré." : "Lien Drive EPS effacé.");
       });
       main.querySelector("#venue-occ-prev-day")?.addEventListener("click", () => {
         const d = parseISODate(ensureVenueOccupancyDateISO());
