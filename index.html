@@ -1609,6 +1609,54 @@
       position: static;
       z-index: auto;
     }
+    .as-slot-filter-th {
+      padding: 0.45rem 0.55rem !important;
+      text-align: left;
+      font-weight: 500;
+      background: color-mix(in srgb, var(--surface) 88%, var(--bg));
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .as-slot-filter-cell {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem 0.75rem;
+      width: 100%;
+    }
+    .as-slot-filter-cell__status {
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: var(--fg);
+      line-height: 1.3;
+    }
+    .as-slot-filter-cell__filtrer {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin: 0;
+      cursor: pointer;
+    }
+    .as-slot-filter-cell__filtrer-txt {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    .as-slot-filter-select {
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.28rem 0.45rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card, var(--surface));
+      color: var(--fg);
+      max-width: min(100%, 16rem);
+      cursor: pointer;
+    }
     .as-slot-categories-hint {
       margin: 0 0 0.45rem;
       line-height: 1.35;
@@ -9352,8 +9400,14 @@
 
     function sessionOverrideReasonLabel(override) {
       if (!override) return "";
-      const list = isSessionModification(override) ? MODIFY_REASON_TYPES : REASON_TYPES;
-      return list.find((x) => x[0] === override.reasonType)?.[1] || override.reasonType || "";
+      if (isSessionModification(override)) {
+        const free = String(override.comment || "").trim();
+        if (free) return free;
+        const typed = String(override.reasonType || "").trim();
+        if (!typed) return "";
+        return MODIFY_REASON_TYPES.find((x) => x[0] === typed)?.[1] || typed;
+      }
+      return REASON_TYPES.find((x) => x[0] === override.reasonType)?.[1] || override.reasonType || "";
     }
 
     function clearSessionOverride(session) {
@@ -10253,6 +10307,35 @@
       </button>`;
     }
 
+    /** Filtre créneau dans l’en-tête de tableau : statut + liste « Filtrer ». */
+    function associationSlotFilterControlHtml(activityId, activity, slots, selectedKey) {
+      if (!activity || !Array.isArray(slots) || slots.length < 2) return "";
+      const showAll = isAssociationSlotTabAll(selectedKey);
+      const active = !showAll ? slots.find((s) => s.key === selectedKey) : null;
+      const statusLabel =
+        active ? associationSlotTabLabel(active, activity) : "Tous les créneaux";
+      const options = [
+        `<option value="${ASSOCIATION_SLOT_TAB_ALL}" ${showAll ? "selected" : ""}>Tous les créneaux</option>`,
+        ...slots.map((s) => {
+          const sel = !showAll && s.key === selectedKey ? " selected" : "";
+          return `<option value="${escapeHtml(s.key)}"${sel}>${escapeHtml(associationSlotTabLabel(s, activity))}</option>`;
+        }),
+      ];
+      return `<div class="as-slot-filter-cell">
+        <span class="as-slot-filter-cell__status">${escapeHtml(statusLabel)}</span>
+        <label class="as-slot-filter-cell__filtrer">
+          <span class="as-slot-filter-cell__filtrer-txt">Filtrer</span>
+          <select class="as-slot-filter-select" data-activity-id="${escapeHtml(activityId)}" aria-label="Filtrer par créneau">${options.join("")}</select>
+        </label>
+      </div>`;
+    }
+
+    function associationSlotFilterTheadRowHtml(colspan, activityId, activity, slots, selectedKey) {
+      const control = associationSlotFilterControlHtml(activityId, activity, slots, selectedKey);
+      if (!control) return "";
+      return `<tr class="as-slot-filter-tr no-print"><th colspan="${Math.max(1, Number(colspan) || 1)}" class="as-slot-filter-th">${control}</th></tr>`;
+    }
+
     function associationSlotCategoriesHintHtml(activity, slot) {
       if (!activity || !slot) return "";
       const cats = associationSlotCategoriesLabel(activity, slot);
@@ -10581,11 +10664,14 @@
             .join("")
         : `<tr><td colspan="${colDefs.length + 5}" class="kpi-sub" style="text-align:center">Aucun élève inscrit. Utilisez le bouton + pour en ajouter.</td></tr>`;
       const tableTitle = `Gestion administrative — ${activity.name} — Tous les créneaux`;
+      const filterKey = dashAsActivitySlotTab[activity.id] || ASSOCIATION_SLOT_TAB_ALL;
+      const colCount = colDefs.length + 5;
       return `<div>
-        <p class="kpi-sub as-slot-categories-hint"><strong>Tous les créneaux</strong> — Vue récapitulative. Sélectionnez un créneau pour filtrer ou ajouter une colonne.</p>
         <div class="table-wrap as-admin-table-wrap as-admin-table-wrap--tap-fullscreen" data-table-title="${escapeHtml(tableTitle)}">
           <table class="as-admin-table">
-          <thead><tr>
+          <thead>
+            ${associationSlotFilterTheadRowHtml(colCount, activity.id, activity, slots, filterKey)}
+            <tr>
             <th class="as-admin-add-student-th no-print">
               <button type="button" class="btn btn-sm btn-primary btn-as-admin-add-student" data-id="${escapeHtml(activity.id)}" title="Ajouter un élève" aria-label="Ajouter un élève">+</button>
             </th>
@@ -10608,10 +10694,8 @@
       const slotObj = associationListDistinctSlots(activity).find((s) => s.key === adminSlotKey);
       const multiSlot = associationListDistinctSlots(activity).length > 1;
       const slotLabel = slotObj && multiSlot ? associationSlotTabLabel(slotObj, activity) : "";
-      const slotCatsHint =
-        slotObj && (multiSlot || associationSlotCategoriesLabel(activity, slotObj) !== "Tous")
-          ? associationSlotCategoriesHintHtml(activity, slotObj)
-          : "";
+      const allSlots = associationListDistinctSlots(activity);
+      const filterKey = dashAsActivitySlotTab[activity.id] || adminSlotKey || ASSOCIATION_SLOT_TAB_ALL;
       const colHeaders = columns.map((col) =>
         `<th class="as-admin-col-head no-print">${escapeHtml(col.label)}
           <button type="button" class="btn btn-sm btn-danger btn-as-admin-del-col" data-col-id="${escapeHtml(col.id)}" data-activity-id="${escapeHtml(activity.id)}" data-slot-key="${escapeHtml(adminSlotKey)}" style="display:block;margin:.25rem auto 0;padding:.1rem .35rem;font-size:.65rem" title="Supprimer la colonne">✕</button>
@@ -10636,14 +10720,16 @@
       const tableTitle = slotLabel
         ? `Gestion administrative — ${activity.name} — ${slotLabel}`
         : `Gestion administrative — ${activity.name}`;
+      const colCount = columns.length + 5;
       return `<div>
-        ${slotCatsHint}
         <div style="display:flex;align-items:center;justify-content:flex-end;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem">
           <button type="button" class="btn btn-sm btn-primary btn-as-admin-add-col" data-id="${escapeHtml(activity.id)}" data-slot-key="${escapeHtml(adminSlotKey)}">+ Ajouter une colonne</button>
         </div>
         <div class="table-wrap as-admin-table-wrap as-admin-table-wrap--tap-fullscreen" data-table-title="${escapeHtml(tableTitle)}">
           <table class="as-admin-table">
-          <thead><tr>
+          <thead>
+            ${associationSlotFilterTheadRowHtml(colCount, activity.id, activity, allSlots, filterKey)}
+            <tr>
             <th class="as-admin-add-student-th no-print">
               <button type="button" class="btn btn-sm btn-primary btn-as-admin-add-student" data-id="${escapeHtml(activity.id)}" title="Ajouter un élève" aria-label="Ajouter un élève">+</button>
             </th>
@@ -16406,6 +16492,11 @@
           const tab = active && active.getAttribute("data-tab");
           if (tab === "planning" || tab === "admin") dashAsActivityPanelTab[id] = tab;
         });
+        main.querySelectorAll(".as-slot-filter-select").forEach((sel) => {
+          const id = sel.getAttribute("data-activity-id");
+          const sk = sel.value;
+          if (id && sk) dashAsActivitySlotTab[id] = sk;
+        });
         main.querySelectorAll(".btn-dash-as-slot-tab.as-activity-tab--active").forEach((btn) => {
           const id = btn.getAttribute("data-activity-id");
           const sk = btn.getAttribute("data-slot-key");
@@ -16848,20 +16939,25 @@
       }
       const body = el(`<div>
         <p class="kpi-sub" style="margin-bottom:.75rem"><strong>${fmtDateFr(session.date)}</strong> · ${session.startTime || ""}–${session.endTime || ""}</p>
-        <p class="kpi-sub" style="margin:0 0 .65rem">Vous avez la classe, mais ce n’est pas une séance APSA (sortie, heure particulière…). Elle <strong>ne compte pas</strong> dans les séances APSA réalisées de la période.</p>
-        <div class="form-group"><label>Motif</label><select id="m-reason">${MODIFY_REASON_TYPES.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select></div>
-        <div class="form-group"><label>Commentaire</label><textarea id="m-com" rows="2" placeholder="Optionnel"></textarea></div>
+        <div class="form-group"><label for="m-motif">Motif</label><input type="text" id="m-motif" placeholder="Saisie libre" autocomplete="off" /></div>
       </div>`);
       openModal("Modifier ce cours", body, () => {
+        const motif = (body.querySelector("#m-motif")?.value || "").trim();
+        if (!motif) {
+          alert("Indiquez un motif.");
+          body.querySelector("#m-motif")?.focus();
+          return false;
+        }
         upsertSessionOverride(session, {
           kind: "modify",
-          reasonType: body.querySelector("#m-reason").value,
-          comment: body.querySelector("#m-com").value,
+          reasonType: "autre",
+          comment: motif,
         });
         saveData();
         render();
         return true;
       }, { autosave: false });
+      setTimeout(() => body.querySelector("#m-motif")?.focus(), 0);
     }
 
     function openAddAssociationActivityModal() {
@@ -16967,7 +17063,10 @@
         }`;
         const tableHtml = `<div class="table-wrap as-planning-table-wrap as-planning-table-wrap--tap-fullscreen" data-table-title="${escapeHtml(planningTableTitle)}">
             <table class="as-planning-table">
-            <thead><tr><th>Date</th><th>Type</th><th>Horaire</th><th title="Catégorie (abréviation : B=benjamins, M=minimes, F=filles, G=garçons)">Cat.</th><th>Présents</th><th>Statut</th><th>Action</th></tr></thead>
+            <thead>
+              ${associationSlotFilterTheadRowHtml(7, block.activityId, activity, slots, slotKey)}
+              <tr><th>Date</th><th>Type</th><th>Horaire</th><th title="Catégorie (abréviation : B=benjamins, M=minimes, F=filles, G=garçons)">Cat.</th><th>Présents</th><th>Statut</th><th>Action</th></tr>
+            </thead>
             <tbody>${rows}</tbody>
           </table>
           </div>`;
@@ -16975,33 +17074,6 @@
             <button type="button" role="tab" class="as-mode-btn as-mode-btn--planning btn-dash-as-subtab ${panelTab === "planning" ? "as-mode-btn--active" : ""}" data-activity-id="${escapeHtml(block.activityId)}" data-tab="planning" aria-selected="${panelTab === "planning" ? "true" : "false"}">Planning et appel</button>
             <button type="button" role="tab" class="as-mode-btn as-mode-btn--admin btn-dash-as-subtab ${panelTab === "admin" ? "as-mode-btn--active" : ""}" data-activity-id="${escapeHtml(block.activityId)}" data-tab="admin" aria-selected="${panelTab === "admin" ? "true" : "false"}">Gestion administrative</button>
           </div>`;
-        const slotTabsHtml = multiSlot
-          ? `<div class="as-slot-bar no-print">
-            <span class="as-slot-bar__label">Créneau</span>
-            <div class="as-slot-tabs">
-            ${renderAssociationAllSlotsTabHtml(block.activityId, showAllSlots)}
-            ${slots
-              .map((s) => {
-                const active = !showAllSlots && s.key === (activeSlot && activeSlot.key);
-                return renderAssociationSlotTabHtml(activity, block.activityId, s, active);
-              })
-              .join("")}
-            </div>
-          </div>`
-          : "";
-        const slotCatsHint = showAllSlots
-          ? multiSlot
-            ? `<p class="kpi-sub as-slot-categories-hint"><strong>Tous les créneaux</strong> — Vue complète. Choisissez un créneau ci-dessus pour filtrer.</p>`
-            : ""
-          : activity &&
-              activeSlot &&
-              (multiSlot || associationSlotCategoriesLabel(activity, activeSlot) !== "Tous")
-            ? associationSlotCategoriesHintHtml(activity, activeSlot)
-            : "";
-        const planningHint =
-          panelTab === "planning"
-            ? slotCatsHint
-            : "";
         const panelContent =
           panelTab === "admin" && activity
             ? viewAssociationAdminBody(activity, showAllSlots ? ASSOCIATION_SLOT_TAB_ALL : activeSlot ? activeSlot.key : "")
@@ -17016,9 +17088,7 @@
           </div>
           <div class="dash-as-activity-panel" data-activity-id="${escapeHtml(block.activityId)}" ${expanded ? "" : "hidden"} style="margin-top:.45rem">
             ${tabsHtml}
-            ${slotTabsHtml}
             <div class="as-panel-body ${bodyModeClass}">
-              ${planningHint}
               ${panelContent}
             </div>
           </div>
@@ -17237,8 +17307,14 @@
     function dashAsTodayTrainingsHtml(dayISO, isToday) {
       const events = associationHomeDayTrainings(dayISO);
       if (!events.length) return "";
-      const label = isToday ? "Entraînement du jour" : "Entraînement de la journée";
       const n = events.length;
+      const label = isToday
+        ? n > 1
+          ? "Entraînements du jour"
+          : "Entraînement du jour"
+        : n > 1
+          ? "Entraînements de la journée"
+          : "Entraînement de la journée";
       const lines = events
         .map((e) => {
           const cancel = associationCancellationSummary(e);
@@ -19862,7 +19938,7 @@
         title = "Séance EPS";
         const statusHtml = canc
           ? isSessionModification(canc)
-            ? `<p><strong>Statut</strong><br><span style="color:#d97706">Modifié · ${escapeHtml(sessionOverrideReasonLabel(canc) || "")}${canc.comment ? " — " + escapeHtml(canc.comment) : ""}</span><br><span class="kpi-sub">Ne compte pas dans les APSA réalisées</span></p>`
+            ? `<p><strong>Statut</strong><br><span style="color:#d97706">Modifié · ${escapeHtml(sessionOverrideReasonLabel(canc) || "")}</span><br><span class="kpi-sub">Ne compte pas dans les APSA réalisées</span></p>`
             : `<p><strong>Statut</strong><br><span style="color:var(--danger)">Annulée · ${escapeHtml(sessionOverrideReasonLabel(canc) || "")}${canc.comment ? " — " + escapeHtml(canc.comment) : ""}</span></p>`
           : `<p><strong>Statut</strong><br>${escapeHtml(st.label)}</p>`;
         body.innerHTML = `
@@ -21145,6 +21221,18 @@
             return;
           }
         });
+        planningRoot.addEventListener("change", (e) => {
+          const sel = e.target.closest(".as-slot-filter-select");
+          if (!sel) return;
+          e.stopPropagation();
+          const id = sel.getAttribute("data-activity-id");
+          const sk = sel.value;
+          if (!id || !sk) return;
+          dashAsActivitySlotTab[id] = sk;
+          dashAsExpandedActivityIds.clear();
+          dashAsExpandedActivityIds.add(id);
+          refreshAssociationDashPlanning();
+        });
         wireAssociationAdminCellEvents(planningRoot);
         wireAssociationAdminDeleteStudentButtons(planningRoot);
         wireAssociationAdminAddStudent(planningRoot);
@@ -21223,6 +21311,7 @@
               if (e.target.closest(".as-admin-check")) return;
               if (e.target.closest(".as-admin-cell-text")) return;
               if (e.target.closest(".as-admin-cell-input")) return;
+              if (e.target.closest(".as-slot-filter-cell, .as-slot-filter-select, .as-slot-filter-tr")) return;
               e.preventDefault();
               e.stopPropagation();
               openFullscreenAdminTable(wrap);
@@ -21231,6 +21320,7 @@
             if (wrap.classList.contains("as-planning-table-wrap")) {
               if (e.target.closest(".btn-as-dash-cancel, .btn-as-dash-uncancel")) return;
               if (e.target.closest(".dash-as-session-row")) return;
+              if (e.target.closest(".as-slot-filter-cell, .as-slot-filter-select, .as-slot-filter-tr")) return;
               e.preventDefault();
               e.stopPropagation();
               openFullscreenAssociationPlanningTable(wrap);
@@ -23455,7 +23545,9 @@
                 <p class="sm-section__title">${isSessionModification(canc) ? "Cours modifié" : "Cours annulé"}</p>
                 <p class="kpi-sub" style="margin:0 0 .45rem">${escapeHtml(
                   sessionOverrideReasonLabel(canc) || (isSessionModification(canc) ? "Modifié" : "Annulé")
-                )}${canc.comment ? " — " + escapeHtml(canc.comment) : ""}${
+                )}${
+                  !isSessionModification(canc) && canc.comment ? " — " + escapeHtml(canc.comment) : ""
+                }${
                   isSessionModification(canc)
                     ? " · Ne compte pas dans les APSA réalisées"
                     : ""
