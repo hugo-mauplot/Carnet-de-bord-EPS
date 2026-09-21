@@ -7956,8 +7956,7 @@
       const courses = [];
       tc.timeSlots.forEach((ts) => {
         const cell = getTeamCell(tid, dayIndex, ts.id, week);
-        const level = teamCellLevel(cell);
-        const pid = periodIdForDateAndLevel(dateISO, level);
+        const pid = periodIdForTeamCell(dateISO, cell, dayIndex);
         if (!pid || !teamCellIsFilled(cell, pid)) return;
         const view = teamCellPeriodView(cell, pid);
         if (view.applies === false) return;
@@ -8222,10 +8221,9 @@
       const list = [];
       tc.teachers.forEach((t) => {
         const cell = getTeamCell(t.id, dayIndex, timeSlotId, weekParity);
-        const level = teamCellLevel(cell);
         const pid = dateStr
-          ? periodIdForDateAndLevel(dateStr, level)
-          : (periodId || periodIdForDateAndLevel(fmtISODate(new Date()), level) || ensureTeamCoordPeriodId());
+          ? periodIdForTeamCell(dateStr, cell, dayIndex)
+          : (periodId || periodIdForTeamCell(fmtISODate(new Date()), cell, dayIndex) || ensureTeamCoordPeriodId());
         if (!pid) return;
         const view = teamCellPeriodView(cell, pid);
         if (view.applies === false || !teamCellIsFilled(cell, pid)) return;
@@ -8233,7 +8231,7 @@
           teacherId: t.id,
           teacherName: t.name || "—",
           className: view.className || "",
-          level: view.level || level,
+          level: view.level || teamCellLevel(cell),
           apsa: view.apsa || "",
           venue: view.venue || "",
         });
@@ -8528,6 +8526,41 @@
       return periodLevels(period).includes(lvl);
     }
 
+    /**
+     * Périodes à proposer dans Programmation des professeurs :
+     * plan personnalisé de la classe si activé, sinon périodes du niveau.
+     */
+    function resolveTeamOccPeriods(className, level, dayIndex) {
+      const cl = findClassByNameLoose(className);
+      if (cl && classHasCustomPeriodPlan(cl)) {
+        if (Number.isInteger(Number(dayIndex))) return periodsForClassOnDay(cl.id, Number(dayIndex));
+        return periodsForClass(cl.id);
+      }
+      return level ? periodsForLevel(level) : [];
+    }
+
+    /** Période courante pour une case professeur (respecte les classes à plan personnalisé). */
+    function periodIdForTeamCell(dateStr, cell, dayIndex) {
+      const c = normalizeTeamCell(cell);
+      const className = c.className || "";
+      const level = teamCellLevel(c) || c.level || "";
+      const cl = findClassByNameLoose(className);
+      if (cl && classHasCustomPeriodPlan(cl)) {
+        const iso = coerceISODateString(dateStr) || String(dateStr || "");
+        const periods = Number.isInteger(Number(dayIndex))
+          ? periodsForClassOnDay(cl.id, Number(dayIndex))
+          : periodsForClass(cl.id);
+        if (!periods.length) return "";
+        if (!iso) return periods[0].id || "";
+        const hit = periods.find((p) => {
+          const { start, end } = periodDatesForClass(p, cl.id);
+          return start && end && iso >= String(start) && iso <= String(end);
+        });
+        return (hit && hit.id) || periods[0].id || "";
+      }
+      return periodIdForDateAndLevel(dateStr, level);
+    }
+
     function teamCellLevel(cell) {
       const c = cell && typeof cell === "object" ? cell : {};
       const lvl = String(c.level || "").trim();
@@ -8543,10 +8576,9 @@
     }
 
     function normalizeTeamCell(raw) {
-      const periods = teamPeriodsSorted();
       const cell = { className: "", level: "", byPeriod: {} };
       if (!raw || typeof raw !== "object") {
-        periods.forEach((p) => { cell.byPeriod[p.id] = { apsa: "", venue: "" }; });
+        teamPeriodsSorted().forEach((p) => { cell.byPeriod[p.id] = { apsa: "", venue: "" }; });
         return cell;
       }
       cell.className = String(raw.className || "").trim();
@@ -8558,6 +8590,11 @@
       const legacyApsa = String(raw.apsa || "").trim();
       const legacyVenue = String(raw.venue || "").trim();
       const src = raw.byPeriod && typeof raw.byPeriod === "object" ? raw.byPeriod : null;
+      const cl = findClassByNameLoose(cell.className);
+      const periods =
+        cl && classHasCustomPeriodPlan(cl)
+          ? periodsForClass(cl.id)
+          : teamPeriodsSorted();
       periods.forEach((p) => {
         const from = src && src[p.id] ? src[p.id] : null;
         cell.byPeriod[p.id] = {
@@ -8587,8 +8624,15 @@
       const c = normalizeTeamCell(cell);
       const pid = periodId || ensureTeamCoordPeriodId();
       const level = teamCellLevel(c);
-      const period = teamPeriodsSorted().find((p) => p.id === pid);
-      const applies = !period || !level || periodAppliesToLevel(period, level);
+      const cl = findClassByNameLoose(c.className);
+      const period = findPeriodById(pid) || teamPeriodsSorted().find((p) => p.id === pid);
+      let applies = true;
+      if (cl && classHasCustomPeriodPlan(cl)) {
+        const customIds = new Set(periodsForClass(cl.id).map((p) => p.id));
+        applies = customIds.has(pid);
+      } else {
+        applies = !period || !level || periodAppliesToLevel(period, level);
+      }
       const part = applies && c.byPeriod && c.byPeriod[pid] ? c.byPeriod[pid] : { apsa: "", venue: "" };
       return {
         className: c.className || "",
@@ -8609,8 +8653,9 @@
       if (!CLASS_LEVELS.includes(level)) level = "";
       const byPeriod = {};
       const src = data && data.byPeriod && typeof data.byPeriod === "object" ? data.byPeriod : {};
-      const relevant = level ? periodsForLevel(level) : teamPeriodsSorted();
-      relevant.forEach((p) => {
+      const relevant = resolveTeamOccPeriods(className, level, dayIndex);
+      const periodList = relevant.length ? relevant : teamPeriodsSorted();
+      periodList.forEach((p) => {
         const part = src[p.id] || {};
         byPeriod[p.id] = {
           apsa: String(part.apsa || "").trim(),
@@ -8663,10 +8708,9 @@
       const byVenue = new Map();
       tc.teachers.forEach((t) => {
         const cell = getTeamCell(t.id, dayIndex, timeSlotId, weekParity);
-        const level = teamCellLevel(cell);
         const pid = dateStr
-          ? periodIdForDateAndLevel(dateStr, level)
-          : (periodId || periodIdForDateAndLevel(fmtISODate(new Date()), level) || ensureTeamCoordPeriodId());
+          ? periodIdForTeamCell(dateStr, cell, dayIndex)
+          : (periodId || periodIdForTeamCell(fmtISODate(new Date()), cell, dayIndex) || ensureTeamCoordPeriodId());
         if (!pid) return;
         const view = teamCellPeriodView(cell, pid);
         if (view.applies === false) return;
@@ -8689,10 +8733,9 @@
 
     function teamCellHasConflict(teacherId, dayIndex, timeSlotId, weekParity, periodId, dateStr) {
       const cell = getTeamCell(teacherId, dayIndex, timeSlotId, weekParity);
-      const level = teamCellLevel(cell);
       const pid = dateStr
-        ? periodIdForDateAndLevel(dateStr, level)
-        : (periodId || periodIdForDateAndLevel(fmtISODate(new Date()), level) || ensureTeamCoordPeriodId());
+        ? periodIdForTeamCell(dateStr, cell, dayIndex)
+        : (periodId || periodIdForTeamCell(fmtISODate(new Date()), cell, dayIndex) || ensureTeamCoordPeriodId());
       const view = teamCellPeriodView(cell, pid);
       const vKey = normalizeVenueName(view.venue);
       if (!vKey) return false;
@@ -8758,7 +8801,7 @@
         if (!timeRangesOverlap(st, en, sst, sen)) return;
         tc.teachers.forEach((t) => {
           const cell = getTeamCell(t.id, dayIndex, ts.id, weekParity);
-          const pid = periodIdForDateAndLevel(session.date, teamCellLevel(cell));
+          const pid = periodIdForTeamCell(session.date, cell, dayIndex);
           if (!pid) return;
           const view = teamCellPeriodView(cell, pid);
           if (view.applies === false) return;
@@ -17276,7 +17319,7 @@
               const cell = getTeamCell(teacherId, dayIndex, ts.id, week) || {};
               const className = String(cell.className || "").trim();
               const level = teamCellLevel(cell);
-              const relevantPeriods = level ? periodsForLevel(level) : periods;
+              const relevantPeriods = resolveTeamOccPeriods(className, level, dayIndex);
               const periodList = relevantPeriods.length ? relevantPeriods : periods;
               const apsaLines = periodList
                 .map((p) => {
@@ -17413,14 +17456,24 @@
         return html;
       }
 
-      function periodFieldsHtml(level, byPeriod) {
-        const relevant = level ? periodsForLevel(level) : [];
+      function periodFieldsHtml(level, byPeriod, className) {
+        const relevant = resolveTeamOccPeriods(className || "", level, day);
+        const cl = findClassByNameLoose(className || "");
         if (!relevant.length) {
+          if (cl && classHasCustomPeriodPlan(cl)) {
+            return `<div class="team-coord-periods-host">
+              <p class="kpi-sub" style="margin:0">Aucune période personnalisée pour ce jour. Modifiez la classe pour définir ses périodes.</p>
+            </div>`;
+          }
           return `<div class="team-coord-periods-host">
-            <p class="kpi-sub" style="margin:0">Choisissez un niveau pour afficher les périodes concernées.</p>
+            <p class="kpi-sub" style="margin:0">Choisissez un niveau (ou une classe) pour afficher les périodes concernées.</p>
           </div>`;
         }
-        return `<div class="team-coord-periods-host">${relevant
+        const customNote =
+          cl && classHasCustomPeriodPlan(cl)
+            ? `<p class="kpi-sub" style="margin:0 0 .45rem">Périodes personnalisées de <strong>${escapeHtml(cl.name)}</strong> pour ce créneau.</p>`
+            : "";
+        return `<div class="team-coord-periods-host">${customNote}${relevant
           .map((p) => {
             const part = byPeriod && byPeriod[p.id] ? byPeriod[p.id] : {};
             const venue = String(part.venue || "");
@@ -17472,13 +17525,25 @@
               <input class="f-occ-class" list="f-occ-class-list" value="${escapeHtml(o.className || "")}" placeholder="ex. 6eA" autocomplete="off" />
             </div>
           </div>
-          ${periodFieldsHtml(level, o.byPeriod || (o.apsa || o.venue ? { [periodIdForDateAndLevel(contextDateIso, level)]: { apsa: o.apsa || "", venue: o.venue || "" } } : {}))}
+          ${periodFieldsHtml(
+            level,
+            o.byPeriod ||
+              (o.apsa || o.venue
+                ? {
+                    [periodIdForTeamCell(contextDateIso, { className: o.className || "", level, byPeriod: {} }, day)]: {
+                      apsa: o.apsa || "",
+                      venue: o.venue || "",
+                    },
+                  }
+                : {}),
+            o.className || ""
+          )}
           <button type="button" class="btn btn-sm btn-danger btn-occ-remove">Retirer</button>
         </div>`;
       }
 
       const body = el(`<div>
-        <p class="kpi-sub" style="margin:0 0 .55rem"><strong>${escapeHtml(DOW[day] || "")}</strong> · ${escapeHtml(fmtDateFr(contextDateIso))} · ${escapeHtml(teamTimeLabel(ts))} · APSA et lieu selon les périodes de chaque niveau. Cours différent en A et B : deux lignes du même professeur (Semaine A + Semaine B).</p>
+        <p class="kpi-sub" style="margin:0 0 .55rem"><strong>${escapeHtml(DOW[day] || "")}</strong> · ${escapeHtml(fmtDateFr(contextDateIso))} · ${escapeHtml(teamTimeLabel(ts))} · APSA et lieu selon les périodes du niveau (ou le plan personnalisé de la classe). Cours différent en A et B : deux lignes du même professeur (Semaine A + Semaine B).</p>
         <datalist id="f-occ-class-list">${classDatalist}</datalist>
         <div id="f-occ-list">${(initial.length ? initial : [{ teacherId: filterId || tc.teachers[0].id, className: "", level: "", byPeriod: {}, weekScope: "both" }]).map(occupantRowHtmlFixed).join("")}</div>
         <button type="button" class="btn btn-sm btn-ghost" id="btn-occ-add" style="margin-top:.25rem">+ Ajouter un professeur (ou l'autre semaine A/B)</button>
@@ -17518,7 +17583,7 @@
         const refreshPeriods = () => {
           const level = levelSel.value || inferClassLevel(classInp.value) || "";
           const host = row.querySelector(".team-coord-periods-host");
-          if (host) host.outerHTML = periodFieldsHtml(level, collectPeriodValues());
+          if (host) host.outerHTML = periodFieldsHtml(level, collectPeriodValues(), classInp.value || "");
           wirePeriodVenueFields();
         };
         teacherSel?.addEventListener("change", applyTeacherTint);
@@ -17619,7 +17684,7 @@
           const className = (row.querySelector(".f-occ-class")?.value || "").trim();
           let level = (row.querySelector(".f-occ-level")?.value || "").trim();
           if (!CLASS_LEVELS.includes(level)) level = inferClassLevel(className) || "";
-          const relevantPeriods = level ? periodsForLevel(level) : [];
+          const relevantPeriods = resolveTeamOccPeriods(className, level, day);
           const byPeriod = {};
           relevantPeriods.forEach((p) => {
             const block = [...row.querySelectorAll(".team-coord-period-block")].find((el) => (el.getAttribute("data-period-id") || "") === p.id);
@@ -17628,6 +17693,15 @@
             let venue = (block.querySelector(".f-occ-period-venue")?.value || "").trim();
             if (venue === "__other__") venue = (block.querySelector(".f-occ-period-venue-other")?.value || "").trim();
             byPeriod[p.id] = { apsa, venue };
+          });
+          // Conserver aussi les blocs affichés (sécurité si la résolution a changé)
+          row.querySelectorAll(".team-coord-period-block").forEach((block) => {
+            const pid = block.getAttribute("data-period-id") || "";
+            if (!pid || byPeriod[pid]) return;
+            const apsa = (block.querySelector(".f-occ-period-apsa")?.value || "").trim();
+            let venue = (block.querySelector(".f-occ-period-venue")?.value || "").trim();
+            if (venue === "__other__") venue = (block.querySelector(".f-occ-period-venue-other")?.value || "").trim();
+            byPeriod[pid] = { apsa, venue };
           });
           const hasPeriodData = Object.values(byPeriod).some((p) => p && (p.apsa || p.venue));
           if (!className && !hasPeriodData) continue;
