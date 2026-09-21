@@ -1529,41 +1529,85 @@
     .cal-panel--official .cal-panel__events summary { color: #0d9488; }
     .cal-panel--school .cal-panel__events summary { color: #d97706; }
     .as-slot-tabs {
-      gap: 0.35rem;
+      gap: 0.3rem;
     }
     .as-slot-tabs .as-activity-tab {
-      font-size: 0.78rem;
-      padding: 0.28rem 0.55rem;
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 0.28rem 0.5rem;
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text-muted);
+    }
+    .as-slot-tabs .as-activity-tab--active {
+      border-color: color-mix(in srgb, var(--text-muted) 35%, var(--border));
+      background: color-mix(in srgb, var(--text-muted) 12%, var(--surface));
+      color: var(--fg);
+      font-weight: 700;
+      box-shadow: none;
     }
     .as-activity-tab.btn-dash-as-slot-tab {
       display: inline-flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 0.1rem;
+      gap: 0.08rem;
       line-height: 1.2;
       text-align: left;
-      max-width: min(100%, 14rem);
+      max-width: min(100%, 12.5rem);
     }
     .as-slot-tab__when {
-      font-weight: 700;
+      font-weight: inherit;
       white-space: nowrap;
     }
     .as-slot-tab__cats {
-      font-size: 0.66rem;
-      font-weight: 600;
-      opacity: 0.9;
+      font-size: 0.64rem;
+      font-weight: 500;
+      opacity: 0.85;
       white-space: normal;
       line-height: 1.25;
     }
     .as-slot-tab__cats--all {
       font-weight: 500;
-      opacity: 0.65;
+      opacity: 0.6;
       font-style: italic;
     }
     .as-activity-tab.btn-dash-as-slot-tab--all {
       max-width: none;
       align-items: center;
       text-align: center;
+    }
+    .as-slot-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 0.35rem 0.55rem;
+      margin: 0 0 0.55rem;
+      padding: 0.4rem 0.5rem;
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--surface) 82%, var(--bg));
+      border: 1px dashed color-mix(in srgb, var(--border) 85%, transparent);
+    }
+    .as-slot-bar__label {
+      font-size: 0.66rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      padding-top: 0.38rem;
+      flex-shrink: 0;
+      min-width: 4.2rem;
+    }
+    .as-slot-bar .as-slot-tabs {
+      flex: 1;
+      min-width: 0;
+      margin: 0;
+      border: none;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      position: static;
+      z-index: auto;
     }
     .as-slot-categories-hint {
       margin: 0 0 0.45rem;
@@ -2301,7 +2345,20 @@
     }
     .dash-as-comp-row:last-child { border-bottom: none; }
     .dash-as-comp-row__main { flex: 1 1 12rem; min-width: 0; }
-    .dash-as-comp-row__actions { flex: 0 0 auto; align-self: center; }
+    .dash-as-comp-row__actions {
+      flex: 0 0 auto;
+      align-self: center;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .btn-as-upcoming-del-competition {
+      padding: 0.15rem 0.45rem;
+      font-size: 0.95rem;
+      line-height: 1;
+      min-width: 1.75rem;
+    }
     .dash-as-comp-date { font-weight: 800; color: var(--fg); }
     .dash-as-comp-activity { font-weight: 700; color: color-mix(in srgb, #f59e0b 80%, var(--text)); }
     .as-comp-manage-table-wrap {
@@ -2445,6 +2502,64 @@
       position: relative;
       z-index: 1;
     }
+    .as-mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.3rem;
+      margin: 0 0 0.6rem;
+      padding: 0.28rem;
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--border) 45%, var(--surface));
+      border: 1px solid var(--border);
+      position: relative;
+      z-index: 2;
+    }
+    .as-mode-btn {
+      font-family: inherit;
+      font-size: 0.86rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      line-height: 1.25;
+      padding: 0.55rem 0.55rem;
+      border-radius: 9px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      pointer-events: auto;
+      text-align: center;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+    .as-mode-btn:hover {
+      color: var(--fg);
+      background: color-mix(in srgb, var(--surface) 70%, transparent);
+    }
+    .as-mode-btn--planning.as-mode-btn--active {
+      background: color-mix(in srgb, #0d9488 16%, var(--surface));
+      border-color: color-mix(in srgb, #0d9488 50%, var(--border));
+      color: #0f766e;
+      box-shadow: 0 1px 0 color-mix(in srgb, #0d9488 18%, transparent);
+    }
+    .as-mode-btn--admin.as-mode-btn--active {
+      background: color-mix(in srgb, #f59e0b 20%, var(--surface));
+      border-color: color-mix(in srgb, #f59e0b 55%, var(--border));
+      color: color-mix(in srgb, #f59e0b 88%, #78350f);
+      box-shadow: 0 1px 0 color-mix(in srgb, #f59e0b 20%, transparent);
+    }
+    .as-panel-body {
+      border-radius: 12px;
+      padding: 0.55rem 0.55rem 0.65rem;
+      border: 1px solid var(--border);
+      min-width: 0;
+    }
+    .as-panel-body--planning {
+      border-color: color-mix(in srgb, #0d9488 32%, var(--border));
+      background: color-mix(in srgb, #0d9488 5.5%, var(--surface));
+    }
+    .as-panel-body--admin {
+      border-color: color-mix(in srgb, #f59e0b 38%, var(--border));
+      background: color-mix(in srgb, #f59e0b 6.5%, var(--surface));
+    }
     .as-activity-tab--active {
       border-color: color-mix(in srgb, #f59e0b 50%, var(--border));
       background: color-mix(in srgb, #f59e0b 22%, var(--surface));
@@ -2479,6 +2594,19 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+    }
+    .as-admin-add-student-th {
+      width: 2.25rem;
+      min-width: 2.25rem;
+      max-width: 2.5rem;
+      text-align: center;
+      vertical-align: middle;
+      padding: 0.3rem 0.2rem !important;
+    }
+    .as-admin-add-spacer {
+      width: 2.25rem;
+      padding: 0.3rem 0.2rem !important;
+      border: none;
     }
     .as-admin-add-student-row input,
     .as-admin-add-student-row select {
@@ -10104,9 +10232,9 @@
     }
 
     function renderAssociationAllSlotsTabHtml(activityId, active) {
-      return `<button type="button" class="as-activity-tab btn-dash-as-slot-tab btn-dash-as-slot-tab--all${active ? " as-activity-tab--active" : ""}" data-activity-id="${escapeHtml(activityId)}" data-slot-key="${ASSOCIATION_SLOT_TAB_ALL}" title="Tous les créneaux de l'activité">
-        <span class="as-slot-tab__when">Tous les créneaux</span>
-        <span class="as-slot-tab__cats">Récapitulatif</span>
+      return `<button type="button" class="as-activity-tab btn-dash-as-slot-tab btn-dash-as-slot-tab--all${active ? " as-activity-tab--active" : ""}" data-activity-id="${escapeHtml(activityId)}" data-slot-key="${ASSOCIATION_SLOT_TAB_ALL}" title="Afficher tous les créneaux (sans filtre)">
+        <span class="as-slot-tab__when">Tous</span>
+        <span class="as-slot-tab__cats">Sans filtre</span>
       </button>`;
     }
 
@@ -10442,6 +10570,7 @@
                 .map((def) => renderAssociationAdminCell(activity, def.col, idx, def.slotKey))
                 .join("");
               return `<tr>
+              <td class="as-admin-add-spacer no-print" aria-hidden="true"></td>
               <td data-label="Prénom" class="as-admin-name-cell"><button type="button" class="btn-as-admin-del-student no-print" data-activity-id="${escapeHtml(activity.id)}" data-student-idx="${idx}" aria-label="Supprimer ${escapeHtml(firstName || st.name)}">✕</button>${escapeHtml(firstName) || "—"}</td>
               <td data-label="Nom">${escapeHtml(lastName) || "—"}</td>
               <td data-label="Classe">${escapeHtml(st.className) || "—"}</td>
@@ -10450,16 +10579,18 @@
             </tr>`;
             })
             .join("")
-        : `<tr><td colspan="${colDefs.length + 4}" class="kpi-sub" style="text-align:center">Aucun élève inscrit. Ajoutez-les dans Réglages → Association sportive.</td></tr>`;
+        : `<tr><td colspan="${colDefs.length + 5}" class="kpi-sub" style="text-align:center">Aucun élève inscrit. Utilisez le bouton + pour en ajouter.</td></tr>`;
       const tableTitle = `Gestion administrative — ${activity.name} — Tous les créneaux`;
       return `<div>
         <p class="kpi-sub as-slot-categories-hint"><strong>Tous les créneaux</strong> — Vue récapitulative. Sélectionnez un créneau pour filtrer ou ajouter une colonne.</p>
-        <div style="display:flex;align-items:center;justify-content:flex-end;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem">
-          <button type="button" class="btn btn-sm btn-primary btn-as-admin-add-student" data-id="${escapeHtml(activity.id)}" title="Inscrire un élève">+</button>
-        </div>
         <div class="table-wrap as-admin-table-wrap as-admin-table-wrap--tap-fullscreen" data-table-title="${escapeHtml(tableTitle)}">
           <table class="as-admin-table">
-          <thead><tr><th>Prénom</th><th>Nom</th><th>Classe</th><th title="Catégorie (abréviation)">Cat.</th>${colHeaders || ""}</tr></thead>
+          <thead><tr>
+            <th class="as-admin-add-student-th no-print">
+              <button type="button" class="btn btn-sm btn-primary btn-as-admin-add-student" data-id="${escapeHtml(activity.id)}" title="Ajouter un élève" aria-label="Ajouter un élève">+</button>
+            </th>
+            <th>Prénom</th><th>Nom</th><th>Classe</th><th title="Catégorie (abréviation)">Cat.</th>${colHeaders || ""}
+          </tr></thead>
           <tbody>${rows}</tbody>
         </table>
         </div>
@@ -10493,6 +10624,7 @@
             const catTitle = st.category ? ` title="${escapeHtml(st.category)}"` : "";
             const checks = columns.map((col) => renderAssociationAdminCell(activity, col, idx, adminSlotKey)).join("");
             return `<tr>
+              <td class="as-admin-add-spacer no-print" aria-hidden="true"></td>
               <td data-label="Prénom" class="as-admin-name-cell"><button type="button" class="btn-as-admin-del-student no-print" data-activity-id="${escapeHtml(activity.id)}" data-student-idx="${idx}" aria-label="Supprimer ${escapeHtml(firstName || st.name)}">✕</button>${escapeHtml(firstName) || "—"}</td>
               <td data-label="Nom">${escapeHtml(lastName) || "—"}</td>
               <td data-label="Classe">${escapeHtml(st.className) || "—"}</td>
@@ -10500,19 +10632,23 @@
               ${checks}
             </tr>`;
           }).join("")
-              : `<tr><td colspan="${columns.length + 4}" class="kpi-sub" style="text-align:center">Aucun élève inscrit. Ajoutez-les dans Réglages → Association sportive.</td></tr>`;
+              : `<tr><td colspan="${columns.length + 5}" class="kpi-sub" style="text-align:center">Aucun élève inscrit. Utilisez le bouton + pour en ajouter.</td></tr>`;
       const tableTitle = slotLabel
         ? `Gestion administrative — ${activity.name} — ${slotLabel}`
         : `Gestion administrative — ${activity.name}`;
       return `<div>
         ${slotCatsHint}
         <div style="display:flex;align-items:center;justify-content:flex-end;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem">
-          <button type="button" class="btn btn-sm btn-primary btn-as-admin-add-student" data-id="${escapeHtml(activity.id)}" title="Inscrire un élève">+</button>
           <button type="button" class="btn btn-sm btn-primary btn-as-admin-add-col" data-id="${escapeHtml(activity.id)}" data-slot-key="${escapeHtml(adminSlotKey)}">+ Ajouter une colonne</button>
         </div>
         <div class="table-wrap as-admin-table-wrap as-admin-table-wrap--tap-fullscreen" data-table-title="${escapeHtml(tableTitle)}">
           <table class="as-admin-table">
-          <thead><tr><th>Prénom</th><th>Nom</th><th>Classe</th><th title="Catégorie (abréviation)">Cat.</th>${colHeaders || ""}</tr></thead>
+          <thead><tr>
+            <th class="as-admin-add-student-th no-print">
+              <button type="button" class="btn btn-sm btn-primary btn-as-admin-add-student" data-id="${escapeHtml(activity.id)}" title="Ajouter un élève" aria-label="Ajouter un élève">+</button>
+            </th>
+            <th>Prénom</th><th>Nom</th><th>Classe</th><th title="Catégorie (abréviation)">Cat.</th>${colHeaders || ""}
+          </tr></thead>
           <tbody>${rows}</tbody>
         </table>
         </div>
@@ -10871,8 +11007,9 @@
           e.preventDefault();
           e.stopPropagation();
           const id = btn.getAttribute("data-id") || "";
-          const block = btn.closest(".as-home-admin-root, .dash-as-activity-panel, .as-settings-panel") || root;
-          beginAssociationAdminAddStudentRow(id, block);
+          const activity = ((appData.association && appData.association.activities) || []).find((a) => a.id === id);
+          if (!activity) return;
+          openAddAssociationStudentsModal(activity);
         });
       });
       if (root.dataset.asAddStuCommitWired) return;
@@ -11015,6 +11152,75 @@
         activity.students = activity.students.map(normalizeAssociationStudent);
         saveData();
         render();
+      });
+    }
+
+    /** Même fenêtre que « + Ajouter un élève » dans Réglages → Association sportive. */
+    function openAddAssociationStudentsModal(activity) {
+      if (!activity) return;
+      if (!guardSharedEstablishmentEdit("Association sportive")) return;
+      if (!canEditAssociationActivity(activity) && !canManageAssociationStructure()) {
+        alert("Vous ne pouvez inscrire des élèves que sur les activités que vous encadrez.");
+        return;
+      }
+      if (!Array.isArray(activity.students)) activity.students = [];
+      activity.students = activity.students.map(normalizeAssociationStudent);
+      const body = el(`<div>
+            <p class="kpi-sub" style="margin-bottom:.5rem">Nouvel élève — validez la fenêtre pour l'enregistrer avec la liste.</p>
+            ${associationStudentFormHtml()}
+            <div class="form-group" style="margin-top:.75rem"><label>Importer un fichier CSV</label>
+              <p class="kpi-sub" style="margin:.15rem 0 .35rem">Colonnes : nom ; classe ; catégorie (séparateur ; ou ,)</p>
+              <input type="file" id="f-as-csv" accept=".csv,text/csv,text/comma-separated-values,application/csv,application/vnd.ms-excel" />
+            </div>
+            <h4 style="margin:1rem 0 .35rem;font-size:.9rem">Élèves inscrits</h4>
+            <div id="f-as-students-list" style="max-height:220px;overflow-y:auto"></div>
+          </div>`);
+      const renderStudents = () => {
+        const list = body.querySelector("#f-as-students-list");
+        list.innerHTML = renderAssociationStudentsListHtml(activity.students);
+        wireAssociationStudentsListActions(list, activity, renderStudents);
+      };
+      renderStudents();
+      body.querySelector("#f-as-csv").addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = String(reader.result || "").replace(/^\uFEFF/, "");
+          const parsed = text
+            .split(/\r?\n/)
+            .map((line) => {
+              const cols = line.split(/[;,\t]/).map((c) => c.replace(/^["']|["']$/g, "").trim());
+              if (!cols[0]) return null;
+              return normalizeAssociationStudent({
+                name: cols[0],
+                className: cols[1] || "",
+                category: cols[2] || "",
+              });
+            })
+            .filter(Boolean);
+          if (!parsed.length) return;
+          activity.students = parsed;
+          renderStudents();
+        };
+        reader.readAsText(file);
+      });
+      openModal("Ajouter des élèves", body, () => {
+        if (!commitAssociationStudentEditIfOpen(body, activity)) return false;
+        if (!body.querySelector(".as-student-edit-panel")) {
+          const st = readAssociationStudentFromForm(body);
+          if (st) activity.students.push(st);
+        }
+        activity.students = activity.students.map(normalizeAssociationStudent);
+        saveData();
+        const homeModal = document.querySelector(".as-home-session-modal");
+        if (homeModal && typeof homeModal.__rerenderAdmin === "function") {
+          homeModal.__rerenderAdmin();
+          if (currentView === "dashboard:association") refreshAssociationDashPlanning();
+          return true;
+        }
+        render();
+        return true;
       });
     }
 
@@ -15085,6 +15291,7 @@
               </div>
               <div class="dash-as-comp-row__actions">
                 <button type="button" class="btn btn-sm btn-primary btn-as-manage-competition" data-activity-id="${escapeHtml(c.activityId)}" data-competition-id="${escapeHtml(c.competitionId)}">Gérer la compétition</button>
+                <button type="button" class="btn btn-sm btn-danger btn-as-upcoming-del-competition" data-activity-id="${escapeHtml(c.activityId)}" data-competition-id="${escapeHtml(c.competitionId)}" title="Supprimer cette compétition" aria-label="Supprimer cette compétition">×</button>
               </div>
             </div>`;
         })
@@ -15170,6 +15377,17 @@
       if (listRoot && !listRoot.dataset.asCompManageWired) {
         listRoot.dataset.asCompManageWired = "1";
         listRoot.addEventListener("click", (e) => {
+          const delBtn = e.target.closest(".btn-as-upcoming-del-competition");
+          if (delBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const activityId = delBtn.getAttribute("data-activity-id") || "";
+            const competitionId = delBtn.getAttribute("data-competition-id") || "";
+            if (!confirmAndRemoveAssociationCompetition(activityId, competitionId)) return;
+            saveData();
+            render();
+            return;
+          }
           const btn = e.target.closest(".btn-as-manage-competition");
           if (!btn) return;
           e.preventDefault();
@@ -15554,6 +15772,26 @@
       if (a.competitions.length === before) return false;
       purgeAssociationEventRecords(activityId, "competition", competitionId);
       return true;
+    }
+
+    /** Confirmation + droits propriétaire, puis suppression. Retourne true si effectivement supprimée. */
+    function confirmAndRemoveAssociationCompetition(activityId, competitionId) {
+      if (!guardSharedEstablishmentEdit("Association sportive")) return false;
+      const a =
+        appData.association && Array.isArray(appData.association.activities)
+          ? appData.association.activities.find((x) => x.id === activityId)
+          : null;
+      const comp = a && Array.isArray(a.competitions) ? a.competitions.find((c) => c.id === competitionId) : null;
+      if (!comp) return false;
+      const profileId = getActiveProfileTeacherId();
+      if (profileId && comp.ownerTeacherId && String(comp.ownerTeacherId) !== profileId) {
+        alert(
+          "Cette compétition a été créée par un autre professeur. Vous ne pouvez la supprimer qu'avec son profil (ou sans profil pour le coordonnateur)."
+        );
+        return false;
+      }
+      if (!confirm("Supprimer cette compétition ? Les annulations et appels liés seront également effacés.")) return false;
+      return removeAssociationCompetition(activityId, competitionId);
     }
 
     function associationCancellationSummary(event) {
@@ -16162,7 +16400,9 @@
         main.querySelectorAll(".dash-as-activity-panel").forEach((panel) => {
           const id = panel.getAttribute("data-activity-id");
           if (!id) return;
-          const active = panel.querySelector(".btn-dash-as-subtab.as-activity-tab--active");
+          const active =
+            panel.querySelector(".btn-dash-as-subtab.as-mode-btn--active") ||
+            panel.querySelector(".btn-dash-as-subtab.as-activity-tab--active");
           const tab = active && active.getAttribute("data-tab");
           if (tab === "planning" || tab === "admin") dashAsActivityPanelTab[id] = tab;
         });
@@ -16731,12 +16971,14 @@
             <tbody>${rows}</tbody>
           </table>
           </div>`;
-        const tabsHtml = `<div class="as-activity-tabs no-print" style="margin-bottom:.5rem">
-            <button type="button" class="as-activity-tab btn-dash-as-subtab ${panelTab === "planning" ? "as-activity-tab--active" : ""}" data-activity-id="${escapeHtml(block.activityId)}" data-tab="planning">Planning et appel</button>
-            <button type="button" class="as-activity-tab btn-dash-as-subtab ${panelTab === "admin" ? "as-activity-tab--active" : ""}" data-activity-id="${escapeHtml(block.activityId)}" data-tab="admin">Gestion administrative</button>
+        const tabsHtml = `<div class="as-mode-switch no-print" role="tablist" aria-label="Mode d'affichage">
+            <button type="button" role="tab" class="as-mode-btn as-mode-btn--planning btn-dash-as-subtab ${panelTab === "planning" ? "as-mode-btn--active" : ""}" data-activity-id="${escapeHtml(block.activityId)}" data-tab="planning" aria-selected="${panelTab === "planning" ? "true" : "false"}">Planning et appel</button>
+            <button type="button" role="tab" class="as-mode-btn as-mode-btn--admin btn-dash-as-subtab ${panelTab === "admin" ? "as-mode-btn--active" : ""}" data-activity-id="${escapeHtml(block.activityId)}" data-tab="admin" aria-selected="${panelTab === "admin" ? "true" : "false"}">Gestion administrative</button>
           </div>`;
         const slotTabsHtml = multiSlot
-          ? `<div class="as-activity-tabs as-slot-tabs no-print" style="margin-bottom:.35rem;flex-wrap:wrap">
+          ? `<div class="as-slot-bar no-print">
+            <span class="as-slot-bar__label">Créneau</span>
+            <div class="as-slot-tabs">
             ${renderAssociationAllSlotsTabHtml(block.activityId, showAllSlots)}
             ${slots
               .map((s) => {
@@ -16744,10 +16986,13 @@
                 return renderAssociationSlotTabHtml(activity, block.activityId, s, active);
               })
               .join("")}
+            </div>
           </div>`
           : "";
         const slotCatsHint = showAllSlots
-          ? `<p class="kpi-sub as-slot-categories-hint"><strong>Tous les créneaux</strong> — Vue récapitulative de l’activité. Choisissez un créneau pour filtrer.</p>`
+          ? multiSlot
+            ? `<p class="kpi-sub as-slot-categories-hint"><strong>Tous les créneaux</strong> — Vue complète. Choisissez un créneau ci-dessus pour filtrer.</p>`
+            : ""
           : activity &&
               activeSlot &&
               (multiSlot || associationSlotCategoriesLabel(activity, activeSlot) !== "Tous")
@@ -16761,6 +17006,7 @@
           panelTab === "admin" && activity
             ? viewAssociationAdminBody(activity, showAllSlots ? ASSOCIATION_SLOT_TAB_ALL : activeSlot ? activeSlot.key : "")
             : tableHtml;
+        const bodyModeClass = panelTab === "admin" ? "as-panel-body--admin" : "as-panel-body--planning";
         return `<div class="dash-as-activity-block no-print" style="margin-bottom:.55rem">
           <div class="dash-as-activity-head">
             <button type="button" class="dash-as-activity-toggle as-activity-btn" data-activity-id="${escapeHtml(block.activityId)}" aria-expanded="${expanded ? "true" : "false"}" style="justify-content:center">
@@ -16771,8 +17017,10 @@
           <div class="dash-as-activity-panel" data-activity-id="${escapeHtml(block.activityId)}" ${expanded ? "" : "hidden"} style="margin-top:.45rem">
             ${tabsHtml}
             ${slotTabsHtml}
-            ${planningHint}
-            ${panelContent}
+            <div class="as-panel-body ${bodyModeClass}">
+              ${planningHint}
+              ${panelContent}
+            </div>
           </div>
         </div>`;
           })
@@ -16852,11 +17100,13 @@
             ? ` · ${escapeHtml((event.startTime || "") + (event.endTime ? "–" + event.endTime : ""))}`
             : ""
         }${event.detail ? ` · <span title="${escapeHtml(event.detail)}">${escapeHtml(formatAssociationDetailAbbrev(event.detail))}</span>` : ""}</p>
-        <div class="as-activity-tabs no-print" style="margin-bottom:.65rem">
-          <button type="button" class="as-activity-tab as-home-sess-tab as-activity-tab--active" data-tab="appel">Appel</button>
-          <button type="button" class="as-activity-tab as-home-sess-tab" data-tab="admin">Gestion administrative</button>
+        <div class="as-mode-switch no-print" role="tablist" aria-label="Mode d'affichage">
+          <button type="button" role="tab" class="as-mode-btn as-mode-btn--planning as-home-sess-tab as-mode-btn--active" data-tab="appel" aria-selected="true">Appel</button>
+          <button type="button" role="tab" class="as-mode-btn as-mode-btn--admin as-home-sess-tab" data-tab="admin" aria-selected="false">Gestion administrative</button>
         </div>
-        <div id="as-home-sess-panel"></div>
+        <div class="as-panel-body as-panel-body--planning" id="as-home-sess-body">
+          <div id="as-home-sess-panel"></div>
+        </div>
       </div>`);
 
       const wireAdminPanel = (panel) => {
@@ -16900,10 +17150,18 @@
 
       const renderPanel = () => {
         const panel = body.querySelector("#as-home-sess-panel");
+        const wrap = body.querySelector("#as-home-sess-body");
         if (!panel) return;
         body.querySelectorAll(".as-home-sess-tab").forEach((btn) => {
-          btn.classList.toggle("as-activity-tab--active", btn.getAttribute("data-tab") === tab);
+          const on = btn.getAttribute("data-tab") === tab;
+          btn.classList.toggle("as-mode-btn--active", on);
+          btn.classList.toggle("as-activity-tab--active", on);
+          btn.setAttribute("aria-selected", on ? "true" : "false");
         });
+        if (wrap) {
+          wrap.classList.toggle("as-panel-body--planning", tab === "appel");
+          wrap.classList.toggle("as-panel-body--admin", tab === "admin");
+        }
         if (tab === "admin") {
           panel.innerHTML = `<div class="as-home-admin-root">${viewAssociationAdminBody(activity, adminSlotKey)}</div>`;
           wireAdminPanel(panel);
@@ -20916,6 +21174,7 @@
             if (id) {
               dashAsExpandedActivityIds.add(id);
               if (!dashAsActivityPanelTab[id]) dashAsActivityPanelTab[id] = "planning";
+              if (!dashAsActivitySlotTab[id]) dashAsActivitySlotTab[id] = ASSOCIATION_SLOT_TAB_ALL;
             }
           } else {
             panel.hidden = true;
@@ -21266,63 +21525,12 @@
       });
       main.querySelectorAll(".btn-as-edit-students").forEach((btn) => {
         btn.addEventListener("click", () => {
-          if (!guardSharedEstablishmentEdit("Association sportive")) return;
           const id = btn.getAttribute("data-id");
           const a = appData.association && Array.isArray(appData.association.activities)
             ? appData.association.activities.find((x) => x.id === id)
             : null;
           if (!a) return;
-          if (!Array.isArray(a.students)) a.students = [];
-          a.students = a.students.map(normalizeAssociationStudent);
-          const body = el(`<div>
-            <p class="kpi-sub" style="margin-bottom:.5rem">Nouvel élève — validez la fenêtre pour l'enregistrer avec la liste.</p>
-            ${associationStudentFormHtml()}
-            <div class="form-group" style="margin-top:.75rem"><label>Importer un fichier CSV</label>
-              <p class="kpi-sub" style="margin:.15rem 0 .35rem">Colonnes : nom ; classe ; catégorie (séparateur ; ou ,)</p>
-              <input type="file" id="f-as-csv" accept=".csv,text/csv,text/comma-separated-values,application/csv,application/vnd.ms-excel" />
-            </div>
-            <h4 style="margin:1rem 0 .35rem;font-size:.9rem">Élèves inscrits</h4>
-            <div id="f-as-students-list" style="max-height:220px;overflow-y:auto"></div>
-          </div>`);
-          const renderStudents = () => {
-            const list = body.querySelector("#f-as-students-list");
-            list.innerHTML = renderAssociationStudentsListHtml(a.students);
-            wireAssociationStudentsListActions(list, a, renderStudents);
-          };
-          renderStudents();
-          body.querySelector("#f-as-csv").addEventListener("change", (e) => {
-            const file = e.target.files && e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = () => {
-              const text = String(reader.result || "").replace(/^\uFEFF/, "");
-              const parsed = text.split(/\r?\n/)
-                .map((line) => {
-                  const cols = line.split(/[;,\t]/).map((c) => c.replace(/^["']|["']$/g, "").trim());
-                  if (!cols[0]) return null;
-                  return normalizeAssociationStudent({
-                    name: cols[0],
-                    className: cols[1] || "",
-                    category: cols[2] || "",
-                  });
-                })
-                .filter(Boolean);
-              if (!parsed.length) return;
-              a.students = parsed;
-              renderStudents();
-            };
-            reader.readAsText(file);
-          });
-          openModal("Ajouter des élèves", body, () => {
-            if (!commitAssociationStudentEditIfOpen(body, a)) return false;
-            if (!body.querySelector(".as-student-edit-panel")) {
-              const st = readAssociationStudentFromForm(body);
-              if (st) a.students.push(st);
-            }
-            a.students = a.students.map(normalizeAssociationStudent);
-            saveData();
-            render();
-          });
+          openAddAssociationStudentsModal(a);
         });
       });
       main.querySelectorAll(".btn-as-show-students").forEach((btn) => {
@@ -21352,20 +21560,9 @@
       });
       main.querySelectorAll(".btn-as-del-competition").forEach((btn) => {
         btn.addEventListener("click", () => {
-          if (!guardSharedEstablishmentEdit("Association sportive")) return;
           const activityId = btn.getAttribute("data-activity-id");
           const competitionId = btn.getAttribute("data-id");
-          const a = appData.association && Array.isArray(appData.association.activities)
-            ? appData.association.activities.find((x) => x.id === activityId)
-            : null;
-          const comp = a && Array.isArray(a.competitions) ? a.competitions.find((c) => c.id === competitionId) : null;
-          const profileId = getActiveProfileTeacherId();
-          if (profileId && comp && comp.ownerTeacherId && String(comp.ownerTeacherId) !== profileId) {
-            alert("Cette compétition a été créée par un autre professeur. Vous ne pouvez la supprimer qu'avec son profil (ou sans profil pour le coordonnateur).");
-            return;
-          }
-          if (!confirm("Supprimer cette compétition ? Les annulations et appels liés seront également effacés.")) return;
-          if (!removeAssociationCompetition(activityId, competitionId)) return;
+          if (!confirmAndRemoveAssociationCompetition(activityId, competitionId)) return;
           saveData();
           render();
         });
