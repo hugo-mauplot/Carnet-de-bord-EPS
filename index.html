@@ -1560,6 +1560,11 @@
       opacity: 0.65;
       font-style: italic;
     }
+    .as-activity-tab.btn-dash-as-slot-tab--all {
+      max-width: none;
+      align-items: center;
+      text-align: center;
+    }
     .as-slot-categories-hint {
       margin: 0 0 0.45rem;
       line-height: 1.35;
@@ -1986,6 +1991,43 @@
       flex-direction: column;
       gap: 0.35rem;
     }
+    .dash-as-today-trainings {
+      width: 100%;
+      margin: 0 0 0.15rem;
+      padding: 0.35rem 0.15rem 0.45rem;
+      border-bottom: 1px solid color-mix(in srgb, #f59e0b 28%, var(--border));
+    }
+    .dash-as-today-trainings__title {
+      margin: 0 0 0.4rem;
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      color: inherit;
+    }
+    .dash-as-today-trainings .dash-session-row {
+      background: color-mix(in srgb, var(--card) 88%, #f59e0b);
+      border-radius: 10px;
+      margin-top: 0.35rem;
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 600;
+      letter-spacing: normal;
+    }
+    .dash-as-today-trainings .dash-session-row:first-of-type {
+      margin-top: 0;
+    }
+    .dash-as-today-trainings .dash-session-row:hover,
+    .dash-as-today-trainings .dash-session-row:focus-visible {
+      outline: 2px solid color-mix(in srgb, #f59e0b 70%, transparent);
+      outline-offset: 1px;
+    }
+    .dash-as-today-trainings--competition .dash-session-row {
+      background: color-mix(in srgb, var(--card) 88%, #38bdf8);
+    }
+    .dash-as-today-trainings--competition .dash-session-row:hover,
+    .dash-as-today-trainings--competition .dash-session-row:focus-visible {
+      outline-color: color-mix(in srgb, #38bdf8 70%, transparent);
+    }
     .dash-association-strip {
       width: 100%;
       margin: 0;
@@ -2247,14 +2289,63 @@
     }
     .dash-block--association .dash-block__title { color: #f59e0b; }
     .dash-as-comp-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.35rem 0.65rem;
       padding: 0.4rem 0;
       border-bottom: 1px solid var(--border);
       font-size: 0.84rem;
       line-height: 1.45;
     }
     .dash-as-comp-row:last-child { border-bottom: none; }
+    .dash-as-comp-row__main { flex: 1 1 12rem; min-width: 0; }
+    .dash-as-comp-row__actions { flex: 0 0 auto; align-self: center; }
     .dash-as-comp-date { font-weight: 800; color: var(--fg); }
     .dash-as-comp-activity { font-weight: 700; color: color-mix(in srgb, #f59e0b 80%, var(--text)); }
+    .as-comp-manage-table-wrap {
+      max-height: min(60vh, 28rem);
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-top: 0.45rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .as-comp-manage-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .as-comp-manage-table th,
+    .as-comp-manage-table td {
+      padding: 0.35rem 0.4rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: middle;
+    }
+    .as-comp-manage-table th {
+      position: sticky;
+      top: 0;
+      background: var(--card);
+      z-index: 1;
+      font-size: 0.7rem;
+      line-height: 1.25;
+      white-space: normal;
+    }
+    .as-comp-manage-table .as-comp-manage-check {
+      text-align: center;
+      width: 2.6rem;
+    }
+    .as-comp-manage-table input[type="checkbox"] {
+      width: 1.05rem;
+      height: 1.05rem;
+      accent-color: #f59e0b;
+      cursor: pointer;
+    }
+    .as-comp-manage-table tr.is-not-summoned {
+      opacity: 0.55;
+    }
     .as-comp-filters {
       display: flex;
       flex-wrap: wrap;
@@ -2376,6 +2467,33 @@
       vertical-align: bottom;
       font-size: 0.78rem;
       line-height: 1.25;
+    }
+    .btn-as-admin-add-student {
+      width: 1.85rem;
+      height: 1.85rem;
+      padding: 0;
+      border-radius: 999px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .as-admin-add-student-row input,
+    .as-admin-add-student-row select {
+      width: 100%;
+      min-width: 0;
+      font-size: 0.8rem;
+      padding: 0.28rem 0.35rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--text);
+      box-sizing: border-box;
+    }
+    .as-admin-add-student-row td {
+      background: color-mix(in srgb, #f59e0b 10%, var(--surface));
     }
     .as-admin-table td.as-admin-cell {
       text-align: center;
@@ -4474,10 +4592,12 @@
     .status-pill--done { background: rgba(74, 222, 128, 0.25); color: #86efac; }
     .status-pill--planned { background: rgba(139, 164, 255, 0.28); color: #c7d5ff; }
     .status-pill--cancelled { background: rgba(251, 113, 133, 0.28); color: #fda4af; }
+    .status-pill--modified { background: rgba(251, 191, 36, 0.28); color: #fcd34d; }
     .status-pill--holiday { background: rgba(148, 163, 184, 0.22); color: #cbd5e1; }
     [data-theme="light"] .status-pill--done { background: rgba(5, 150, 105, 0.2); color: #047857; }
     [data-theme="light"] .status-pill--planned { background: rgba(37, 99, 235, 0.18); color: #1d4ed8; }
     [data-theme="light"] .status-pill--cancelled { background: rgba(220, 38, 38, 0.18); color: #b91c1c; }
+    [data-theme="light"] .status-pill--modified { background: rgba(217, 119, 6, 0.18); color: #b45309; }
     [data-theme="light"] .status-pill--holiday { background: rgba(100, 116, 139, 0.18); color: #475569; }
     .att-badge {
       font-size: 0.75rem;
@@ -6734,8 +6854,110 @@
       reader.readAsText(file);
     }
 
-    /** Marqueur d'export pack Organisation EPS (lieux, périodes, calendrier, prog. établissement, lien Ressources EPS). */
+    /** Marqueur d'export pack Organisation EPS (lieux, périodes, calendrier, prog. établissement, lien Ressources EPS, org. AS). */
     const EPS_ORG_SHARE_KIND = "eps-college-organisation-eps";
+
+    /**
+     * Organisation AS pour le pack EPS : activités + créneaux + encadrants uniquement.
+     * Exclut élèves, compétitions, admin, convocations, appels.
+     */
+    function sanitizeAssociationActivityForOrgPack(activity) {
+      if (!activity || typeof activity !== "object") return null;
+      const trainings = (Array.isArray(activity.trainings) ? activity.trainings : [])
+        .map((t) => {
+          if (!t || typeof t !== "object") return null;
+          return {
+            id: t.id || uid(),
+            dayIndex: Number.isInteger(t.dayIndex) ? t.dayIndex : 0,
+            startTime: String(t.startTime || ""),
+            endTime: String(t.endTime || ""),
+            groups: Array.isArray(t.groups) ? t.groups.map((g) => String(g || "")).filter(Boolean) : [],
+            coachTeacherIds: (Array.isArray(t.coachTeacherIds) ? t.coachTeacherIds : [])
+              .map((id) => String(id || ""))
+              .filter(Boolean),
+          };
+        })
+        .filter(Boolean);
+      return {
+        id: activity.id || uid(),
+        name: String(activity.name || "").trim() || "Activité",
+        seasonStart: typeof activity.seasonStart === "string" ? activity.seasonStart : "",
+        seasonEnd: typeof activity.seasonEnd === "string" ? activity.seasonEnd : "",
+        trainings,
+      };
+    }
+
+    function snapshotAssociationOrgForEpsPack() {
+      const activities = ((appData.association && appData.association.activities) || [])
+        .map(sanitizeAssociationActivityForOrgPack)
+        .filter(Boolean);
+      return { activities };
+    }
+
+    /**
+     * Fusionne l'organisation AS du pack : met à jour nom / saison / créneaux / encadrants.
+     * Conserve localement élèves, compétitions, admin, convocations et appels.
+     */
+    function mergeAssociationOrgFromEpsPack(associationOrg) {
+      if (!associationOrg || typeof associationOrg !== "object") return;
+      if (!appData.association || typeof appData.association !== "object") {
+        appData.association = { activities: [], cancellations: [], notices: [], attendanceRecords: {} };
+      }
+      if (!Array.isArray(appData.association.activities)) appData.association.activities = [];
+      const packActivities = (Array.isArray(associationOrg.activities) ? associationOrg.activities : [])
+        .map(sanitizeAssociationActivityForOrgPack)
+        .filter(Boolean);
+      if (!packActivities.length && associationOrg.activities == null) return;
+
+      const local = appData.association.activities;
+      const usedLocal = new Set();
+      const merged = [];
+
+      packActivities.forEach((pa) => {
+        let existing =
+          local.find((a) => a && a.id === pa.id) ||
+          local.find(
+            (a) =>
+              a &&
+              !usedLocal.has(a.id) &&
+              String(a.name || "").trim().toLowerCase() === String(pa.name || "").trim().toLowerCase()
+          );
+        if (existing) {
+          usedLocal.add(existing.id);
+          existing.name = pa.name;
+          existing.seasonStart = pa.seasonStart;
+          existing.seasonEnd = pa.seasonEnd;
+          existing.trainings = deepCloneJson(pa.trainings);
+          if (!Array.isArray(existing.students)) existing.students = [];
+          if (!Array.isArray(existing.competitions)) existing.competitions = [];
+          if (!Array.isArray(existing.adminColumns)) existing.adminColumns = [];
+          if (!existing.adminChecks || typeof existing.adminChecks !== "object") existing.adminChecks = {};
+          if (!existing.adminBySlot || typeof existing.adminBySlot !== "object") existing.adminBySlot = {};
+          merged.push(existing);
+        } else {
+          merged.push({
+            id: pa.id,
+            name: pa.name,
+            seasonStart: pa.seasonStart,
+            seasonEnd: pa.seasonEnd,
+            trainings: deepCloneJson(pa.trainings),
+            students: [],
+            competitions: [],
+            adminColumns: [],
+            adminChecks: {},
+            adminBySlot: {},
+          });
+        }
+      });
+
+      local.forEach((a) => {
+        if (a && a.id && !usedLocal.has(a.id) && !merged.some((m) => m.id === a.id)) {
+          merged.push(a);
+        }
+      });
+
+      appData.association.activities = merged;
+    }
 
     function snapshotEpsOrgForExport() {
       flushEstablishmentOverlayToProfile();
@@ -6751,7 +6973,7 @@
       const tc = ensureTeamCoordination();
       const payload = {
         kind: EPS_ORG_SHARE_KIND,
-        version: 1,
+        version: 2,
         exportedAt: new Date().toISOString(),
         pack: {
           venues: deepCloneJson(appData.venues || []),
@@ -6764,6 +6986,7 @@
             timeSlots: deepCloneJson(tc.timeSlots || []),
             cells: deepCloneJson(tc.cells || {}),
           },
+          associationOrg: snapshotAssociationOrgForEpsPack(),
           progEtabPdf: appData.progEtabPdf || null,
           settings: {
             schoolYearStart: appData.settings.schoolYearStart || "",
@@ -6797,8 +7020,10 @@
     }
 
     /**
-     * Import pack Organisation EPS : lieux, périodes, calendrier, programmation établissement, lien Ressources EPS.
-     * Ne modifie pas les classes, EDT, APSA, appels, dispenses, oublis ni l'AS.
+     * Import pack Organisation EPS : lieux, périodes, calendrier, programmation établissement,
+     * organisation AS (activités / créneaux / encadrants), lien Ressources EPS.
+     * Ne remplace pas les classes, EDT, APSA, appels, dispenses, oublis,
+     * ni les données AS locales (élèves, compétitions, admin, appels AS).
      */
     function importEpsOrgJSONFromObject(o) {
       if (!o || typeof o !== "object" || o.kind !== EPS_ORG_SHARE_KIND) {
@@ -6812,8 +7037,10 @@
         alert("Fichier Organisation EPS invalide (données manquantes).");
         return;
       }
-      const importMsg =
-        "Remplacer les lieux, périodes, calendrier (vacances, trimestres), programmation de l’établissement et le lien Drive EPS ?\n\nVos classes, appels, dispenses, oublis et l’association sportive ne seront pas modifiés.";
+      const hasAsOrg = !!(pack.associationOrg && typeof pack.associationOrg === "object");
+      const importMsg = hasAsOrg
+        ? "Remplacer les lieux, périodes, calendrier, programmation de l’établissement, le lien Drive EPS, et mettre à jour l’organisation AS (activités, créneaux, encadrants) ?\n\nVos classes, appels EPS, dispenses, oublis, et les données AS locales (élèves, compétitions, admin, appels AS) sont conservés."
+        : "Remplacer les lieux, périodes, calendrier (vacances, trimestres), programmation de l’établissement et le lien Drive EPS ?\n\nVos classes, appels, dispenses, oublis et l’association sportive ne seront pas modifiés.";
       if (!confirm(importMsg)) return;
       appData.venues = Array.isArray(pack.venues) ? deepCloneJson(pack.venues) : [];
       appData.periods = Array.isArray(pack.periods) ? deepCloneJson(pack.periods) : [];
@@ -6838,6 +7065,9 @@
               : {},
         };
       }
+      if (hasAsOrg) {
+        mergeAssociationOrgFromEpsPack(pack.associationOrg);
+      }
       if (pack.progEtabPdf !== undefined) appData.progEtabPdf = pack.progEtabPdf || null;
       if (pack.settings && typeof pack.settings === "object") {
         if (pack.settings.schoolYearStart != null) appData.settings.schoolYearStart = pack.settings.schoolYearStart;
@@ -6854,7 +7084,11 @@
       regenerateSessions();
       saveData();
       render();
-      alert("Pack Organisation EPS importé. Vos données de classes et de suivi élèves sont intactes.");
+      alert(
+        hasAsOrg
+          ? "Pack Organisation EPS importé (dont organisation AS). Classes, appels et données AS locales conservés."
+          : "Pack Organisation EPS importé. Vos données de classes et de suivi élèves sont intactes."
+      );
     }
 
     function importEpsOrgJSONFile(file) {
@@ -6872,8 +7106,8 @@
     function epsOrgShareToolbarHtml() {
       const canExport = !!getBoundTeacherId();
       const hint = canExport
-        ? "Partage : fichier JSON <strong>pack Organisation EPS</strong> (lieux, périodes, calendrier, trimestres/semestres, programmation établissement, lien <strong>Drive EPS</strong>). Exportez puis envoyez-le à l’équipe pour mettre à jour ces réglages sans toucher aux classes ni aux appels."
-        : "Choisissez votre profil pour exporter ou importer le pack Organisation EPS. L’import met à jour lieux, périodes, calendrier, programmation et le lien Drive EPS ; vos classes, appels, dispenses et oublis sont conservés.";
+        ? "Partage : fichier JSON <strong>pack Organisation EPS</strong> (lieux, périodes, calendrier, trimestres/semestres, programmation établissement, organisation AS : activités / créneaux / encadrants, lien <strong>Drive EPS</strong>). Sans élèves, compétitions, admin ni appels AS. Exportez puis envoyez-le à l’équipe."
+        : "Choisissez votre profil pour exporter ou importer le pack Organisation EPS. L’import met à jour lieux, périodes, calendrier, programmation, organisation AS (activités, créneaux, encadrants) et le lien Drive EPS ; vos classes, appels, dispenses, oublis et données AS locales sont conservés.";
       const urlVal = escapeHtml(appData.settings.ressourcesEpsUrl || "");
       return `<div class="card no-print eps-org-share" style="border-left:5px solid #8ba4ff;margin-top:1rem;width:100%">
         <div class="card-header" style="margin-bottom:0;padding:0;border:none;flex-direction:column;align-items:stretch;gap:.35rem">
@@ -7324,18 +7558,19 @@
     }
 
     function sessionStatsForSessions(list) {
-      let done = 0, cancelled = 0, remaining = 0;
+      let done = 0, cancelled = 0, modified = 0, remaining = 0;
       list.forEach((s) => {
         const st = computeSessionStatus(s);
         if (st.code === "cancelled") cancelled++;
+        else if (st.code === "modified") modified++;
         else if (st.code === "holiday") {
         } else if (st.code === "done") done++;
         else if (st.code === "today" || st.code === "planned") remaining++;
       });
       const total = list.length;
-      const denom = Math.max(1, total - cancelled);
+      const denom = Math.max(1, total - cancelled - modified);
       const pct = Math.min(100, Math.round((done / denom) * 100));
-      return { total, done, cancelled, remaining, realized: done, pct };
+      return { total, done, cancelled, modified, remaining, realized: done, pct };
     }
 
     function sessionStatsForClass(classId) {
@@ -7345,7 +7580,7 @@
     /** Stats séances rattachées aux APSA « en cours » aujourd'hui (période calendaire). */
     function sessionStatsForCurrentPeriod(classId) {
       const ids = activityIdsOnPeriodToday(classId);
-      if (!ids.size) return { total: 0, done: 0, cancelled: 0, remaining: 0, pct: 0, realized: 0 };
+      if (!ids.size) return { total: 0, done: 0, cancelled: 0, modified: 0, remaining: 0, pct: 0, realized: 0 };
       const list = sessionsForClass(classId).filter((s) => s.activityId && ids.has(s.activityId));
       return sessionStatsForSessions(list);
     }
@@ -8978,17 +9213,62 @@
     }
 
     function cancellationForSession(session) {
-      return appData.cancellations.find(
+      return (appData.cancellations || []).find(
         (c) => c.sessionId === session.id || (c.classId === session.classId && c.date === session.date && c.startTime === session.startTime)
       );
     }
 
+    function isSessionModification(override) {
+      return !!(override && override.kind === "modify");
+    }
+
+    function sessionOverrideReasonLabel(override) {
+      if (!override) return "";
+      const list = isSessionModification(override) ? MODIFY_REASON_TYPES : REASON_TYPES;
+      return list.find((x) => x[0] === override.reasonType)?.[1] || override.reasonType || "";
+    }
+
+    function clearSessionOverride(session) {
+      if (!session) return;
+      appData.cancellations = (appData.cancellations || []).filter(
+        (c) =>
+          !(
+            c.sessionId === session.id ||
+            (c.classId === session.classId && c.date === session.date && c.startTime === session.startTime)
+          )
+      );
+    }
+
+    function upsertSessionOverride(session, { kind, reasonType, comment }) {
+      clearSessionOverride(session);
+      appData.cancellations.push({
+        id: uid(),
+        sessionId: session.id,
+        classId: session.classId,
+        date: session.date,
+        startTime: session.startTime,
+        reasonType: reasonType || "autre",
+        comment: comment || "",
+        kind: kind === "modify" ? "modify" : "cancel",
+      });
+    }
+
+    function sessionStatusSkipsApsa(code) {
+      return code === "cancelled" || code === "modified" || code === "holiday";
+    }
+
     /**
-     * Statut final d'une séance : annulée > vacances/férié > effectuée / prévue.
+     * Statut final d'une séance : annulée / modifiée > vacances/férié > effectuée / prévue.
+     * « Modifiée » = classe présente mais pas de séance APSA (sortie, heure particulière…) → hors décompte APSA.
      */
     function computeSessionStatus(session) {
       const canc = cancellationForSession(session);
-      if (canc) return { code: "cancelled", label: "Annulée", reason: canc.reasonType };
+      if (canc) {
+        if (isSessionModification(canc)) {
+          return { code: "modified", label: "Modifié", reason: canc.reasonType };
+        }
+        return { code: "cancelled", label: "Annulée", reason: canc.reasonType };
+      }
       const hol = blockingHolidayForSession(session);
       if (hol) {
         const timed = hasTimeWindow(hol);
@@ -9012,13 +9292,13 @@
       return { code: "planned", label: "Prévue", reason: "" };
     }
 
-    /** Position d'une séance dans le cycle APSA (hors annulations manuelles). */
+    /** Position d'une séance dans le cycle APSA (hors annulations et modifications). */
     function sessionCyclePosition(session) {
       if (!session || !session.activityId) return null;
       const list = appData.sessions
         .filter((x) => x.classId === session.classId && x.activityId === session.activityId)
         .sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
-      const programmed = list.filter((x) => computeSessionStatus(x).code !== "cancelled");
+      const programmed = list.filter((x) => !sessionStatusSkipsApsa(computeSessionStatus(x).code));
       const index = programmed.findIndex((x) => x.id === session.id);
       if (index < 0) return null;
       return { index: index + 1, total: programmed.length };
@@ -9043,7 +9323,7 @@
         )
         .filter((x) => {
           const st = computeSessionStatus(x);
-          return st.code !== "cancelled" && st.code !== "holiday";
+          return !sessionStatusSkipsApsa(st.code);
         })
         .sort((a, b) => (a.date + String(a.startTime || "")).localeCompare(b.date + String(b.startTime || "")));
       for (let i = candidates.length - 1; i >= 0; i--) {
@@ -9053,7 +9333,7 @@
       return null;
     }
 
-    /** Première séance suivante (même classe, même APSA), après `sessionRef`, hors annulé / vacances-férié. */
+    /** Première séance suivante (même classe, même APSA), après `sessionRef`, hors annulé / modifié / vacances-férié. */
     function nextSameApsaSessionAfter(sessionRef) {
       if (!sessionRef.activityId) return null;
       const refKey = sessionRef.date + String(sessionRef.startTime || "");
@@ -9066,7 +9346,7 @@
         )
         .filter((x) => {
           const st = computeSessionStatus(x);
-          return st.code !== "cancelled" && st.code !== "holiday";
+          return !sessionStatusSkipsApsa(st.code);
         })
         .sort((a, b) => (a.date + String(a.startTime || "")).localeCompare(b.date + String(b.startTime || "")));
       for (let i = 0; i < candidates.length; i++) {
@@ -9246,6 +9526,11 @@
         }
       });
       appData.sessions.forEach((s) => { if (!s.attendance) s.attendance = {}; });
+      if (!Array.isArray(appData.cancellations)) appData.cancellations = [];
+      appData.cancellations.forEach((c) => {
+        if (!c || typeof c !== "object") return;
+        if (c.kind !== "modify") c.kind = "cancel";
+      });
       if (!Array.isArray(appData.todoList)) appData.todoList = [];
       if (!Array.isArray(appData.reminders)) appData.reminders = [];
       if (!Array.isArray(appData.schoolCalendarEvents)) appData.schoolCalendarEvents = [];
@@ -9692,11 +9977,73 @@
       }
       if (categoryAge) c.categoryAge = categoryAge;
       if (sex) c.sex = sex;
+      if (!c.roster || typeof c.roster !== "object") c.roster = {};
       return c;
+    }
+
+    function ensureCompetitionRosterEntry(competition, studentIdx) {
+      normalizeAssociationCompetition(competition);
+      const key = String(studentIdx);
+      if (!competition.roster[key] || typeof competition.roster[key] !== "object") {
+        competition.roster[key] = {
+          summoned: false,
+          distributed: false,
+          returned: false,
+          present: false,
+        };
+      }
+      const e = competition.roster[key];
+      e.summoned = !!e.summoned;
+      e.distributed = !!e.distributed;
+      e.returned = !!e.returned;
+      e.present = !!e.present;
+      return e;
+    }
+
+    function associationStudentMatchesCompetition(student, competition) {
+      if (!student || !competition) return false;
+      normalizeAssociationCompetition(competition);
+      const concerned = associationCompetitionConcernedGroups(competition);
+      if (!concerned.size) return true;
+      const cat = String(student.category || "").trim();
+      if (!cat) return false;
+      return associationGroupMatchesAny(cat, concerned);
+    }
+
+    function associationEligibleStudentsForCompetition(activity, competition) {
+      if (!activity || !competition) return [];
+      const students = (activity.students || []).map(normalizeAssociationStudent);
+      const out = [];
+      students.forEach((st, idx) => {
+        if (!st.name) return;
+        if (!associationStudentMatchesCompetition(st, competition)) return;
+        out.push({ idx, student: st });
+      });
+      return out;
+    }
+
+    function syncCompetitionRosterPresenceToAttendance(activity, competition, studentName, present) {
+      if (!activity || !competition || !studentName) return;
+      const event = {
+        activityId: activity.id,
+        eventType: "competition",
+        eventId: competition.id,
+        date: competition.date,
+      };
+      const att = getAssociationAttendance(event);
+      if (present) att[studentName] = "present";
+      else if (att[studentName] === "present") delete att[studentName];
     }
 
     function associationSlotKey(dayIndex, startTime, endTime) {
       return `${dayIndex}|${startTime || ""}|${endTime || ""}`;
+    }
+
+    /** Onglet créneau AS : tous les créneaux (récap) ou un créneau précis. */
+    const ASSOCIATION_SLOT_TAB_ALL = "__all__";
+
+    function isAssociationSlotTabAll(slotKey) {
+      return !slotKey || slotKey === ASSOCIATION_SLOT_TAB_ALL || slotKey === "all";
     }
 
     function associationListDistinctSlots(activity) {
@@ -9754,6 +10101,13 @@
       const cats = associationSlotCategoriesLabel(activity, slot);
       if (!cats || cats === "Tous") return schedule;
       return `${schedule} — ${cats}`;
+    }
+
+    function renderAssociationAllSlotsTabHtml(activityId, active) {
+      return `<button type="button" class="as-activity-tab btn-dash-as-slot-tab btn-dash-as-slot-tab--all${active ? " as-activity-tab--active" : ""}" data-activity-id="${escapeHtml(activityId)}" data-slot-key="${ASSOCIATION_SLOT_TAB_ALL}" title="Tous les créneaux de l'activité">
+        <span class="as-slot-tab__when">Tous les créneaux</span>
+        <span class="as-slot-tab__cats">Récapitulatif</span>
+      </button>`;
     }
 
     function renderAssociationSlotTabHtml(activity, activityId, slot, active) {
@@ -10056,7 +10410,66 @@
       </td>`;
     }
 
+    function viewAssociationAdminBodyAllSlots(activity) {
+      const slots = associationListDistinctSlots(activity);
+      migrateAssociationAdminToSlots(activity);
+      const students = (activity.students || []).map(normalizeAssociationStudent);
+      const colDefs = [];
+      slots.forEach((slot) => {
+        const store = ensureAssociationAdminSlotStore(activity, slot.key);
+        const slotLabel = associationSlotScheduleLabel(slot);
+        (store.columns || []).forEach((col) => {
+          colDefs.push({ slotKey: slot.key, slotLabel, col });
+        });
+      });
+      const colHeaders = colDefs
+        .map(
+          (def) =>
+            `<th class="as-admin-col-head no-print" title="${escapeHtml(def.slotLabel + " · " + (def.col.label || ""))}">
+          <span style="display:block;font-size:.65rem;font-weight:600;opacity:.75;line-height:1.2">${escapeHtml(def.slotLabel)}</span>
+          <span>${escapeHtml(def.col.label)}</span>
+          <button type="button" class="btn btn-sm btn-danger btn-as-admin-del-col" data-col-id="${escapeHtml(def.col.id)}" data-activity-id="${escapeHtml(activity.id)}" data-slot-key="${escapeHtml(def.slotKey)}" style="display:block;margin:.25rem auto 0;padding:.1rem .35rem;font-size:.65rem" title="Supprimer la colonne">✕</button>
+        </th>`
+        )
+        .join("");
+      const rows = students.length
+        ? students
+            .map((st, idx) => {
+              const { firstName, lastName } = splitAssociationStudentName(st.name);
+              const catAbbrev = formatAssociationCategoryAbbrev(st.category);
+              const catTitle = st.category ? ` title="${escapeHtml(st.category)}"` : "";
+              const checks = colDefs
+                .map((def) => renderAssociationAdminCell(activity, def.col, idx, def.slotKey))
+                .join("");
+              return `<tr>
+              <td data-label="Prénom" class="as-admin-name-cell"><button type="button" class="btn-as-admin-del-student no-print" data-activity-id="${escapeHtml(activity.id)}" data-student-idx="${idx}" aria-label="Supprimer ${escapeHtml(firstName || st.name)}">✕</button>${escapeHtml(firstName) || "—"}</td>
+              <td data-label="Nom">${escapeHtml(lastName) || "—"}</td>
+              <td data-label="Classe">${escapeHtml(st.className) || "—"}</td>
+              <td data-label="Cat."${catTitle}><strong>${escapeHtml(catAbbrev)}</strong></td>
+              ${checks}
+            </tr>`;
+            })
+            .join("")
+        : `<tr><td colspan="${colDefs.length + 4}" class="kpi-sub" style="text-align:center">Aucun élève inscrit. Ajoutez-les dans Réglages → Association sportive.</td></tr>`;
+      const tableTitle = `Gestion administrative — ${activity.name} — Tous les créneaux`;
+      return `<div>
+        <p class="kpi-sub as-slot-categories-hint"><strong>Tous les créneaux</strong> — Vue récapitulative. Sélectionnez un créneau pour filtrer ou ajouter une colonne.</p>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem">
+          <button type="button" class="btn btn-sm btn-primary btn-as-admin-add-student" data-id="${escapeHtml(activity.id)}" title="Inscrire un élève">+</button>
+        </div>
+        <div class="table-wrap as-admin-table-wrap as-admin-table-wrap--tap-fullscreen" data-table-title="${escapeHtml(tableTitle)}">
+          <table class="as-admin-table">
+          <thead><tr><th>Prénom</th><th>Nom</th><th>Classe</th><th title="Catégorie (abréviation)">Cat.</th>${colHeaders || ""}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        </div>
+      </div>`;
+    }
+
     function viewAssociationAdminBody(activity, slotKey) {
+      if (isAssociationSlotTabAll(slotKey) && associationListDistinctSlots(activity).length > 1) {
+        return viewAssociationAdminBodyAllSlots(activity);
+      }
       const store = getAssociationAdminStore(activity, slotKey || "");
       const adminSlotKey = store.slotKey || slotKey || "";
       const students = (activity.students || []).map(normalizeAssociationStudent);
@@ -10094,6 +10507,7 @@
       return `<div>
         ${slotCatsHint}
         <div style="display:flex;align-items:center;justify-content:flex-end;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem">
+          <button type="button" class="btn btn-sm btn-primary btn-as-admin-add-student" data-id="${escapeHtml(activity.id)}" title="Inscrire un élève">+</button>
           <button type="button" class="btn btn-sm btn-primary btn-as-admin-add-col" data-id="${escapeHtml(activity.id)}" data-slot-key="${escapeHtml(adminSlotKey)}">+ Ajouter une colonne</button>
         </div>
         <div class="table-wrap as-admin-table-wrap as-admin-table-wrap--tap-fullscreen" data-table-title="${escapeHtml(tableTitle)}">
@@ -10364,6 +10778,130 @@
           e.stopPropagation();
           handleAssociationAdminDeleteStudent(btn);
         });
+      });
+    }
+
+    function associationAdminNewStudentRowHtml(activityId, extraColCount) {
+      const extras = Math.max(0, Number(extraColCount) || 0);
+      const extraCells = Array.from({ length: extras }, () => "<td></td>").join("");
+      return `<tr class="as-admin-add-student-row no-print" data-activity-id="${escapeHtml(activityId)}">
+        <td data-label="Prénom"><input type="text" class="as-admin-new-first" placeholder="Prénom" autocomplete="off" /></td>
+        <td data-label="Nom"><input type="text" class="as-admin-new-last" placeholder="Nom" autocomplete="off" /></td>
+        <td data-label="Classe"><input type="text" class="as-admin-new-class" placeholder="Classe" autocomplete="off" /></td>
+        <td data-label="Cat." style="white-space:nowrap">
+          <select class="as-admin-new-cat" title="Catégorie" aria-label="Catégorie">
+            <option value="">—</option>
+            <option value="benjamins filles">BF</option>
+            <option value="benjamins garçons">BG</option>
+            <option value="minimes filles">MF</option>
+            <option value="minimes garçons">MG</option>
+          </select>
+          <button type="button" class="btn btn-sm btn-primary btn-as-admin-commit-student" style="margin-left:.25rem;padding:.15rem .4rem" title="Valider l'inscription">✓</button>
+          <button type="button" class="btn btn-sm btn-ghost btn-as-admin-cancel-new-student" style="padding:.15rem .35rem" title="Annuler">✕</button>
+        </td>
+        ${extraCells}
+      </tr>`;
+    }
+
+    function beginAssociationAdminAddStudentRow(activityId, root) {
+      const activity = ((appData.association && appData.association.activities) || []).find((a) => a.id === activityId);
+      if (!activity) return;
+      if (!canEditAssociationActivity(activity) && !canManageAssociationStructure()) {
+        alert("Vous ne pouvez inscrire des élèves que sur les activités que vous encadrez.");
+        return;
+      }
+      const scope = root || document;
+      let tbody = scope.querySelector("table.as-admin-table tbody");
+      if (!tbody) return;
+      const existing = tbody.querySelector(".as-admin-add-student-row");
+      if (existing) {
+        existing.querySelector(".as-admin-new-first")?.focus();
+        return;
+      }
+      [...tbody.querySelectorAll("tr")].forEach((tr) => {
+        const text = (tr.textContent || "").toLowerCase();
+        if (text.includes("aucun élève")) tr.remove();
+      });
+      const thCount = tbody.closest("table")?.querySelectorAll("thead th").length || 4;
+      const extraCols = Math.max(0, thCount - 4);
+      tbody.insertAdjacentHTML("beforeend", associationAdminNewStudentRowHtml(activityId, extraCols));
+      tbody.querySelector(".as-admin-add-student-row .as-admin-new-first")?.focus();
+    }
+
+    function commitAssociationAdminNewStudentRow(row) {
+      if (!row) return false;
+      const activityId = row.getAttribute("data-activity-id") || "";
+      const activity = ((appData.association && appData.association.activities) || []).find((a) => a.id === activityId);
+      if (!activity) return false;
+      const firstName = (row.querySelector(".as-admin-new-first")?.value || "").trim();
+      const lastName = (row.querySelector(".as-admin-new-last")?.value || "").trim();
+      const className = (row.querySelector(".as-admin-new-class")?.value || "").trim();
+      const category = (row.querySelector(".as-admin-new-cat")?.value || "").trim();
+      const name = [firstName, lastName].filter(Boolean).join(" ");
+      if (!name) {
+        alert("Renseignez au moins le prénom ou le nom.");
+        row.querySelector(".as-admin-new-first")?.focus();
+        return false;
+      }
+      if (!Array.isArray(activity.students)) activity.students = [];
+      activity.students.push(normalizeAssociationStudent({ name, className, category }));
+      saveData();
+      const homeModal = document.querySelector(".as-home-session-modal");
+      if (homeModal && typeof homeModal.__rerenderAdmin === "function") {
+        homeModal.__rerenderAdmin();
+        return true;
+      }
+      if (currentView === "dashboard:association") {
+        dashAsActivityPanelTab[activityId] = "admin";
+        dashAsExpandedActivityIds.clear();
+        dashAsExpandedActivityIds.add(activityId);
+        refreshAssociationDashPlanning();
+      } else {
+        render();
+      }
+      return true;
+    }
+
+    function wireAssociationAdminAddStudent(root) {
+      if (!root) return;
+      root.querySelectorAll(".btn-as-admin-add-student").forEach((btn) => {
+        if (btn.dataset.asAddStuWired) return;
+        btn.dataset.asAddStuWired = "1";
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const id = btn.getAttribute("data-id") || "";
+          const block = btn.closest(".as-home-admin-root, .dash-as-activity-panel, .as-settings-panel") || root;
+          beginAssociationAdminAddStudentRow(id, block);
+        });
+      });
+      if (root.dataset.asAddStuCommitWired) return;
+      root.dataset.asAddStuCommitWired = "1";
+      root.addEventListener("click", (e) => {
+        const commit = e.target.closest(".btn-as-admin-commit-student");
+        if (commit) {
+          e.preventDefault();
+          e.stopPropagation();
+          commitAssociationAdminNewStudentRow(commit.closest(".as-admin-add-student-row"));
+          return;
+        }
+        const cancel = e.target.closest(".btn-as-admin-cancel-new-student");
+        if (cancel) {
+          e.preventDefault();
+          e.stopPropagation();
+          cancel.closest(".as-admin-add-student-row")?.remove();
+        }
+      });
+      root.addEventListener("keydown", (e) => {
+        const row = e.target.closest(".as-admin-add-student-row");
+        if (!row) return;
+        if (e.key === "Enter") {
+          e.preventDefault();
+          commitAssociationAdminNewStudentRow(row);
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          row.remove();
+        }
       });
     }
 
@@ -10932,11 +11470,15 @@
           };
           for (const w of next3Weeks) {
             if (d >= w.start && d <= w.end) {
-              if (st.code === "cancelled" && d >= refStart) {
+              if ((st.code === "cancelled" || st.code === "modified") && d >= refStart) {
                 const canc = cancellationForSession(s);
-                if (canc && !item.reason) {
-                  item.reason =
-                    REASON_TYPES.find((x) => x[0] === canc.reasonType)?.[1] || canc.reasonType || "";
+                if (canc) {
+                  item.reason = sessionOverrideReasonLabel(canc) || item.reason;
+                  if (st.code === "modified" && item.reason) {
+                    item.reason = "Modifié · " + item.reason;
+                  } else if (st.code === "modified") {
+                    item.reason = "Modifié";
+                  }
                 }
                 w.cancelled.push(item);
               }
@@ -11393,6 +11935,15 @@
       ["voyage", "Voyage"],
       ["greve", "Grève"],
       ["banalise", "Journée banalisée"],
+      ["autre", "Autre"],
+    ];
+
+    /** Motifs quand la classe est là mais sans séance APSA (hors décompte réalisées). */
+    const MODIFY_REASON_TYPES = [
+      ["sortie", "Sortie scolaire"],
+      ["heure_part", "Heure particulière"],
+      ["projet", "Projet / autre activité"],
+      ["conseil", "Conseil / réunion"],
       ["autre", "Autre"],
     ];
 
@@ -11976,16 +12527,17 @@
 
     function statsPerActivity(classId, actId) {
       const list = sessionsForActivityTable(classId, actId);
-      let done = 0, cancelled = 0, remaining = 0;
+      let done = 0, cancelled = 0, modified = 0, remaining = 0;
       list.forEach((s) => {
         const st = computeSessionStatus(s);
         if (st.code === "cancelled") cancelled++;
+        else if (st.code === "modified") modified++;
         else if (st.code === "done") done++;
         else if (st.code === "planned" || st.code === "today") remaining++;
       });
       const total = list.length;
-      const pct = total - cancelled > 0 ? Math.round((done / (total - cancelled)) * 100) : 0;
-      return { total, done, cancelled, remaining, pct };
+      const pct = total - cancelled - modified > 0 ? Math.round((done / (total - cancelled - modified)) * 100) : 0;
+      return { total, done, cancelled, modified, remaining, pct };
     }
 
     /**
@@ -11994,13 +12546,13 @@
      */
     function lastSessionDateForActivity(classId, actId) {
       const subs = sessionsForActivityTable(classId, actId)
-        .filter((s) => computeSessionStatus(s).code !== "cancelled")
+        .filter((s) => !sessionStatusSkipsApsa(computeSessionStatus(s).code))
         .sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
       return subs.length ? subs[subs.length - 1].date : null;
     }
 
     function globalSessionCounts(refDate) {
-      let todayN = 0, planned = 0, done = 0, cancelled = 0;
+      let todayN = 0, planned = 0, done = 0, cancelled = 0, modified = 0;
       const todayDetails = [];
       const tStr = fmtISODate(refDate || new Date());
       const profile = getActiveProfileTeacher();
@@ -12019,11 +12571,12 @@
           });
         }
         if (st.code === "cancelled") cancelled++;
+        else if (st.code === "modified") modified++;
         else if (st.code === "done") done++;
         else if (st.code === "planned" || st.code === "today") planned++;
       });
       todayDetails.sort((a, b) => a.startTime.localeCompare(b.startTime));
-      return { todayN, todayDetails, planned, done, cancelled, total: sessionPool.length, profileMode: !!profile };
+      return { todayN, todayDetails, planned, done, cancelled, modified, total: sessionPool.length, profileMode: !!profile };
     }
 
     function avgCycleProgress() {
@@ -12478,8 +13031,155 @@
         saveData();
         if (typeof opts.onSaved === "function") opts.onSaved();
         else render();
+        setTimeout(() => openManageAssociationCompetitionModal(a.id, comp.id), 0);
         return true;
       });
+    }
+
+    function openManageAssociationCompetitionModal(activityId, competitionId) {
+      const activity = ((appData.association && appData.association.activities) || []).find((a) => a.id === activityId);
+      const competition = activity && (activity.competitions || []).find((c) => c.id === competitionId);
+      if (!activity || !competition) {
+        alert("Compétition introuvable.");
+        return;
+      }
+      if (!canEditAssociationActivity(activity) && !canManageAssociationStructure()) {
+        alert("Vous ne pouvez gérer que les compétitions des activités que vous encadrez.");
+        return;
+      }
+      normalizeAssociationCompetition(competition);
+      const eligible = associationEligibleStudentsForCompetition(activity, competition);
+      const catLabel =
+        competition.category ||
+        [associationCompetitionCategoryLabel(competition.categoryAge), associationCompetitionSexLabel(competition.sex)]
+          .filter(Boolean)
+          .join(" ") ||
+        "—";
+      const metaBits = [
+        fmtDateFr(competition.date),
+        activity.name || "—",
+        catLabel,
+        competition.place || "",
+      ].filter(Boolean);
+
+      const renderRows = () => {
+        if (!eligible.length) {
+          return `<tr><td colspan="8" class="kpi-sub" style="text-align:center">Aucun élève inscrit dans les catégories concernées. Vérifiez les catégories des élèves dans Réglages → Association sportive.</td></tr>`;
+        }
+        return eligible
+          .map(({ idx, student }) => {
+            const entry = ensureCompetitionRosterEntry(competition, idx);
+            const { firstName, lastName } = splitAssociationStudentName(student.name);
+            const catAbbrev = formatAssociationCategoryAbbrev(student.category);
+            const disabledExtra = entry.summoned ? "" : " disabled";
+            return `<tr class="${entry.summoned ? "" : "is-not-summoned"}" data-student-idx="${idx}">
+              <td class="as-comp-manage-check"><input type="checkbox" class="as-comp-cb" data-field="summoned" data-student-idx="${idx}" ${entry.summoned ? "checked" : ""} title="Convoqué" /></td>
+              <td>${escapeHtml(firstName) || "—"}</td>
+              <td>${escapeHtml(lastName) || "—"}</td>
+              <td>${escapeHtml(student.className) || "—"}</td>
+              <td title="${escapeHtml(student.category || "")}"><strong>${escapeHtml(catAbbrev)}</strong></td>
+              <td class="as-comp-manage-check"><input type="checkbox" class="as-comp-cb" data-field="distributed" data-student-idx="${idx}" ${entry.distributed ? "checked" : ""}${disabledExtra} title="Convocation distribuée" /></td>
+              <td class="as-comp-manage-check"><input type="checkbox" class="as-comp-cb" data-field="returned" data-student-idx="${idx}" ${entry.returned ? "checked" : ""}${disabledExtra} title="Convocation rendue" /></td>
+              <td class="as-comp-manage-check"><input type="checkbox" class="as-comp-cb" data-field="present" data-student-idx="${idx}" ${entry.present ? "checked" : ""}${disabledExtra} title="Présence" /></td>
+            </tr>`;
+          })
+          .join("");
+      };
+
+      const body = el(`<div>
+        <p class="kpi-sub" style="margin:0 0 .55rem;line-height:1.45">${metaBits.map((x) => escapeHtml(x)).join(" · ")}</p>
+        <p class="kpi-sub" style="margin:0 0 .45rem">Cochez les élèves <strong>convoqués</strong> (catégories de la compétition), puis suivez distribution, retour et présence.</p>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.35rem">
+          <button type="button" class="btn btn-sm btn-primary" id="btn-as-comp-summon-all">Convoquer tous</button>
+          <button type="button" class="btn btn-sm btn-ghost" id="btn-as-comp-unsummon-all">Tout déconvoquer</button>
+        </div>
+        <div class="as-comp-manage-table-wrap">
+          <table class="as-comp-manage-table">
+            <thead>
+              <tr>
+                <th class="as-comp-manage-check">Convoqué</th>
+                <th>Prénom</th>
+                <th>Nom</th>
+                <th>Classe</th>
+                <th>Cat.</th>
+                <th class="as-comp-manage-check">Convocation distribuée</th>
+                <th class="as-comp-manage-check">Convocation rendue</th>
+                <th class="as-comp-manage-check">Présence</th>
+              </tr>
+            </thead>
+            <tbody id="as-comp-manage-tbody">${renderRows()}</tbody>
+          </table>
+        </div>
+      </div>`);
+
+      const refreshTable = () => {
+        const tbody = body.querySelector("#as-comp-manage-tbody");
+        if (tbody) tbody.innerHTML = renderRows();
+      };
+
+      const applyField = (studentIdx, field, checked) => {
+        const entry = ensureCompetitionRosterEntry(competition, studentIdx);
+        const st = (activity.students || []).map(normalizeAssociationStudent)[studentIdx];
+        if (field === "summoned") {
+          entry.summoned = checked;
+          if (!checked) {
+            entry.distributed = false;
+            entry.returned = false;
+            entry.present = false;
+            if (st && st.name) syncCompetitionRosterPresenceToAttendance(activity, competition, st.name, false);
+          }
+        } else if (!entry.summoned) {
+          return;
+        } else if (field === "distributed") {
+          entry.distributed = checked;
+        } else if (field === "returned") {
+          entry.returned = checked;
+        } else if (field === "present") {
+          entry.present = checked;
+          if (st && st.name) syncCompetitionRosterPresenceToAttendance(activity, competition, st.name, checked);
+        }
+        saveData();
+        refreshTable();
+        refreshAssociationUpcomingCompetitionsList();
+      };
+
+      body.querySelector("#btn-as-comp-summon-all")?.addEventListener("click", () => {
+        eligible.forEach(({ idx }) => {
+          ensureCompetitionRosterEntry(competition, idx).summoned = true;
+        });
+        saveData();
+        refreshTable();
+        refreshAssociationUpcomingCompetitionsList();
+      });
+      body.querySelector("#btn-as-comp-unsummon-all")?.addEventListener("click", () => {
+        eligible.forEach(({ idx, student }) => {
+          const entry = ensureCompetitionRosterEntry(competition, idx);
+          entry.summoned = false;
+          entry.distributed = false;
+          entry.returned = false;
+          entry.present = false;
+          if (student.name) syncCompetitionRosterPresenceToAttendance(activity, competition, student.name, false);
+        });
+        saveData();
+        refreshTable();
+        refreshAssociationUpcomingCompetitionsList();
+      });
+      body.addEventListener("change", (e) => {
+        const cb = e.target.closest(".as-comp-cb");
+        if (!cb) return;
+        const idx = Number(cb.getAttribute("data-student-idx"));
+        const field = cb.getAttribute("data-field");
+        if (!Number.isInteger(idx) || !field) return;
+        applyField(idx, field, !!cb.checked);
+      });
+
+      openModal("Gérer la compétition", body, () => {
+        saveData();
+        refreshAssociationUpcomingCompetitionsList();
+        if (currentView === "dashboard:association") refreshAssociationDashPlanning();
+        else if (String(currentView || "").startsWith("dashboard")) render();
+        return true;
+      }, { wide: true });
     }
 
     function openAssociationEditHoursModal(btn) {
@@ -12716,6 +13416,7 @@
       clone.classList.add("as-admin-table--landscape");
       wireAssociationAdminCellEvents(view);
       wireAssociationAdminDeleteStudentButtons(view);
+      wireAssociationAdminAddStudent(view);
       clone.querySelectorAll(".btn-as-admin-del-col").forEach((button) => {
         button.addEventListener("click", (event) => {
           event.preventDefault();
@@ -12727,7 +13428,10 @@
           if (!deleteAssociationAdminColumn(activityId, colId, slotKey)) return;
           closeModal();
           dashAsActivityPanelTab[activityId] = "admin";
-          if (slotKey) dashAsActivitySlotTab[activityId] = slotKey;
+          const currentSlot = dashAsActivitySlotTab[activityId];
+          if (!isAssociationSlotTabAll(currentSlot) && slotKey) {
+            dashAsActivitySlotTab[activityId] = slotKey;
+          }
           dashAsExpandedActivityIds.add(activityId);
           refreshAssociationDashPlanning();
         });
@@ -12745,7 +13449,7 @@
 
     function wireFullscreenSessionTableClone(clone, landscapeView) {
       clone.classList.add("table--doc-fullscreen");
-      clone.querySelectorAll(".btn-cancel-session, .btn-del-extra-session, .btn-remove-canc-row").forEach((button) => {
+      clone.querySelectorAll(".btn-cancel-session, .btn-modify-session, .btn-del-extra-session, .btn-remove-canc-row").forEach((button) => {
         button.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -12753,6 +13457,7 @@
           const cancId = button.getAttribute("data-canc-id");
           let selector = ".btn-del-extra-session";
           if (button.classList.contains("btn-cancel-session")) selector = ".btn-cancel-session";
+          if (button.classList.contains("btn-modify-session")) selector = ".btn-modify-session";
           if (button.classList.contains("btn-remove-canc-row")) selector = `.btn-remove-canc-row[data-canc-id="${cancId}"]`;
           const original = [...document.querySelectorAll(selector)].find((item) => {
             if (cancId) return item.getAttribute("data-canc-id") === cancId;
@@ -12825,6 +13530,7 @@
         clone.classList.add("as-admin-table--landscape", "table--doc-fullscreen");
         wireAssociationAdminCellEvents(landscapeView);
         wireAssociationAdminDeleteStudentButtons(landscapeView);
+        wireAssociationAdminAddStudent(landscapeView);
       } else {
         wireFullscreenSessionTableClone(clone, landscapeView);
       }
@@ -13591,17 +14297,33 @@
         const cl = getClassById(s.classId);
         const act = activityById(s.activityId);
         const stt = computeSessionStatus(s);
-        const col = stt.code === "cancelled" ? "var(--danger)" : stt.code === "done" ? "var(--success)" : "var(--accent)";
+        const col =
+          stt.code === "cancelled"
+            ? "var(--danger)"
+            : stt.code === "modified"
+              ? "#d97706"
+              : stt.code === "done"
+                ? "var(--success)"
+                : "var(--accent)";
         const canc = cancellationForSession(s);
-        const motif = canc ? (REASON_TYPES.find((x) => x[0] === canc.reasonType)?.[1] || canc.reasonType) : stt.reason || "";
-        const pillClass = stt.code === "cancelled" ? "status-pill--cancelled" : stt.code === "done" ? "status-pill--done" : stt.code === "holiday" ? "status-pill--holiday" : "status-pill--planned";
+        const motif = canc ? sessionOverrideReasonLabel(canc) : stt.reason || "";
+        const pillClass =
+          stt.code === "cancelled"
+            ? "status-pill--cancelled"
+            : stt.code === "modified"
+              ? "status-pill--modified"
+              : stt.code === "done"
+                ? "status-pill--done"
+                : stt.code === "holiday"
+                  ? "status-pill--holiday"
+                  : "status-pill--planned";
         const statusHtml = `<span class="status-pill ${pillClass}"><span class="status-dot" style="background:${col}"></span>${escapeHtml(stt.label)}</span>`;
         let sessionNumBadge = "";
         if (act) {
           const actSess = appData.sessions
             .filter((x) => x.classId === s.classId && x.activityId === act.id)
             .sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
-          const valid = actSess.filter((x) => { const c = computeSessionStatus(x).code; return c !== "cancelled" && c !== "holiday"; });
+          const valid = actSess.filter((x) => !sessionStatusSkipsApsa(computeSessionStatus(x).code));
           const idx = valid.findIndex((x) => x.id === s.id);
           if (idx >= 0) sessionNumBadge = `<span class="session-num-badge">n°${idx + 1}/${valid.length}</span>`;
         }
@@ -14348,10 +15070,22 @@
           if (c.place) metaParts.push(c.place);
           if (c.coach) metaParts.push(c.coach);
           const meta = metaParts.map((x) => escapeHtml(x)).join(" · ");
+          const summonedCount = (() => {
+            const a = ((appData.association && appData.association.activities) || []).find((x) => x.id === c.activityId);
+            const comp = a && (a.competitions || []).find((x) => x.id === c.competitionId);
+            if (!comp || !comp.roster) return 0;
+            return Object.values(comp.roster).filter((e) => e && e.summoned).length;
+          })();
           return `<div class="dash-as-comp-row">
-              <span class="dash-as-comp-date">${escapeHtml(fmtDateFr(c.date))}</span>
-              · <span class="dash-as-comp-activity">${escapeHtml(c.activityName)}</span>
-              ${meta ? `<div class="kpi-sub" style="margin-top:.1rem">${meta}</div>` : ""}
+              <div class="dash-as-comp-row__main">
+                <span class="dash-as-comp-date">${escapeHtml(fmtDateFr(c.date))}</span>
+                · <span class="dash-as-comp-activity">${escapeHtml(c.activityName)}</span>
+                ${meta ? `<div class="kpi-sub" style="margin-top:.1rem">${meta}</div>` : ""}
+                ${summonedCount ? `<div class="kpi-sub" style="margin-top:.1rem">${summonedCount} convoqué${summonedCount > 1 ? "s" : ""}</div>` : ""}
+              </div>
+              <div class="dash-as-comp-row__actions">
+                <button type="button" class="btn btn-sm btn-primary btn-as-manage-competition" data-activity-id="${escapeHtml(c.activityId)}" data-competition-id="${escapeHtml(c.competitionId)}">Gérer la compétition</button>
+              </div>
             </div>`;
         })
         .join("")}</div>`;
@@ -14432,6 +15166,20 @@
         if (cat) cat.value = "";
         refreshAssociationUpcomingCompetitionsList();
       });
+      const listRoot = main.querySelector("#as-upcoming-comp-list");
+      if (listRoot && !listRoot.dataset.asCompManageWired) {
+        listRoot.dataset.asCompManageWired = "1";
+        listRoot.addEventListener("click", (e) => {
+          const btn = e.target.closest(".btn-as-manage-competition");
+          if (!btn) return;
+          e.preventDefault();
+          e.stopPropagation();
+          openManageAssociationCompetitionModal(
+            btn.getAttribute("data-activity-id") || "",
+            btn.getAttribute("data-competition-id") || ""
+          );
+        });
+      }
     }
 
     function associationActivityDateInSeason(activity, dateStr) {
@@ -15364,6 +16112,8 @@
         date: row.getAttribute("data-date") || "",
         detail: row.getAttribute("data-detail") || "",
         activityName: row.getAttribute("data-activity-name") || "",
+        startTime: row.getAttribute("data-start") || "",
+        endTime: row.getAttribute("data-end") || "",
       };
     }
 
@@ -15532,9 +16282,56 @@
         .join("")}</div>`;
     }
 
+    function associationTrainingSlotPrefill(training) {
+      const t = training || {};
+      const knownCats = ["benjamins", "minimes"];
+      const knownSexes = ["filles", "garçons"];
+      const cats = new Set();
+      const sexes = new Set();
+      const groupsManual = [];
+      (Array.isArray(t.groups) ? t.groups : []).forEach((g) => {
+        const s = String(g || "").trim();
+        if (!s) return;
+        const lower = s.toLowerCase();
+        let matched = false;
+        knownCats.forEach((c) => {
+          knownSexes.forEach((sex) => {
+            if (lower === `${c} ${sex}`) {
+              cats.add(c);
+              sexes.add(sex);
+              matched = true;
+            }
+          });
+          if (lower === c) {
+            cats.add(c);
+            matched = true;
+          }
+        });
+        knownSexes.forEach((sex) => {
+          if (lower === sex) {
+            sexes.add(sex);
+            matched = true;
+          }
+        });
+        if (!matched) groupsManual.push(s);
+      });
+      return {
+        id: t.id || "",
+        dayIndex: Number.isInteger(t.dayIndex) ? t.dayIndex : undefined,
+        startTime: t.startTime || "",
+        endTime: t.endTime || "",
+        cats: [...cats],
+        sexes: [...sexes],
+        groupsManual,
+        coachTeacherIds: associationCoachTeacherIds(t),
+      };
+    }
+
     function associationTrainingSlotRowHtml(prefill) {
       const p = prefill || {};
-      return `<div class="as-slot-row" style="border:1px solid var(--border);border-radius:10px;padding:.55rem .6rem;margin-top:.45rem">
+      const cats = new Set((p.cats || []).map((x) => String(x).toLowerCase()));
+      const sexes = new Set((p.sexes || []).map((x) => String(x).toLowerCase()));
+      return `<div class="as-slot-row" data-training-id="${escapeHtml(p.id || "")}" style="border:1px solid var(--border);border-radius:10px;padding:.55rem .6rem;margin-top:.45rem">
             <div class="form-row">
               <div class="form-group"><label>Jour</label><select class="f-as-day">${DOW.map(
                 (d, i) =>
@@ -15549,12 +16346,12 @@
             </div>
             <div class="form-row">
               <div class="form-group"><label>Catégorie</label><div style="display:flex;gap:.6rem;flex-wrap:wrap">
-                <label style="display:inline-flex;gap:.25rem;align-items:center"><input type="checkbox" class="f-as-cat" value="benjamins" /> Benjamins</label>
-                <label style="display:inline-flex;gap:.25rem;align-items:center"><input type="checkbox" class="f-as-cat" value="minimes" /> Minimes</label>
+                <label style="display:inline-flex;gap:.25rem;align-items:center"><input type="checkbox" class="f-as-cat" value="benjamins"${cats.has("benjamins") ? " checked" : ""} /> Benjamins</label>
+                <label style="display:inline-flex;gap:.25rem;align-items:center"><input type="checkbox" class="f-as-cat" value="minimes"${cats.has("minimes") ? " checked" : ""} /> Minimes</label>
               </div></div>
               <div class="form-group"><label>Sexe</label><div style="display:flex;gap:.6rem;flex-wrap:wrap">
-                <label style="display:inline-flex;gap:.25rem;align-items:center"><input type="checkbox" class="f-as-sex" value="filles" /> Filles</label>
-                <label style="display:inline-flex;gap:.25rem;align-items:center"><input type="checkbox" class="f-as-sex" value="garçons" /> Garçons</label>
+                <label style="display:inline-flex;gap:.25rem;align-items:center"><input type="checkbox" class="f-as-sex" value="filles"${sexes.has("filles") ? " checked" : ""} /> Filles</label>
+                <label style="display:inline-flex;gap:.25rem;align-items:center"><input type="checkbox" class="f-as-sex" value="garçons"${sexes.has("garçons") ? " checked" : ""} /> Garçons</label>
               </div></div>
             </div>
             <div class="form-group"><label>Groupe(s) manuel(s) (optionnel)</label><input class="f-as-group-manual" placeholder="ex : benjamines filles, cadets garçons" value="${escapeHtml(
@@ -15611,7 +16408,15 @@
         const coachTeacherIds = [...row.querySelectorAll(".f-as-coach:checked")]
           .map((x) => String(x.value || ""))
           .filter(Boolean);
-        nextSlots.push({ id: uid(), dayIndex, startTime, endTime, groups, coachTeacherIds });
+        const existingId = String(row.getAttribute("data-training-id") || "").trim();
+        nextSlots.push({
+          id: existingId || uid(),
+          dayIndex,
+          startTime,
+          endTime,
+          groups,
+          coachTeacherIds,
+        });
       }
       return nextSlots;
     }
@@ -15723,14 +16528,22 @@
         return;
       }
       if (!guardSharedEstablishmentEdit("Association sportive")) return;
+      const existingTrainings = Array.isArray(activity.trainings) ? activity.trainings : [];
+      const slotsHtml = existingTrainings.length
+        ? existingTrainings.map((t) => associationTrainingSlotRowHtml(associationTrainingSlotPrefill(t))).join("")
+        : associationTrainingSlotRowHtml();
       const body = el(`<div>
         <div class="form-group"><label>Nom de l'activité</label><input id="f-as-name" value="${escapeHtml(activity.name || "")}" /></div>
         <div class="form-row">
           <div class="form-group"><label>Début des séances</label><input type="date" id="f-as-season-start" value="${escapeHtml(activity.seasonStart || "")}" /></div>
           <div class="form-group"><label>Fin des séances</label><input type="date" id="f-as-season-end" value="${escapeHtml(activity.seasonEnd || "")}" /></div>
         </div>
-        <p class="kpi-sub" style="margin:0">Les créneaux, élèves et compétitions se gèrent depuis le détail de l'activité.</p>
+        <p class="kpi-sub" style="margin:0 0 .35rem">Créneaux : jour, horaires, catégorie, sexe, groupe, et professeur(s) encadrant(s) (animateurs AS).</p>
+        <div id="f-as-slots">${slotsHtml}</div>
+        <button type="button" class="btn btn-sm btn-ghost" id="btn-as-slot-add" style="margin-top:.55rem">+ Ajouter un créneau</button>
+        <p class="kpi-sub" style="margin:.65rem 0 0">Les élèves et compétitions se gèrent depuis le détail de l'activité.</p>
       </div>`);
+      wireAssociationTrainingSlotsContainer(body);
       openModal("Modifier l'activité", body, () => {
         const name = body.querySelector("#f-as-name").value.trim();
         if (!name) return false;
@@ -15740,9 +16553,20 @@
           alert("La fin des séances doit être après le début.");
           return false;
         }
+        const nextSlots = collectTrainingSlotsFromForm(body);
+        if (!nextSlots.length) {
+          alert("Ajoutez au moins un créneau valide (jour, heure de début et de fin).");
+          return false;
+        }
+        const prevIds = new Set((activity.trainings || []).map((t) => t && t.id).filter(Boolean));
+        const nextIds = new Set(nextSlots.map((t) => t.id));
+        prevIds.forEach((id) => {
+          if (!nextIds.has(id)) purgeAssociationEventRecords(activity.id, "training", id);
+        });
         activity.name = name;
         activity.seasonStart = seasonStart;
         activity.seasonEnd = seasonEnd;
+        activity.trainings = nextSlots;
         saveData();
         render();
         return true;
@@ -15752,28 +16576,51 @@
     function openCancelSessionModal(session) {
       if (!session) return;
       const sid = session.id;
-      if (appData.cancellations.some((c) => c.sessionId === sid)) {
+      const existing = cancellationForSession(session);
+      if (existing && !isSessionModification(existing)) {
         alert("Ce cours est déjà annulé.");
         return;
       }
       const body = el(`<div>
         <p class="kpi-sub" style="margin-bottom:.75rem"><strong>${fmtDateFr(session.date)}</strong> · ${session.startTime || ""}–${session.endTime || ""}</p>
+        <p class="kpi-sub" style="margin:0 0 .65rem">Le cours n’a pas lieu. La séance ne compte pas dans les APSA réalisées.</p>
         <div class="form-group"><label>Motif</label><select id="m-reason">${REASON_TYPES.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select></div>
         <div class="form-group"><label>Commentaire</label><textarea id="m-com" rows="2"></textarea></div>
       </div>`);
       openModal("Annuler cette séance", body, () => {
-        if (appData.cancellations.some((c) => c.sessionId === sid)) return;
-        appData.cancellations.push({
-          id: uid(),
-          sessionId: session.id,
-          classId: session.classId,
-          date: session.date,
-          startTime: session.startTime,
+        upsertSessionOverride(session, {
+          kind: "cancel",
           reasonType: body.querySelector("#m-reason").value,
           comment: body.querySelector("#m-com").value,
         });
         saveData();
         render();
+        return true;
+      }, { autosave: false });
+    }
+
+    function openModifySessionModal(session) {
+      if (!session) return;
+      const existing = cancellationForSession(session);
+      if (existing && isSessionModification(existing)) {
+        alert("Ce cours est déjà marqué comme modifié.");
+        return;
+      }
+      const body = el(`<div>
+        <p class="kpi-sub" style="margin-bottom:.75rem"><strong>${fmtDateFr(session.date)}</strong> · ${session.startTime || ""}–${session.endTime || ""}</p>
+        <p class="kpi-sub" style="margin:0 0 .65rem">Vous avez la classe, mais ce n’est pas une séance APSA (sortie, heure particulière…). Elle <strong>ne compte pas</strong> dans les séances APSA réalisées de la période.</p>
+        <div class="form-group"><label>Motif</label><select id="m-reason">${MODIFY_REASON_TYPES.map(([v, l]) => `<option value="${v}">${l}</option>`).join("")}</select></div>
+        <div class="form-group"><label>Commentaire</label><textarea id="m-com" rows="2" placeholder="Optionnel"></textarea></div>
+      </div>`);
+      openModal("Modifier ce cours", body, () => {
+        upsertSessionOverride(session, {
+          kind: "modify",
+          reasonType: body.querySelector("#m-reason").value,
+          comment: body.querySelector("#m-com").value,
+        });
+        saveData();
+        render();
+        return true;
       }, { autosave: false });
     }
 
@@ -15852,11 +16699,18 @@
         const activity = activities.find((a) => a.id === block.activityId) || null;
         const slots = activity ? associationListDistinctSlots(activity) : [];
         const multiSlot = slots.length > 1;
-        let slotKey = dashAsActivitySlotTab[block.activityId] || "";
-        if (multiSlot && (!slotKey || !slots.some((s) => s.key === slotKey))) {
-          slotKey = slots[0].key;
+        let slotKey = dashAsActivitySlotTab[block.activityId] || ASSOCIATION_SLOT_TAB_ALL;
+        if (multiSlot) {
+          if (!isAssociationSlotTabAll(slotKey) && !slots.some((s) => s.key === slotKey)) {
+            slotKey = ASSOCIATION_SLOT_TAB_ALL;
+          }
+        } else {
+          slotKey = slots[0] ? slots[0].key : "";
         }
-        const activeSlot = slots.find((s) => s.key === slotKey) || slots[0] || null;
+        const showAllSlots = multiSlot && isAssociationSlotTabAll(slotKey);
+        const activeSlot = showAllSlots
+          ? null
+          : slots.find((s) => s.key === slotKey) || slots[0] || null;
         let displayEvents = block.events;
         if (multiSlot && activeSlot) {
           displayEvents = block.events.filter((e) => associationEventMatchesSlot(e, activeSlot, activity));
@@ -15865,7 +16719,11 @@
           ? displayEvents.map((e) => renderAssociationEventRow(e)).join("")
           : `<tr><td colspan="7" class="kpi-sub" style="text-align:center">Aucun créneau à venir.</td></tr>`;
         const planningTableTitle = `Planning — ${block.activityName}${
-          activeSlot ? " — " + associationSlotTabLabel(activeSlot, activity) : ""
+          showAllSlots
+            ? " — Tous les créneaux"
+            : activeSlot
+              ? " — " + associationSlotTabLabel(activeSlot, activity)
+              : ""
         }`;
         const tableHtml = `<div class="table-wrap as-planning-table-wrap as-planning-table-wrap--tap-fullscreen" data-table-title="${escapeHtml(planningTableTitle)}">
             <table class="as-planning-table">
@@ -15879,18 +16737,20 @@
           </div>`;
         const slotTabsHtml = multiSlot
           ? `<div class="as-activity-tabs as-slot-tabs no-print" style="margin-bottom:.35rem;flex-wrap:wrap">
+            ${renderAssociationAllSlotsTabHtml(block.activityId, showAllSlots)}
             ${slots
               .map((s) => {
-                const active = s.key === (activeSlot && activeSlot.key);
+                const active = !showAllSlots && s.key === (activeSlot && activeSlot.key);
                 return renderAssociationSlotTabHtml(activity, block.activityId, s, active);
               })
               .join("")}
           </div>`
           : "";
-        const slotCatsHint =
-          activity &&
-          activeSlot &&
-          (multiSlot || associationSlotCategoriesLabel(activity, activeSlot) !== "Tous")
+        const slotCatsHint = showAllSlots
+          ? `<p class="kpi-sub as-slot-categories-hint"><strong>Tous les créneaux</strong> — Vue récapitulative de l’activité. Choisissez un créneau pour filtrer.</p>`
+          : activity &&
+              activeSlot &&
+              (multiSlot || associationSlotCategoriesLabel(activity, activeSlot) !== "Tous")
             ? associationSlotCategoriesHintHtml(activity, activeSlot)
             : "";
         const planningHint =
@@ -15899,7 +16759,7 @@
             : "";
         const panelContent =
           panelTab === "admin" && activity
-            ? viewAssociationAdminBody(activity, activeSlot ? activeSlot.key : "")
+            ? viewAssociationAdminBody(activity, showAllSlots ? ASSOCIATION_SLOT_TAB_ALL : activeSlot ? activeSlot.key : "")
             : tableHtml;
         return `<div class="dash-as-activity-block no-print" style="margin-bottom:.55rem">
           <div class="dash-as-activity-head">
@@ -15929,6 +16789,7 @@
       root.innerHTML = associationPlanningInnerHtml();
       wireAssociationDashEvents(main);
       wireAssociationAdminDeleteStudentButtons(root);
+      wireAssociationAdminAddStudent(root);
       enhanceMobileTables(main);
     }
 
@@ -15939,17 +16800,308 @@
         .filter((s) => s.name);
       const attendance = getAssociationAttendance(event);
       const kind = event.eventType === "training" ? "Entraînement" : "Compétition";
+      const refreshAfter = () => {
+        saveData();
+        if (currentView === "dashboard:association") refreshAssociationDashPlanning();
+        else render();
+      };
       const body = el(`<div>
         <p class="kpi-sub" style="margin-bottom:.6rem"><strong>${escapeHtml(fmtDateFr(event.date))}</strong> · ${escapeHtml(event.activityName || activity?.name || "—")} · ${escapeHtml(kind)}${event.detail ? ` · <span title="${escapeHtml(event.detail)}">${escapeHtml(formatAssociationDetailAbbrev(event.detail))}</span>` : ""}</p>
       </div>`);
-      body.appendChild(buildAssociationAttendanceBlock(attendance, students, () => {
-        saveData();
-        refreshAssociationDashPlanning();
-      }));
+      body.appendChild(buildAssociationAttendanceBlock(attendance, students, refreshAfter));
       openModal("Appel — " + (event.activityName || activity?.name || "AS"), body, () => {
-        saveData();
-        refreshAssociationDashPlanning();
+        refreshAfter();
       }, { wide: true });
+    }
+
+    /** Depuis l'accueil AS : appel + gestion administrative (créneau du jour). */
+    function openAssociationHomeEventModal(event) {
+      if (!event || !event.activityId) return;
+      const activity = ((appData.association && appData.association.activities) || []).find(
+        (a) => a.id === event.activityId
+      );
+      if (!activity) {
+        alert("Activité introuvable.");
+        return;
+      }
+      const kind = event.eventType === "competition" ? "Compétition" : "Entraînement";
+      const students = (activity.students || []).map(normalizeAssociationStudent).filter((s) => s.name);
+      const attendance = getAssociationAttendance(event);
+      let adminSlotKey = "";
+      if (event.eventType === "training" && event.eventId) {
+        const training = (activity.trainings || []).find((t) => t.id === event.eventId);
+        if (training && Number.isInteger(training.dayIndex)) {
+          adminSlotKey = associationSlotKey(training.dayIndex, training.startTime, training.endTime);
+        }
+      }
+      if (!adminSlotKey) {
+        const slots = associationListDistinctSlots(activity);
+        adminSlotKey = slots.length > 1 ? ASSOCIATION_SLOT_TAB_ALL : slots[0]?.key || "";
+      }
+
+      let tab = "appel";
+      const refreshAfter = () => {
+        saveData();
+        if (currentView === "dashboard:association") refreshAssociationDashPlanning();
+        else render();
+      };
+
+      const body = el(`<div class="as-home-session-modal">
+        <p class="kpi-sub" style="margin:0 0 .55rem;line-height:1.45"><strong>${escapeHtml(fmtDateFr(event.date))}</strong> · ${escapeHtml(event.activityName || activity.name || "—")} · ${escapeHtml(kind)}${
+          event.startTime || event.endTime
+            ? ` · ${escapeHtml((event.startTime || "") + (event.endTime ? "–" + event.endTime : ""))}`
+            : ""
+        }${event.detail ? ` · <span title="${escapeHtml(event.detail)}">${escapeHtml(formatAssociationDetailAbbrev(event.detail))}</span>` : ""}</p>
+        <div class="as-activity-tabs no-print" style="margin-bottom:.65rem">
+          <button type="button" class="as-activity-tab as-home-sess-tab as-activity-tab--active" data-tab="appel">Appel</button>
+          <button type="button" class="as-activity-tab as-home-sess-tab" data-tab="admin">Gestion administrative</button>
+        </div>
+        <div id="as-home-sess-panel"></div>
+      </div>`);
+
+      const wireAdminPanel = (panel) => {
+        const root = panel.querySelector(".as-home-admin-root") || panel;
+        delete root.dataset.asAdminCellsWired;
+        delete root.dataset.asAddStuCommitWired;
+        wireAssociationAdminCellEvents(root);
+        wireAssociationAdminDeleteStudentButtons(root);
+        wireAssociationAdminAddStudent(root);
+        root.querySelectorAll(".btn-as-admin-add-col").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const id = btn.getAttribute("data-id");
+            const slotKey = btn.getAttribute("data-slot-key") || "";
+            const a = ((appData.association && appData.association.activities) || []).find((x) => x.id === id);
+            if (!a) return;
+            const label = (window.prompt("Nom de la colonne", "") || "").trim();
+            if (!label) return;
+            const store = getAssociationAdminStore(a, slotKey);
+            store.columns.push({ id: uid(), label });
+            saveData();
+            renderPanel();
+          });
+        });
+        root.querySelectorAll(".btn-as-admin-del-col").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const activityId = btn.getAttribute("data-activity-id");
+            const colId = btn.getAttribute("data-col-id");
+            const slotKey = btn.getAttribute("data-slot-key") || "";
+            if (!activityId || !colId) return;
+            if (!confirm("Supprimer cette colonne et toutes les cases cochées ?")) return;
+            if (!deleteAssociationAdminColumn(activityId, colId, slotKey)) return;
+            saveData();
+            renderPanel();
+          });
+        });
+      };
+
+      const renderPanel = () => {
+        const panel = body.querySelector("#as-home-sess-panel");
+        if (!panel) return;
+        body.querySelectorAll(".as-home-sess-tab").forEach((btn) => {
+          btn.classList.toggle("as-activity-tab--active", btn.getAttribute("data-tab") === tab);
+        });
+        if (tab === "admin") {
+          panel.innerHTML = `<div class="as-home-admin-root">${viewAssociationAdminBody(activity, adminSlotKey)}</div>`;
+          wireAdminPanel(panel);
+        } else {
+          panel.innerHTML = "";
+          panel.appendChild(buildAssociationAttendanceBlock(attendance, students, refreshAfter));
+        }
+      };
+
+      if (event._tab === "admin") tab = "admin";
+      body.querySelectorAll(".as-home-sess-tab").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const next = btn.getAttribute("data-tab");
+          if (next !== "appel" && next !== "admin") return;
+          tab = next;
+          renderPanel();
+        });
+      });
+      renderPanel();
+
+      body.__rerenderAdmin = () => {
+        tab = "admin";
+        renderPanel();
+      };
+
+      openModal(
+        (event.activityName || activity.name || "AS") + " — " + kind,
+        body,
+        () => {
+          refreshAfter();
+        },
+        { wide: true }
+      );
+    }
+
+    /** Entraînements AS du jour pour le professeur profil sélectionné (encadrant du créneau). */
+    function associationHomeDayTrainings(dayISO) {
+      const profile = getActiveProfileTeacher();
+      if (!profile || !dayISO) return [];
+      const d = parseISODate(dayISO);
+      if (!d) return [];
+      const dayIndex = dayIndexMon0(d);
+      const events = [];
+      const activities = (appData.association && appData.association.activities) || [];
+      activities.forEach((a) => {
+        (a.trainings || []).forEach((t) => {
+          if (!t || !associationTrainingIsCoachedBy(t, profile.id)) return;
+          if (!Number.isInteger(t.dayIndex) || t.dayIndex !== dayIndex) return;
+          if (!associationActivityDateInSeason(a, dayISO)) return;
+          events.push(
+            applyAssociationEventTimeOverride({
+              activityId: a.id,
+              activityName: a.name || "—",
+              eventType: "training",
+              eventId: t.id,
+              date: dayISO,
+              startTime: t.startTime || "",
+              endTime: t.endTime || "",
+              detail: (t.groups || []).join(" · ") || "Tous",
+              coach: associationTrainingCoachLabel(t),
+            })
+          );
+        });
+      });
+      events.sort(
+        (x, y) =>
+          String(x.startTime || "").localeCompare(String(y.startTime || "")) ||
+          String(x.activityName || "").localeCompare(String(y.activityName || ""), "fr")
+      );
+      return events;
+    }
+
+    function dashAsTodayTrainingsHtml(dayISO, isToday) {
+      const events = associationHomeDayTrainings(dayISO);
+      if (!events.length) return "";
+      const label = isToday ? "Entraînement du jour" : "Entraînement de la journée";
+      const n = events.length;
+      const lines = events
+        .map((e) => {
+          const cancel = associationCancellationSummary(e);
+          const present = associationAttendancePresentCount(e);
+          const hour = `${e.startTime || ""}${e.endTime ? "–" + e.endTime : ""}${e.timeOverridden ? " *" : ""}`;
+          const detailAbbrev = formatAssociationDetailAbbrev(e.detail);
+          let statusHtml = "";
+          if (cancel.state === "all") {
+            statusHtml = `<span class="status-pill status-pill--cancelled"><span class="status-dot" style="background:var(--danger)"></span>Annulé</span>`;
+          } else if (cancel.state === "partial") {
+            statusHtml = `<span class="status-pill status-pill--planned"><span class="status-dot" style="background:#d97706"></span>Partiel</span>`;
+          } else {
+            statusHtml = `<span class="status-pill status-pill--planned"><span class="status-dot" style="background:var(--success)"></span>Prévu</span>`;
+          }
+          const presentHtml =
+            present > 0
+              ? `<span class="att-badge" title="Présents saisis">${present}P</span>`
+              : "";
+          return `<div class="btn-as-today-event dash-session-row" role="button" tabindex="0"
+            data-activity-id="${escapeHtml(e.activityId)}" data-event-id="${escapeHtml(e.eventId || "")}" data-event-type="training"
+            data-date="${escapeHtml(e.date)}" data-detail="${escapeHtml(e.detail || "")}" data-activity-name="${escapeHtml(e.activityName || "")}"
+            data-start="${escapeHtml(e.startTime || "")}" data-end="${escapeHtml(e.endTime || "")}"
+            style="--session-c:#f59e0b" aria-label="Appel et gestion — ${escapeHtml(e.activityName || "AS")}">
+            <div class="dash-session-line dash-session-line--primary">
+              <span class="dash-session-time">${escapeHtml(hour || "—")}</span>
+              <span class="dash-session-class">${escapeHtml(e.activityName || "—")}</span>
+              <span class="dash-session-venue">${escapeHtml(detailAbbrev || "")}</span>
+            </div>
+            <div class="dash-session-line dash-session-line--secondary">
+              ${statusHtml}
+              ${presentHtml}
+              <span style="font-size:.78rem;color:var(--text-muted);margin-left:auto">Appel · Admin →</span>
+            </div>
+          </div>`;
+        })
+        .join("");
+      return `<div class="dash-as-today-trainings" id="dash-as-today-trainings">
+        <h3 class="dash-as-today-trainings__title">🏅 ${escapeHtml(label)}${n > 1 ? ` · ${n}` : ""}</h3>
+        <div style="display:flex;flex-direction:column;gap:0">${lines}</div>
+      </div>`;
+    }
+
+    /** Compétitions AS du jour pour les activités du profil sélectionné. */
+    function associationHomeDayCompetitions(dayISO) {
+      const profile = getActiveProfileTeacher();
+      if (!profile || !dayISO) return [];
+      const events = [];
+      associationActivitiesForViewer().forEach((a) => {
+        (a.competitions || []).forEach((c) => {
+          if (!c || c.date !== dayISO) return;
+          if (!associationActivityDateInSeason(a, c.date)) return;
+          const isOwner = !c.ownerTeacherId || String(c.ownerTeacherId) === profile.id;
+          if (!isAssociationFullAccessViewer() && !isOwner && !canEditAssociationActivity(a)) return;
+          events.push({
+            activityId: a.id,
+            activityName: a.name || "—",
+            eventType: "competition",
+            eventId: c.id,
+            date: c.date,
+            startTime: "",
+            endTime: "",
+            detail: c.category || "",
+            place: c.place || "",
+            coach: c.coach || associationTeacherNameById(c.ownerTeacherId) || "",
+          });
+        });
+      });
+      events.sort(
+        (x, y) =>
+          String(x.activityName || "").localeCompare(String(y.activityName || ""), "fr") ||
+          String(x.detail || "").localeCompare(String(y.detail || ""), "fr")
+      );
+      return events;
+    }
+
+    function dashAsTodayCompetitionsHtml(dayISO, isToday) {
+      const events = associationHomeDayCompetitions(dayISO);
+      if (!events.length) return "";
+      const label = isToday ? "Compétition du jour" : "Compétition de la journée";
+      const n = events.length;
+      const lines = events
+        .map((e) => {
+          const cancel = associationCancellationSummary(e);
+          const present = associationAttendancePresentCount(e);
+          const detailAbbrev = formatAssociationDetailAbbrev(e.detail);
+          const place = (e.place || "").trim();
+          let statusHtml = "";
+          if (cancel.state === "all") {
+            statusHtml = `<span class="status-pill status-pill--cancelled"><span class="status-dot" style="background:var(--danger)"></span>Annulé</span>`;
+          } else if (cancel.state === "partial") {
+            statusHtml = `<span class="status-pill status-pill--planned"><span class="status-dot" style="background:#d97706"></span>Partiel</span>`;
+          } else {
+            statusHtml = `<span class="status-pill status-pill--planned"><span class="status-dot" style="background:var(--success)"></span>Prévu</span>`;
+          }
+          const presentHtml =
+            present > 0
+              ? `<span class="att-badge" title="Présents saisis">${present}P</span>`
+              : "";
+          return `<div class="btn-as-today-event dash-session-row" role="button" tabindex="0"
+            data-activity-id="${escapeHtml(e.activityId)}" data-event-id="${escapeHtml(e.eventId || "")}" data-event-type="competition"
+            data-date="${escapeHtml(e.date)}" data-detail="${escapeHtml(e.detail || "")}" data-activity-name="${escapeHtml(e.activityName || "")}"
+            style="--session-c:#38bdf8" aria-label="Appel et gestion — ${escapeHtml(e.activityName || "AS")}">
+            <div class="dash-session-line dash-session-line--primary">
+              <span class="dash-session-time">Compétition</span>
+              <span class="dash-session-class">${escapeHtml(e.activityName || "—")}</span>
+              <span class="dash-session-venue">${escapeHtml(place || detailAbbrev || "")}</span>
+            </div>
+            <div class="dash-session-line dash-session-line--secondary">
+              ${detailAbbrev && place ? `<span style="font-size:.78rem">${escapeHtml(detailAbbrev)}</span>` : ""}
+              ${e.coach ? `<span style="font-size:.78rem;color:var(--text-muted)">Enc. ${escapeHtml(e.coach)}</span>` : ""}
+              ${statusHtml}
+              ${presentHtml}
+              <span style="font-size:.78rem;color:var(--text-muted);margin-left:auto">Appel · Admin →</span>
+            </div>
+          </div>`;
+        })
+        .join("");
+      return `<div class="dash-as-today-trainings dash-as-today-trainings--competition" id="dash-as-today-competitions">
+        <h3 class="dash-as-today-trainings__title">🏆 ${escapeHtml(label)}${n > 1 ? ` · ${n}` : ""}</h3>
+        <div style="display:flex;flex-direction:column;gap:0">${lines}</div>
+      </div>`;
     }
 
     function isDashAssociationStripCompact() {
@@ -15992,6 +17144,10 @@
     }
 
     function dashAssociationHtml() {
+      const dayISO = dashboardDateISO();
+      const isToday = dayISO === fmtISODate(todayStart());
+      const todayTrainingsHtml = dashAsTodayTrainingsHtml(dayISO, isToday);
+      const todayCompetitionsHtml = dashAsTodayCompetitionsHtml(dayISO, isToday);
       const week = currentWeekRangeMonSun(dashboardDateStart());
       const w0 = fmtDateFr(week.start).slice(0, 5);
       const w1 = fmtDateFr(week.end).slice(0, 5);
@@ -16049,6 +17205,8 @@
         : '<span class="dash-association-strip__line kpi-sub">Aucune séance prévue cette semaine</span>';
       const recapHtml = noticesHtml + activitiesHtml;
       return `<div class="dash-association-home no-print" id="dash-association-home">
+        ${todayTrainingsHtml}
+        ${todayCompetitionsHtml}
         <details class="dash-association-strip" id="dash-association-strip"${dashAssociationStripOpen ? " open" : ""}>
           <summary class="dash-association-strip__head" id="dash-association-fold">
             <span class="dash-association-strip__head-inner">
@@ -16225,7 +17383,12 @@
               </div>
               <div class="progress progress--activity" style="margin-top:0.5rem"><span style="width:${ast.pct}%"></span></div>
               <div class="dash-activity-foot">
-                <span class="dash-activity-canc">${ast.cancelled ? ast.cancelled + " annul." : ""}</span>
+                <span class="dash-activity-canc">${[
+                  ast.cancelled ? ast.cancelled + " annul." : "",
+                  ast.modified ? ast.modified + " modif." : "",
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}</span>
                 <span class="dash-activity-pct">${ast.pct}%</span>
               </div>
             </div>`;
@@ -18436,14 +19599,20 @@
         if (!s) return;
         const cl = getClassById(s.classId);
         const act = activityById(s.activityId);
-        const canc = appData.cancellations.find((c) => c.sessionId === s.id);
+        const canc = cancellationForSession(s);
+        const st = computeSessionStatus(s);
         title = "Séance EPS";
+        const statusHtml = canc
+          ? isSessionModification(canc)
+            ? `<p><strong>Statut</strong><br><span style="color:#d97706">Modifié · ${escapeHtml(sessionOverrideReasonLabel(canc) || "")}${canc.comment ? " — " + escapeHtml(canc.comment) : ""}</span><br><span class="kpi-sub">Ne compte pas dans les APSA réalisées</span></p>`
+            : `<p><strong>Statut</strong><br><span style="color:var(--danger)">Annulée · ${escapeHtml(sessionOverrideReasonLabel(canc) || "")}${canc.comment ? " — " + escapeHtml(canc.comment) : ""}</span></p>`
+          : `<p><strong>Statut</strong><br>${escapeHtml(st.label)}</p>`;
         body.innerHTML = `
           <p><strong>Date</strong><br>${escapeHtml(fmtDateFr(s.date))}</p>
           <p><strong>Horaires</strong><br>${escapeHtml(s.startTime)} – ${escapeHtml(s.endTime)}</p>
           <p><strong>Classe</strong><br>${escapeHtml(cl?.name || "—")}</p>
           <p><strong>APSA</strong><br>${escapeHtml(act?.name || "—")}</p>
-          ${canc ? `<p><strong>Statut</strong><br><span style="color:var(--danger)">Annulée · ${escapeHtml(canc.reasonType || "")}${canc.comment ? " — " + escapeHtml(canc.comment) : ""}</span></p>` : `<p><strong>Statut</strong><br>Prévue</p>`}`;
+          ${statusHtml}`;
       } else {
         return;
       }
@@ -18753,14 +19922,22 @@
           const canc = cancellationForSession(s);
           let action = "";
           if (canc) {
-            action = `<button type="button" class="btn btn-sm btn-ghost btn-remove-canc-row" data-canc-id="${canc.id}">Lever l'annulation</button>`;
-          } else if (stt.code === "planned" || stt.code === "today") {
-            action = `<button type="button" class="btn btn-sm btn-danger btn-cancel-session" data-session-id="${s.id}">Annuler</button>`;
+            const liftLabel = isSessionModification(canc) ? "Lever la modification" : "Lever l'annulation";
+            action = `<button type="button" class="btn btn-sm btn-ghost btn-remove-canc-row" data-canc-id="${canc.id}">${liftLabel}</button>`;
+          } else if (stt.code === "planned" || stt.code === "today" || stt.code === "done") {
+            action = `<button type="button" class="btn btn-sm btn-ghost btn-modify-session" data-session-id="${s.id}">Modifier</button><button type="button" class="btn btn-sm btn-danger btn-cancel-session" data-session-id="${s.id}" style="margin-left:.3rem">Annuler</button>`;
           }
           if (s.extra) {
             action += `<button type="button" class="btn btn-sm btn-danger btn-del-extra-session" data-session-id="${s.id}" style="margin-left:.3rem" title="Supprimer ce cours ajouté">Supprimer</button>`;
           }
-          const col = stt.code === "cancelled" ? "var(--danger)" : stt.code === "done" ? "var(--success)" : "var(--accent)";
+          const col =
+            stt.code === "cancelled"
+              ? "var(--danger)"
+              : stt.code === "modified"
+                ? "#d97706"
+                : stt.code === "done"
+                  ? "var(--success)"
+                  : "var(--accent)";
           const isToday = stt.code === "today";
           const hasSummary = s.summary && s.summary.trim();
           const hasPdf = !!s.sessionPdf;
@@ -18770,22 +19947,24 @@
           const pillClass =
             stt.code === "cancelled"
               ? "status-pill--cancelled"
-              : stt.code === "done"
-                ? "status-pill--done"
-                : stt.code === "holiday"
-                  ? "status-pill--holiday"
-                  : "status-pill--planned";
+              : stt.code === "modified"
+                ? "status-pill--modified"
+                : stt.code === "done"
+                  ? "status-pill--done"
+                  : stt.code === "holiday"
+                    ? "status-pill--holiday"
+                    : "status-pill--planned";
           const actCell = act
             ? `${escapeHtml(act.name)}${cyclePos ? `<span class="session-cycle-num">Séance n°${cyclePos.index} / ${cyclePos.total}</span>` : ""}`
             : `<span class="badge" style="background:#94a3b8;color:#fff;font-size:.72rem">Hors période</span>`;
-          rowParts.push(`<tr style="${isToday ? "background:#16a34a22;font-weight:600" : ""}${stt.code === "cancelled" ? ";opacity:.92" : ""};cursor:pointer" class="btn-session-summary" data-session-id="${s.id}" title="${hasSummary ? "Voir / modifier le résumé" : "Ajouter un résumé"}">
+          rowParts.push(`<tr style="${isToday ? "background:#16a34a22;font-weight:600" : ""}${stt.code === "cancelled" || stt.code === "modified" ? ";opacity:.92" : ""};cursor:pointer" class="btn-session-summary" data-session-id="${s.id}" title="${hasSummary ? "Voir / modifier le résumé" : "Ajouter un résumé"}">
             <td>${fmtDateFr(s.date)}</td>
             <td>${escapeHtml(jour)}</td>
             <td>${s.startTime}–${s.endTime}</td>
             <td>${escapeHtml(s.venue || "—")}</td>
             <td>${actCell}</td>
             <td><span class="status-pill ${pillClass}"><span class="status-dot" style="background:${col}"></span>${escapeHtml(stt.label)}</span></td>
-            <td>${escapeHtml(canc ? REASON_TYPES.find((x) => x[0] === canc.reasonType)?.[1] || canc.reasonType : stt.reason || "")}</td>
+            <td>${escapeHtml(canc ? sessionOverrideReasonLabel(canc) : stt.reason || "")}</td>
             <td class="no-print">${(() => { const att = s.attendance || {}; const keys = Object.keys(att); if (!keys.length) return ""; const p = keys.filter((k) => att[k] === "present").length; const ab = keys.filter((k) => att[k] === "absent").length; const l = keys.filter((k) => att[k] === "late").length; return `<span style="font-size:.7rem;font-weight:600;padding:.15rem .45rem;border-radius:10px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;margin-right:.3rem" title="Appel">${p}P${l ? " "+l+"R" : ""}${ab ? " "+ab+"A" : ""}</span>`; })()}${pdfIcon}${summaryIcon}${action}</td>
           </tr>`);
         });
@@ -19307,7 +20486,7 @@
       const activePeriodActIds = new Set(activePeriod ? periodActs.map((a) => a.id) : []);
       const programmedCountForActivity = (activityId) => {
         const subs = sessionsForClass(classId).filter((s) => s.activityId === activityId);
-        return subs.filter((s) => computeSessionStatus(s).code !== "cancelled").length;
+        return subs.filter((s) => !sessionStatusSkipsApsa(computeSessionStatus(s).code)).length;
       };
       const periodProgramming = clPeriods.map((p, idx) => {
         const periodColor = periodPalette[idx % periodPalette.length];
@@ -19672,7 +20851,11 @@
             if (!confirm("Supprimer cette colonne et toutes les cases cochées ?")) return;
             if (!deleteAssociationAdminColumn(activityId, colId, slotKey)) return;
             dashAsActivityPanelTab[activityId] = "admin";
-            if (slotKey) dashAsActivitySlotTab[activityId] = slotKey;
+            const currentSlot = dashAsActivitySlotTab[activityId];
+            if (!isAssociationSlotTabAll(currentSlot) && slotKey) {
+              dashAsActivitySlotTab[activityId] = slotKey;
+            }
+            dashAsExpandedActivityIds.clear();
             dashAsExpandedActivityIds.add(activityId);
             refreshAssociationDashPlanning();
             return;
@@ -19685,6 +20868,7 @@
             const sk = slotBtn.getAttribute("data-slot-key");
             if (!id || !sk) return;
             dashAsActivitySlotTab[id] = sk;
+            dashAsExpandedActivityIds.clear();
             dashAsExpandedActivityIds.add(id);
             refreshAssociationDashPlanning();
             return;
@@ -19697,6 +20881,7 @@
             const tab = sub.getAttribute("data-tab");
             if (!id || (tab !== "planning" && tab !== "admin")) return;
             dashAsActivityPanelTab[id] = tab;
+            dashAsExpandedActivityIds.clear();
             dashAsExpandedActivityIds.add(id);
             refreshAssociationDashPlanning();
             return;
@@ -19704,6 +20889,7 @@
         });
         wireAssociationAdminCellEvents(planningRoot);
         wireAssociationAdminDeleteStudentButtons(planningRoot);
+        wireAssociationAdminAddStudent(planningRoot);
         wireAssociationPlanningTableInteractions(planningRoot);
       }
       main.querySelectorAll(".dash-as-activity-toggle").forEach((btn) => {
@@ -19714,15 +20900,27 @@
           if (!panel) return;
           const id = btn.getAttribute("data-activity-id");
           const open = panel.hidden;
-          panel.hidden = !open;
-          btn.setAttribute("aria-expanded", open ? "true" : "false");
-          if (id) {
-            if (open) {
+          if (open) {
+            // Accordion : une seule activité ouverte à la fois
+            const root = main.querySelector("#dash-as-planning-root") || main;
+            root.querySelectorAll(".dash-as-activity-block").forEach((other) => {
+              if (other === block) return;
+              const otherPanel = other.querySelector(".dash-as-activity-panel");
+              const otherBtn = other.querySelector(".dash-as-activity-toggle");
+              if (otherPanel) otherPanel.hidden = true;
+              if (otherBtn) otherBtn.setAttribute("aria-expanded", "false");
+            });
+            dashAsExpandedActivityIds.clear();
+            panel.hidden = false;
+            btn.setAttribute("aria-expanded", "true");
+            if (id) {
               dashAsExpandedActivityIds.add(id);
               if (!dashAsActivityPanelTab[id]) dashAsActivityPanelTab[id] = "planning";
-            } else {
-              dashAsExpandedActivityIds.delete(id);
             }
+          } else {
+            panel.hidden = true;
+            btn.setAttribute("aria-expanded", "false");
+            if (id) dashAsExpandedActivityIds.delete(id);
           }
         });
       });
@@ -19759,6 +20957,9 @@
             if (!prefersMobileTableFullscreen()) return;
             if (wrap.classList.contains("as-admin-table-wrap")) {
               if (e.target.closest(".btn-as-admin-del-student")) return;
+              if (e.target.closest(".btn-as-admin-add-student")) return;
+              if (e.target.closest(".btn-as-admin-commit-student, .btn-as-admin-cancel-new-student")) return;
+              if (e.target.closest(".as-admin-add-student-row")) return;
               if (e.target.closest(".btn-as-admin-del-col")) return;
               if (e.target.closest(".as-admin-check")) return;
               if (e.target.closest(".as-admin-cell-text")) return;
@@ -19777,7 +20978,7 @@
               return;
             }
             if (wrap.classList.contains("session-table-wrap")) {
-              if (e.target.closest(".btn-cancel-session, .btn-del-extra-session, .btn-remove-canc-row")) return;
+              if (e.target.closest(".btn-cancel-session, .btn-modify-session, .btn-del-extra-session, .btn-remove-canc-row")) return;
               if (e.target.closest(".btn-session-summary")) return;
               if (e.target.closest("thead") || !e.target.closest("tbody tr")) {
                 e.preventDefault();
@@ -19873,6 +21074,24 @@
       });
       main.querySelector("#dash-association-toggle")?.addEventListener("click", () => {
         navigateTo("dashboard:association");
+      });
+      const openAsTodayEvent = (row) => {
+        if (!row) return;
+        openAssociationHomeEventModal(associationEventFromRow(row));
+      };
+      main.querySelectorAll(".btn-as-today-event").forEach((row) => {
+        row.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openAsTodayEvent(row);
+        });
+        row.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            e.stopPropagation();
+            openAsTodayEvent(row);
+          }
+        });
       });
       const openVenueOcc = () => openVenueOccupancyPage(dashboardDateISO());
       main.querySelector("#btn-dash-venue-occupancy")?.addEventListener("click", openVenueOcc);
@@ -21927,12 +23146,8 @@
         const sid = main.querySelector("#canc-session").value;
         const s = appData.sessions.find((x) => x.id === sid);
         if (!s || !classBelongsToActiveProfile(s.classId)) return;
-        appData.cancellations.push({
-          id: uid(),
-          sessionId: s.id,
-          classId: s.classId,
-          date: s.date,
-          startTime: s.startTime,
+        upsertSessionOverride(s, {
+          kind: "cancel",
           reasonType: main.querySelector("#canc-reason").value,
           comment: main.querySelector("#canc-comment").value,
         });
@@ -22039,14 +23254,21 @@
           const headerTitle = `${escapeHtml(cl ? cl.name : "—")} · ${s.startTime || ""}–${s.endTime || ""}${act ? " · " + escapeHtml(act.name) : ""}`;
           const canc = cancellationForSession(s);
           const cancelBar = canc
-            ? `<div class="sm-section" style="border-left:3px solid var(--danger);padding-left:.65rem">
-                <p class="sm-section__title">Cours annulé</p>
+            ? `<div class="sm-section" style="border-left:3px solid ${isSessionModification(canc) ? "#d97706" : "var(--danger)"};padding-left:.65rem">
+                <p class="sm-section__title">${isSessionModification(canc) ? "Cours modifié" : "Cours annulé"}</p>
                 <p class="kpi-sub" style="margin:0 0 .45rem">${escapeHtml(
-                  REASON_TYPES.find((x) => x[0] === canc.reasonType)?.[1] || canc.reasonType || "Annulé"
-                )}${canc.comment ? " — " + escapeHtml(canc.comment) : ""}</p>
-                <button type="button" class="btn btn-sm btn-ghost" id="btn-td-uncancel-session">Lever l'annulation</button>
+                  sessionOverrideReasonLabel(canc) || (isSessionModification(canc) ? "Modifié" : "Annulé")
+                )}${canc.comment ? " — " + escapeHtml(canc.comment) : ""}${
+                  isSessionModification(canc)
+                    ? " · Ne compte pas dans les APSA réalisées"
+                    : ""
+                }</p>
+                <button type="button" class="btn btn-sm btn-ghost" id="btn-td-uncancel-session">${
+                  isSessionModification(canc) ? "Lever la modification" : "Lever l'annulation"
+                }</button>
               </div>`
-            : `<div class="sm-section no-print" style="display:flex;justify-content:flex-end;padding-bottom:.25rem">
+            : `<div class="sm-section no-print" style="display:flex;justify-content:flex-end;gap:.4rem;flex-wrap:wrap;padding-bottom:.25rem">
+                <button type="button" class="btn btn-sm btn-ghost" id="btn-td-modify-session">Modifier ce cours</button>
                 <button type="button" class="btn btn-sm btn-danger" id="btn-td-cancel-session">Annuler ce cours</button>
               </div>`;
           const body = el(`<div class="session-modal">
@@ -22185,8 +23407,12 @@
             closeModal();
             openCancelSessionModal(s);
           });
+          body.querySelector("#btn-td-modify-session")?.addEventListener("click", () => {
+            closeModal();
+            openModifySessionModal(s);
+          });
           body.querySelector("#btn-td-uncancel-session")?.addEventListener("click", () => {
-            appData.cancellations = appData.cancellations.filter((c) => c.sessionId !== s.id);
+            clearSessionOverride(s);
             persistLight();
             closeModal({ skipAutosave: true });
             render();
@@ -22211,6 +23437,13 @@
           const sid = b.getAttribute("data-session-id");
           const s = appData.sessions.find((x) => x.id === sid);
           openCancelSessionModal(s);
+        });
+      });
+      main.querySelectorAll(".btn-modify-session").forEach((b) => {
+        b.addEventListener("click", () => {
+          const sid = b.getAttribute("data-session-id");
+          const s = appData.sessions.find((x) => x.id === sid);
+          openModifySessionModal(s);
         });
       });
       main.querySelectorAll(".btn-del-extra-session").forEach((b) => {
