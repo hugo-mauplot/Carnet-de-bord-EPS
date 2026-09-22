@@ -9643,11 +9643,13 @@
       return appData.evaluations;
     }
 
-    function normalizeEvaluation(raw) {
+    function normalizeEvaluation(raw, opts) {
+      opts = opts || {};
       if (!raw || typeof raw !== "object") return null;
       const title = String(raw.title || "").trim();
       const classId = String(raw.classId || "").trim();
-      if (!title || !classId) return null;
+      if (!classId) return null;
+      if (!opts.allowEmptyTitle && !title) return null;
       let maxScore = Number(raw.maxScore);
       if (!Number.isFinite(maxScore) || maxScore <= 0) maxScore = 20;
       const scores = {};
@@ -9729,10 +9731,22 @@
       return `${rounded}/${max}`;
     }
 
+    function classStudentNames(classId) {
+      const cl = getClassById(classId);
+      if (!cl || !Array.isArray(cl.students)) return [];
+      return cl.students
+        .map((n) => {
+          if (typeof n === "string") return n.trim();
+          if (n && typeof n === "object" && n.name) return String(n.name).trim();
+          return "";
+        })
+        .filter(Boolean);
+    }
+
     function openEvaluationEditorModal(session, existing, onDone) {
       if (!session) return;
       const cl = getClassById(session.classId);
-      const students = (cl && Array.isArray(cl.students) ? cl.students : []).map((n) => String(n || "").trim()).filter(Boolean);
+      const students = classStudentNames(session.classId);
       if (!students.length) {
         alert("Aucun élève dans cette classe. Ajoutez-les dans Réglages → Mes classes.");
         return;
@@ -9750,7 +9764,8 @@
           maxScore: 20,
           scores: {},
           createdAt: new Date().toISOString(),
-        }
+        },
+        { allowEmptyTitle: true }
       );
       if (!draft) return;
       draft.sessionId = session.id;
@@ -9825,9 +9840,7 @@
 
       const showEditor = (existing) => {
         const cl = getClassById(session.classId);
-        const students = (cl && Array.isArray(cl.students) ? cl.students : [])
-          .map((n) => String(n || "").trim())
-          .filter(Boolean);
+        const students = classStudentNames(session.classId);
         if (!students.length) {
           alert("Aucun élève dans cette classe. Ajoutez-les dans Réglages → Mes classes.");
           return;
@@ -9845,7 +9858,8 @@
             maxScore: 20,
             scores: {},
             createdAt: new Date().toISOString(),
-          }
+          },
+          { allowEmptyTitle: true }
         );
         if (!draft) return;
         draft.sessionId = session.id;
