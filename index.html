@@ -4277,6 +4277,16 @@
       border-color: var(--accent);
       box-shadow: 0 0 0 3px var(--accent-soft);
     }
+    .sm-section--evaluations {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), var(--bg-elevated) 55%);
+      border-left: 4px solid #6366f1;
+    }
+    .sm-section--evaluations .sm-section__title { color: #4f46e5; }
+    .class-eval-details > summary { list-style: none; }
+    .class-eval-details > summary::-webkit-details-marker { display: none; }
+    .class-eval-details[open] {
+      border-color: color-mix(in srgb, #6366f1 45%, var(--border));
+    }
     .sm-section--forgotten {
       background: linear-gradient(135deg, rgba(252, 211, 77, 0.12), var(--bg-elevated) 50%);
       border-left: 4px solid var(--warning);
@@ -6614,6 +6624,7 @@
       periods: [],
       venues: [],
       forgottenGear: [],
+      evaluations: [],
       todoList: [],
       reminders: [],
       schoolCalendarEvents: [],
@@ -9613,6 +9624,7 @@
       </div>`);
       body.querySelector("#f-summary").value = session.summary || "";
       injectPreviousAbsentReminder(body.querySelector("#cp-prev-absent-reminder"), session);
+      body.appendChild(buildSessionEvaluationsBlock(session));
       body.appendChild(buildAttendanceBlock(session));
       body.appendChild(buildSessionPdfBlock(session));
       const persistSummary = () => {
@@ -9623,7 +9635,383 @@
       openModal("Résumé de séance", body, () => {
         persistSummary();
         render();
-      });
+      }, { wide: true });
+    }
+
+    function ensureEvaluationsStore() {
+      if (!Array.isArray(appData.evaluations)) appData.evaluations = [];
+      return appData.evaluations;
+    }
+
+    function normalizeEvaluation(raw) {
+      if (!raw || typeof raw !== "object") return null;
+      const title = String(raw.title || "").trim();
+      const classId = String(raw.classId || "").trim();
+      if (!title || !classId) return null;
+      let maxScore = Number(raw.maxScore);
+      if (!Number.isFinite(maxScore) || maxScore <= 0) maxScore = 20;
+      const scores = {};
+      if (raw.scores && typeof raw.scores === "object") {
+        Object.keys(raw.scores).forEach((name) => {
+          const key = String(name || "").trim();
+          if (!key) return;
+          const n = Number(raw.scores[name]);
+          if (Number.isFinite(n)) scores[key] = n;
+        });
+      }
+      return {
+        id: raw.id || uid(),
+        classId,
+        sessionId: raw.sessionId ? String(raw.sessionId) : "",
+        date: String(raw.date || "").trim(),
+        startTime: String(raw.startTime || "").trim(),
+        activityId: raw.activityId || null,
+        title,
+        maxScore,
+        scores,
+        createdAt: raw.createdAt || new Date().toISOString(),
+      };
+    }
+
+    function evaluationsForClass(classId) {
+      return ensureEvaluationsStore()
+        .map(normalizeEvaluation)
+        .filter((e) => e && e.classId === classId)
+        .sort(
+          (a, b) =>
+            String(b.date || "").localeCompare(String(a.date || "")) ||
+            String(b.createdAt || "").localeCompare(String(a.createdAt || ""))
+        );
+    }
+
+    function evaluationsForSession(session) {
+      if (!session) return [];
+      return ensureEvaluationsStore()
+        .map(normalizeEvaluation)
+        .filter((e) => {
+          if (!e) return false;
+          if (e.sessionId && e.sessionId === session.id) return true;
+          return (
+            e.classId === session.classId &&
+            e.date === session.date &&
+            String(e.startTime || "") === String(session.startTime || "")
+          );
+        })
+        .sort((a, b) => String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
+    }
+
+    function upsertEvaluation(ev) {
+      const normalized = normalizeEvaluation(ev);
+      if (!normalized) return null;
+      const list = ensureEvaluationsStore();
+      const idx = list.findIndex((x) => x && x.id === normalized.id);
+      if (idx >= 0) list[idx] = normalized;
+      else list.push(normalized);
+      return normalized;
+    }
+
+    function deleteEvaluationById(id) {
+      if (!id) return;
+      appData.evaluations = ensureEvaluationsStore().filter((e) => e && e.id !== id);
+    }
+
+    function evaluationScoreStats(ev) {
+      const values = Object.values((ev && ev.scores) || {}).filter((n) => Number.isFinite(n));
+      if (!values.length) return { count: 0, avg: null };
+      const sum = values.reduce((a, b) => a + b, 0);
+      return { count: values.length, avg: Math.round((sum / values.length) * 10) / 10 };
+    }
+
+    function formatEvaluationScore(n, maxScore) {
+      if (!Number.isFinite(n)) return "—";
+      const max = Number.isFinite(maxScore) && maxScore > 0 ? maxScore : 20;
+      const rounded = Number.isInteger(n) ? String(n) : String(Math.round(n * 10) / 10);
+      return `${rounded}/${max}`;
+    }
+
+    function openEvaluationEditorModal(session, existing, onDone) {
+      if (!session) return;
+      const cl = getClassById(session.classId);
+      const students = (cl && Array.isArray(cl.students) ? cl.students : []).map((n) => String(n || "").trim()).filter(Boolean);
+      if (!students.length) {
+        alert("Aucun élève dans cette classe. Ajoutez-les dans Réglages → Mes classes.");
+        return;
+      }
+      const isEdit = !!(existing && existing.id);
+      const draft = normalizeEvaluation(
+        existing || {
+          id: uid(),
+          classId: session.classId,
+          sessionId: session.id,
+          date: session.date,
+          startTime: session.startTime || "",
+          activityId: session.activityId || null,
+          title: "",
+          maxScore: 20,
+          scores: {},
+          createdAt: new Date().toISOString(),
+        }
+      );
+      if (!draft) return;
+      draft.sessionId = session.id;
+      draft.classId = session.classId;
+      draft.date = session.date;
+      draft.startTime = session.startTime || "";
+      draft.activityId = session.activityId || null;
+
+      const scoreRows = students
+        .map((name) => {
+          const val = Number.isFinite(draft.scores[name]) ? draft.scores[name] : "";
+          return `<tr>
+            <td style="padding:.35rem .4rem;border-bottom:1px solid var(--border)">${escapeHtml(name)}</td>
+            <td style="padding:.35rem .4rem;border-bottom:1px solid var(--border);width:7rem">
+              <input type="number" class="eval-score-input" data-student="${escapeHtml(name)}" min="0" step="0.5" value="${escapeHtml(val === "" ? "" : String(val))}" style="width:100%;padding:.3rem .4rem;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--fg)" />
+            </td>
+          </tr>`;
+        })
+        .join("");
+
+      const body = el(`<div>
+        <p class="kpi-sub" style="margin:0 0 .65rem"><strong>${fmtDateFr(session.date)}</strong> · ${escapeHtml(session.startTime || "")}–${escapeHtml(session.endTime || "")}${cl ? " · " + escapeHtml(cl.name) : ""}</p>
+        <div class="form-group"><label for="f-eval-title">Intitulé</label><input type="text" id="f-eval-title" placeholder="Ex. Évaluation badminton" value="${escapeHtml(draft.title)}" autocomplete="off" /></div>
+        <div class="form-group"><label for="f-eval-max">Notée sur</label><input type="number" id="f-eval-max" min="1" step="1" value="${escapeHtml(String(draft.maxScore))}" style="max-width:8rem" /></div>
+        <p class="kpi-sub" style="margin:.35rem 0 .35rem">Notes des élèves</p>
+        <div style="max-height:min(50vh,22rem);overflow:auto;border:1px solid var(--border);border-radius:8px">
+          <table style="width:100%;border-collapse:collapse;font-size:.86rem">
+            <thead><tr><th style="text-align:left;padding:.35rem .4rem;border-bottom:1px solid var(--border)">Élève</th><th style="text-align:left;padding:.35rem .4rem;border-bottom:1px solid var(--border)">Note</th></tr></thead>
+            <tbody>${scoreRows}</tbody>
+          </table>
+        </div>
+      </div>`);
+
+      openModal(isEdit ? "Modifier l'évaluation" : "Créer une évaluation", body, () => {
+        const title = (body.querySelector("#f-eval-title")?.value || "").trim();
+        let maxScore = Number(body.querySelector("#f-eval-max")?.value);
+        if (!title) {
+          alert("Indiquez un intitulé.");
+          body.querySelector("#f-eval-title")?.focus();
+          return false;
+        }
+        if (!Number.isFinite(maxScore) || maxScore <= 0) {
+          alert("Indiquez un barème valide (ex. 20).");
+          body.querySelector("#f-eval-max")?.focus();
+          return false;
+        }
+        const scores = {};
+        body.querySelectorAll(".eval-score-input").forEach((inp) => {
+          const name = inp.getAttribute("data-student") || "";
+          const raw = String(inp.value || "").trim();
+          if (!name || raw === "") return;
+          const n = Number(raw.replace(",", "."));
+          if (!Number.isFinite(n)) return;
+          scores[name] = n;
+        });
+        draft.title = title;
+        draft.maxScore = maxScore;
+        draft.scores = scores;
+        upsertEvaluation(draft);
+        saveData({ skipAutoRegen: true });
+        if (typeof onDone === "function") onDone(draft);
+        return true;
+      }, { autosave: false, wide: true, confirmLabel: isEdit ? "Enregistrer" : "Créer" });
+      setTimeout(() => body.querySelector("#f-eval-title")?.focus(), 0);
+    }
+
+    function buildSessionEvaluationsBlock(session, opts) {
+      opts = opts || {};
+      const wrap = document.createElement("div");
+      wrap.className = opts.styled ? "sm-section sm-section--evaluations" : "";
+      if (!opts.styled) wrap.style.cssText = "margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem";
+
+      const showEditor = (existing) => {
+        const cl = getClassById(session.classId);
+        const students = (cl && Array.isArray(cl.students) ? cl.students : [])
+          .map((n) => String(n || "").trim())
+          .filter(Boolean);
+        if (!students.length) {
+          alert("Aucun élève dans cette classe. Ajoutez-les dans Réglages → Mes classes.");
+          return;
+        }
+        const isEdit = !!(existing && existing.id);
+        const draft = normalizeEvaluation(
+          existing || {
+            id: uid(),
+            classId: session.classId,
+            sessionId: session.id,
+            date: session.date,
+            startTime: session.startTime || "",
+            activityId: session.activityId || null,
+            title: "",
+            maxScore: 20,
+            scores: {},
+            createdAt: new Date().toISOString(),
+          }
+        );
+        if (!draft) return;
+        draft.sessionId = session.id;
+        draft.classId = session.classId;
+        draft.date = session.date;
+        draft.startTime = session.startTime || "";
+        draft.activityId = session.activityId || null;
+
+        const scoreRows = students
+          .map((name) => {
+            const val = Number.isFinite(draft.scores[name]) ? draft.scores[name] : "";
+            return `<tr>
+              <td style="padding:.35rem .4rem;border-bottom:1px solid var(--border)">${escapeHtml(name)}</td>
+              <td style="padding:.35rem .4rem;border-bottom:1px solid var(--border);width:7rem">
+                <input type="number" class="eval-score-input" data-student="${escapeHtml(name)}" min="0" step="0.5" value="${escapeHtml(val === "" ? "" : String(val))}" style="width:100%;padding:.3rem .4rem;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--fg)" />
+              </td>
+            </tr>`;
+          })
+          .join("");
+
+        wrap.innerHTML = `
+          <p class="${opts.styled ? "sm-section__title" : ""}" style="margin:0 0 .45rem;font-weight:700">${isEdit ? "Modifier l'évaluation" : "Créer une évaluation"}</p>
+          <div class="form-group"><label for="f-eval-title">Intitulé</label><input type="text" id="f-eval-title" placeholder="Ex. Évaluation badminton" value="${escapeHtml(draft.title)}" autocomplete="off" /></div>
+          <div class="form-group"><label for="f-eval-max">Notée sur</label><input type="number" id="f-eval-max" min="1" step="1" value="${escapeHtml(String(draft.maxScore))}" style="max-width:8rem" /></div>
+          <p class="kpi-sub" style="margin:.35rem 0 .35rem">Notes des élèves</p>
+          <div style="max-height:min(42vh,18rem);overflow:auto;border:1px solid var(--border);border-radius:8px;margin-bottom:.55rem">
+            <table style="width:100%;border-collapse:collapse;font-size:.86rem">
+              <thead><tr><th style="text-align:left;padding:.35rem .4rem;border-bottom:1px solid var(--border)">Élève</th><th style="text-align:left;padding:.35rem .4rem;border-bottom:1px solid var(--border)">Note</th></tr></thead>
+              <tbody>${scoreRows}</tbody>
+            </table>
+          </div>
+          <div style="display:flex;gap:.4rem;flex-wrap:wrap;justify-content:flex-end">
+            <button type="button" class="btn btn-sm btn-ghost" id="btn-eval-cancel">Annuler</button>
+            <button type="button" class="btn btn-sm btn-primary" id="btn-eval-save">${isEdit ? "Enregistrer" : "Créer"}</button>
+          </div>`;
+
+        wrap.querySelector("#btn-eval-cancel")?.addEventListener("click", () => renderList());
+        wrap.querySelector("#btn-eval-save")?.addEventListener("click", () => {
+          const title = (wrap.querySelector("#f-eval-title")?.value || "").trim();
+          let maxScore = Number(wrap.querySelector("#f-eval-max")?.value);
+          if (!title) {
+            alert("Indiquez un intitulé.");
+            wrap.querySelector("#f-eval-title")?.focus();
+            return;
+          }
+          if (!Number.isFinite(maxScore) || maxScore <= 0) {
+            alert("Indiquez un barème valide (ex. 20).");
+            wrap.querySelector("#f-eval-max")?.focus();
+            return;
+          }
+          const scores = {};
+          wrap.querySelectorAll(".eval-score-input").forEach((inp) => {
+            const name = inp.getAttribute("data-student") || "";
+            const raw = String(inp.value || "").trim();
+            if (!name || raw === "") return;
+            const n = Number(raw.replace(",", "."));
+            if (!Number.isFinite(n)) return;
+            scores[name] = n;
+          });
+          draft.title = title;
+          draft.maxScore = maxScore;
+          draft.scores = scores;
+          upsertEvaluation(draft);
+          saveData({ skipAutoRegen: true });
+          renderList();
+        });
+        setTimeout(() => wrap.querySelector("#f-eval-title")?.focus(), 0);
+      };
+
+      const renderList = () => {
+        const list = evaluationsForSession(session);
+        const items = list.length
+          ? list
+              .map((ev) => {
+                const st = evaluationScoreStats(ev);
+                const meta = st.count
+                  ? `${st.count} note${st.count > 1 ? "s" : ""}${st.avg != null ? ` · moy. ${st.avg}/${ev.maxScore}` : ""}`
+                  : "Aucune note saisie";
+                return `<div class="eval-session-row" style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;padding:.4rem 0;border-bottom:1px solid var(--border)">
+                  <div style="min-width:0">
+                    <strong style="font-size:.9rem">${escapeHtml(ev.title)}</strong>
+                    <div class="kpi-sub" style="margin-top:.1rem">Sur ${ev.maxScore} · ${escapeHtml(meta)}</div>
+                  </div>
+                  <div style="display:flex;gap:.3rem;flex-shrink:0">
+                    <button type="button" class="btn btn-sm btn-ghost btn-eval-edit" data-id="${escapeHtml(ev.id)}">Modifier</button>
+                    <button type="button" class="btn btn-sm btn-danger btn-eval-del" data-id="${escapeHtml(ev.id)}" style="padding:.15rem .4rem;font-size:.72rem">Suppr.</button>
+                  </div>
+                </div>`;
+              })
+              .join("")
+          : `<p class="kpi-sub" style="margin:0">Aucune évaluation pour cette séance.</p>`;
+
+        wrap.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;margin-bottom:.45rem">
+            <p class="${opts.styled ? "sm-section__title" : ""}" style="margin:0;font-weight:700">📊 Évaluations</p>
+            <button type="button" class="btn btn-sm btn-primary" id="btn-eval-create">+ Créer une évaluation</button>
+          </div>
+          <div class="eval-session-list">${items}</div>`;
+
+        wrap.querySelector("#btn-eval-create")?.addEventListener("click", () => showEditor(null));
+        wrap.querySelectorAll(".btn-eval-edit").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const id = btn.getAttribute("data-id");
+            const ev = ensureEvaluationsStore().find((x) => x && x.id === id);
+            if (!ev) return;
+            showEditor(ev);
+          });
+        });
+        wrap.querySelectorAll(".btn-eval-del").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const id = btn.getAttribute("data-id");
+            const ev = ensureEvaluationsStore().find((x) => x && x.id === id);
+            if (!ev) return;
+            if (!confirm(`Supprimer l'évaluation « ${ev.title} » ?`)) return;
+            deleteEvaluationById(id);
+            saveData({ skipAutoRegen: true });
+            renderList();
+          });
+        });
+      };
+
+      renderList();
+      wrap.__refreshEvaluations = renderList;
+      return wrap;
+    }
+
+    function renderClassEvaluationsBlock(classId) {
+      const list = evaluationsForClass(classId);
+      if (!list.length) {
+        return `<div class="card no-print" style="border-left:5px solid #6366f1">
+          <h3 style="margin:0 0 .35rem">📊 Évaluations</h3>
+          <p class="kpi-sub" style="margin:0">Aucune évaluation. Créez-en depuis le résumé d’une séance (cours du jour ou page classe).</p>
+        </div>`;
+      }
+      const rows = list
+        .map((ev) => {
+          const st = evaluationScoreStats(ev);
+          const act = ev.activityId ? activityById(ev.activityId) : null;
+          const scoreLines = Object.keys(ev.scores || {})
+            .sort((a, b) => a.localeCompare(b, "fr"))
+            .map(
+              (name) =>
+                `<div style="display:flex;justify-content:space-between;gap:.75rem;padding:.2rem 0;border-bottom:1px solid color-mix(in srgb, var(--border) 70%, transparent)"><span>${escapeHtml(name)}</span><strong>${escapeHtml(formatEvaluationScore(ev.scores[name], ev.maxScore))}</strong></div>`
+            )
+            .join("");
+          return `<details class="class-eval-details" style="border:1px solid var(--border);border-radius:10px;padding:.55rem .7rem;background:color-mix(in srgb, var(--surface) 92%, var(--bg))">
+            <summary style="cursor:pointer;list-style:none;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.4rem">
+              <span><strong>${escapeHtml(ev.title)}</strong>
+                <span class="kpi-sub"> · ${escapeHtml(fmtDateFr(ev.date) || "—")}${ev.startTime ? " · " + escapeHtml(ev.startTime) : ""}${act ? " · " + escapeHtml(act.name) : ""}</span>
+              </span>
+              <span class="kpi-sub">${st.count ? `${st.count} note${st.count > 1 ? "s" : ""}${st.avg != null ? ` · moy. ${st.avg}/${ev.maxScore}` : ""}` : "Sans note"} · /${ev.maxScore}</span>
+            </summary>
+            <div style="margin-top:.55rem">
+              ${scoreLines || `<p class="kpi-sub" style="margin:0">Aucune note saisie.</p>`}
+              <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.55rem">
+                <button type="button" class="btn btn-sm btn-ghost btn-class-eval-edit" data-id="${escapeHtml(ev.id)}">Modifier</button>
+                <button type="button" class="btn btn-sm btn-danger btn-class-eval-del" data-id="${escapeHtml(ev.id)}">Supprimer</button>
+              </div>
+            </div>
+          </details>`;
+        })
+        .join("");
+      return `<div class="card no-print" style="border-left:5px solid #6366f1">
+        <h3 style="margin:0 0 .55rem">📊 Évaluations <span class="kpi-sub">(${list.length})</span></h3>
+        <div style="display:flex;flex-direction:column;gap:.45rem">${rows}</div>
+      </div>`;
     }
 
     function migrateDataModel() {
@@ -9677,6 +10065,10 @@
         appData.settings.myCoordinationTeacherId = appData.settings.boundTeacherId;
       }
       if (!Array.isArray(appData.forgottenGear)) appData.forgottenGear = [];
+      if (!Array.isArray(appData.evaluations)) appData.evaluations = [];
+      appData.evaluations = appData.evaluations
+        .map(normalizeEvaluation)
+        .filter(Boolean);
       appData.classes.forEach((cl) => {
         if (!Array.isArray(cl.students)) cl.students = [];
         if (!cl.level) cl.level = inferClassLevel(cl.name) || (Number(cl.cycleYears) === 3 ? "6e" : "5e");
@@ -11727,6 +12119,20 @@
         }
       });
       appData.cancellations = oldCanc.filter((c) => appData.sessions.some((s) => s.id === c.sessionId));
+      ensureEvaluationsStore().forEach((ev) => {
+        if (!ev) return;
+        const match = appData.sessions.find(
+          (s) =>
+            s.id === ev.sessionId ||
+            (s.classId === ev.classId && s.date === ev.date && String(s.startTime || "") === String(ev.startTime || ""))
+        );
+        if (match) {
+          ev.sessionId = match.id;
+          ev.date = match.date;
+          ev.startTime = match.startTime || "";
+          if (match.activityId) ev.activityId = match.activityId;
+        }
+      });
       if (!opts.skipSave) saveData({ skipAutoRegen: true });
     }
 
@@ -20935,6 +21341,7 @@
         ${periodSelectorCard}
         ${renderExemptionsBlock(classId)}
         ${renderForgottenGearBlock(classId, activePeriod)}
+        ${renderClassEvaluationsBlock(classId)}
         ${sectionsHtml}`
       );
     }
@@ -21839,6 +22246,37 @@
           classSelectedPeriod[classId] = val === "__all__" ? null : val;
           render();
         }
+      });
+      main.querySelectorAll(".btn-class-eval-edit").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-id");
+          const ev = ensureEvaluationsStore().find((x) => x && x.id === id);
+          if (!ev) return;
+          const session =
+            appData.sessions.find((s) => s.id === ev.sessionId) ||
+            appData.sessions.find(
+              (s) =>
+                s.classId === ev.classId &&
+                s.date === ev.date &&
+                String(s.startTime || "") === String(ev.startTime || "")
+            );
+          if (!session) {
+            alert("Séance liée introuvable. Les notes restent consultables ici.");
+            return;
+          }
+          openEvaluationEditorModal(session, ev, () => render());
+        });
+      });
+      main.querySelectorAll(".btn-class-eval-del").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-id");
+          const ev = ensureEvaluationsStore().find((x) => x && x.id === id);
+          if (!ev) return;
+          if (!confirm(`Supprimer l'évaluation « ${ev.title} » ?`)) return;
+          deleteEvaluationById(id);
+          saveData({ skipAutoRegen: true });
+          render();
+        });
       });
       main.querySelector("#advanced-apsa-class-select")?.addEventListener("change", (e) => {
         advancedApsaClassId = e.target.value || "";
@@ -23572,6 +24010,7 @@
               <p class="sm-section__title">📝 Résumé de la séance</p>
               <textarea id="f-td-summary" rows="5" style="font-size:.9rem;line-height:1.5" placeholder="Contenu de la séance, observations, points à retenir…"></textarea>
             </div>
+            <div id="td-eval-mount"></div>
             <div class="sm-section sm-section--forgotten">
               <details class="fg-quick-add-details">
                 <summary style="cursor:pointer;font-weight:600;font-size:.92rem;user-select:none">🎒 Oubli de matériel</summary>
@@ -23609,6 +24048,8 @@
             </div>
           </div>`);
           body.querySelector("#f-td-summary").value = s.summary || "";
+          const evalMount = body.querySelector("#td-eval-mount");
+          if (evalMount) evalMount.appendChild(buildSessionEvaluationsBlock(s, { styled: true }));
           injectPreviousAbsentReminder(body.querySelector("#td-prev-absent-reminder"), s);
           injectSessionExemptionsInfo(body.querySelector("#td-ex-info"), s.classId, s.date, s.id);
           const tdExPhotoState = { certPhoto: null };
